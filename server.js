@@ -1,8 +1,8 @@
 // Caravan mini-app: static hosting + Telegram bot (long polling). Env: BOT_TOKEN, PORT, RAILWAY_PUBLIC_DOMAIN or WEBAPP_URL.
 const http = require("http"), fs = require("fs"), path = require("path");
 const PORT = process.env.PORT || 3000;
-const TOKEN = process.env.BOT_TOKEN;
-const BASE = (process.env.WEBAPP_URL || (process.env.RAILWAY_PUBLIC_DOMAIN ? "https://" + process.env.RAILWAY_PUBLIC_DOMAIN : "")).replace(/\/$/, "");
+const TOKEN = (process.env.BOT_TOKEN || "").trim().replace(/^bot/i, "");
+const BASE = (process.env.WEBAPP_URL || (process.env.RAILWAY_PUBLIC_DOMAIN ? "https://" + process.env.RAILWAY_PUBLIC_DOMAIN : "https://caravan-tg-bot-production.up.railway.app")).replace(/\/$/, "");
 const ROOT = path.join(__dirname, "public");
 const TYPES = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml" };
 
@@ -37,6 +37,9 @@ const KB = () => ({ inline_keyboard: [
 const TEXT = "Новогодний караван Coca-Cola 🚚\n\nДва концепта мини-приложения для бота Coca-Cola Dunyosi. Нажмите на концепт, чтобы открыть его.";
 
 async function startBot() {
+  const me = await api("getMe");
+  console.log("bot check:", me.ok ? "@" + me.result.username : "token rejected by Telegram");
+  if (!me.ok) return;
   await api("deleteWebhook", { drop_pending_updates: false });
   await api("setMyCommands", { commands: [{ command: "start", description: "Открыть концепты" }] });
   await api("setChatMenuButton", { menu_button: { type: "web_app", text: "Караван", web_app: { url: BASE + "/" } } });
