@@ -1,10 +1,13 @@
 // Caravan mini-app: static hosting + Telegram bot (long polling). Env: BOT_TOKEN, PORT, RAILWAY_PUBLIC_DOMAIN or WEBAPP_URL.
 const http = require("http"), fs = require("fs"), path = require("path");
 const PORT = process.env.PORT || 3000;
-const TOKEN = (process.env.BOT_TOKEN || "").trim().replace(/^bot/i, "");
+const TOKEN_NAMES = ["BOT_TOKEN", "TELEGRAM_BOT_TOKEN", "TELEGRAM_TOKEN", "TG_TOKEN", "TG_BOT_TOKEN", "TOKEN"];
+const tokenFrom = TOKEN_NAMES.find(n => (process.env[n] || "").trim()) ||
+  Object.keys(process.env).find(n => /^\s*\d{6,}:[\w-]{30,}\s*$/.test(process.env[n] || ""));
+const TOKEN = (tokenFrom ? process.env[tokenFrom] : "").trim().replace(/^["']|["']$/g, "").replace(/^bot/i, "");
 const BASE = (process.env.WEBAPP_URL || (process.env.RAILWAY_PUBLIC_DOMAIN ? "https://" + process.env.RAILWAY_PUBLIC_DOMAIN : "https://caravan-tg-bot-production.up.railway.app")).replace(/\/$/, "");
 const ROOT = path.join(__dirname, "public");
-const STATE = { tokenSet: !!TOKEN, tokenLooksValid: /^\d+:[\w-]{30,}$/.test(TOKEN), base: BASE, node: process.version, bot: "not started", lastError: null, updates: 0, startedAt: new Date().toISOString() };
+const STATE = { tokenSet: !!TOKEN, tokenFrom: tokenFrom || null, envNames: Object.keys(process.env).filter(n => !/^(RAILWAY_|NIXPACKS|npm_|NODE_|PATH$|HOME$|HOSTNAME$|PWD$|SHLVL$|_$|LANG|TERM|YARN|COREPACK|PORT$)/.test(n)).sort(), tokenLooksValid: /^\d+:[\w-]{30,}$/.test(TOKEN), base: BASE, node: process.version, bot: "not started", lastError: null, updates: 0, startedAt: new Date().toISOString() };
 const TYPES = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml" };
 
 http.createServer((req, res) => {
