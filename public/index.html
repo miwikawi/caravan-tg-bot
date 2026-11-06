@@ -1,0 +1,1084 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
+<title>Караван Coca-Cola</title>
+<meta property="og:title" content="Караван Coca-Cola"><meta property="og:description" content="Два концепта мини-приложения"><meta property="og:image" content="img/truck-hero.jpg">
+<script src="https://telegram.org/js/telegram-web-app.js?59"></script>
+<style>
+/* One connected canvas: 1 user phone (bot → mini-app) with the control desk · 2 moderator mini-app + LED manager on the truck PC · 3 the approved truck with its 4 LED screens. Bayram/Caravan DS: red and white, Better With + TCCC Unity, pill buttons, 1:1 photos. */
+@font-face{font-family:"Better With";src:url(fonts/BetterWith.woff2) format("woff2");font-display:swap}
+@font-face{font-family:"TCCC Unity";src:url(fonts/TCCCUnity-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"TCCC Unity";src:url(fonts/TCCCUnity-Medium.woff2) format("woff2");font-weight:500 800;font-display:swap}
+:root{
+  --red:#e41e2b; --red6:#d11b27; --red8:#a61019; --paper:#fff; --g2:#d1d3d4; --g1:#f2f2f2; --ink:#1a1a1a; --muted:#5c5552; --ok:#1f7a44; --night:#0f1a33;
+  --sh-tile:0 6px 0 #a61019,0 12px 24px rgba(80,0,8,.35); --sh-card:0 2px 6px rgba(26,26,26,.06),0 10px 24px rgba(26,26,26,.08);
+  --stage:#170c0e; --desk:#241316; --deskline:#3e2327; --dtext:#f6ecec; --dmuted:#bfa5a8;
+  --tg1:#cfe3a8; --tg2:#9cc98b; --tg3:#7db487; --tgbtn:rgba(78,140,72,.78); --tgink:#0f2a12;
+  --win:#16181d; --win2:#1e2128; --win3:#272b34; --winline:#333845; --wintext:#e9ecf2; --winmuted:#8d94a3; --accent:#4c9dff;
+  --display:"Better With",Georgia,serif; --ui:"TCCC Unity","Segoe UI",system-ui,-apple-system,sans-serif;
+  --ease:cubic-bezier(.25,.8,.25,1); --sheet:cubic-bezier(.32,.72,0,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--stage);color:var(--dtext);font-family:var(--ui);font-size:15px;line-height:1.45}
+button{font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;color:inherit}
+button:focus-visible{outline:3px solid #ffd2d5;outline-offset:2px}
+img{display:block;max-width:100%}
+.page{max-width:1320px;margin:0 auto;padding-block:28px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:34px}
+
+/* header + pipeline */
+.top{display:grid;gap:14px}
+.top h1{margin:0;font-family:var(--display);font-weight:400;font-size:clamp(34px,4.6vw,56px);line-height:.95;text-wrap:balance}
+.top p{margin:0;color:var(--dmuted);max-width:78ch}
+.pipe{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pipe button{border:1px solid var(--deskline);background:var(--desk);border-radius:999px;padding:8px 14px 8px 8px;display:flex;gap:8px;align-items:center;font-weight:600;font-size:13.5px;transition:background .3s,border-color .3s}
+.pipe button i{width:24px;height:24px;border-radius:50%;background:var(--red);color:#fff;font-style:normal;font-size:12px;display:grid;place-items:center}
+.pipe button.hot{border-color:#ff8b94;background:#3a1519;animation:hot 1s ease-out 2}
+@keyframes hot{50%{box-shadow:0 0 0 6px rgba(228,30,43,.35)}}
+.pipe .ar{color:var(--dmuted)}
+.sech{display:flex;align-items:center;gap:10px;margin:0 0 14px;font-size:12.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--dmuted)}
+.sech b{width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff;display:grid;place-items:center;font-size:13px;letter-spacing:0}
+.sech span{flex:1}
+.row1{display:grid;grid-template-columns:auto minmax(0,1fr);gap:34px;align-items:start}
+.row2{display:grid;grid-template-columns:340px minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:960px){.row1,.row2{grid-template-columns:minmax(0,1fr);justify-items:center}.row1>*,.row2>*{width:100%}.row1 .phone,.row2 .mphone{justify-self:center}}
+
+/* ---------- user phone ---------- */
+.phone{width:min(390px,calc(100vw - 32px));height:820px;border:11px solid #0e0a0b;border-radius:52px;background:#000;position:relative;overflow:hidden;box-shadow:0 30px 60px rgba(0,0,0,.5);isolation:isolate}
+.status{height:40px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font-weight:600;font-size:14px;flex:none}
+.tg{position:absolute;inset:0;display:flex;flex-direction:column;color:var(--tgink);background:linear-gradient(165deg,var(--tg1),var(--tg2) 55%,var(--tg3))}
+.tg .status{color:#111}
+.tghead{display:grid;grid-template-columns:62px 1fr 62px;align-items:center;gap:6px;padding:4px 12px 8px;flex:none}
+.pillb{height:46px;border-radius:23px;background:rgba(255,255,255,.55);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);display:flex;align-items:center;justify-content:center;gap:4px;font-weight:600}
+.pillb .n{background:#111;color:#fff;border-radius:50%;width:22px;height:22px;display:grid;place-items:center;font-size:12px}
+.tgtitle{flex-direction:column;gap:0;line-height:1.15}
+.tgtitle b{font-size:15.5px}.tgtitle small{font-size:12px;color:#425a3c}
+.ava{width:46px;height:46px;border-radius:50%;justify-self:end;overflow:hidden;border:2px solid #fff}
+.ava img{width:100%;height:100%}
+.chat{flex:1;overflow-y:auto;scrollbar-width:none;padding:8px 10px 12px;display:flex;flex-direction:column;gap:6px}
+.chat::-webkit-scrollbar{display:none}
+.chat .spacer{flex:1}
+.msg{max-width:80%;background:#fff;border-radius:16px 16px 16px 6px;padding:8px 11px;font-size:14.5px;box-shadow:0 1px 1px rgba(0,0,0,.08);animation:fin .35s ease-out}
+.msg small{font-size:11px;color:#8b948a;margin-left:8px;float:right;margin-top:5px}
+.msg.me{align-self:flex-end;background:#e2f7cb;border-radius:16px 16px 6px 16px}
+.msg.pic{padding:4px;width:72%}
+.msg.pic img{border-radius:12px;width:100%;aspect-ratio:1;object-fit:cover}
+.msg.pic p{margin:6px 6px 2px;font-size:14px}
+.hubpic{width:82%;border-radius:16px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.12);position:relative;background:#e41e2b}
+.hubpic small{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.45);color:#fff;font-size:11px;border-radius:9px;padding:2px 7px}
+.kb{width:82%;display:grid;gap:4px}
+.kbtn{border:0;border-radius:12px;background:var(--tgbtn);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);color:#fff;font-weight:600;font-size:15px;padding:12px 10px;position:relative;text-align:center;transition:transform .1s ease-out}
+.kbtn:active{transform:scale(.98)}
+.kbtn::after{content:"";position:absolute;right:8px;top:8px;width:8px;height:8px;border:1.6px solid rgba(255,255,255,.9);border-radius:2px}
+.kbtn.noapp::after{display:none}
+.kbtn.cara{background:var(--red);box-shadow:0 4px 14px rgba(166,16,25,.35)}
+.datep{align-self:center;background:rgba(60,100,50,.35);color:#fff;font-size:12.5px;border-radius:10px;padding:2px 9px;font-weight:600}
+.tginput{display:flex;gap:8px;align-items:center;padding:6px 10px 22px;flex:none}
+.tginput span{flex:1;height:42px;border-radius:21px;background:rgba(255,255,255,.7);display:flex;align-items:center;padding:0 16px;color:#88908a}
+.tginput i{width:42px;height:42px;border-radius:50%;background:rgba(255,255,255,.7)}
+@keyframes fin{from{opacity:0;transform:translateY(8px)}}
+
+/* mini-app shell */
+.mini{position:absolute;inset:0;z-index:5;background:var(--g1);color:var(--ink);display:flex;flex-direction:column;transform:translateY(102%);transition:transform .45s var(--sheet)}
+.mini.on{transform:none}
+.mini>.status{background:var(--red);color:#fff}
+.mbar{height:46px;display:grid;grid-template-columns:80px 1fr 80px;align-items:center;flex:none;padding:0 12px;background:var(--red);color:#fff;position:relative;z-index:3}
+.mbar .l{border:0;background:none;font-size:14.5px;text-align:left;padding:0}
+.mbar .t{text-align:center;line-height:1.1}.mbar .t b{display:block;font-size:15px;font-weight:500}.mbar .t small{font-size:11px;opacity:.85}
+.mbar .r{justify-self:end;font-size:20px;letter-spacing:1px;opacity:.9}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;scrollbar-width:none;scroll-behavior:smooth}
+.scroll::-webkit-scrollbar{display:none}
+.scroll.redbg{background:var(--red)}
+.toast{position:absolute;left:16px;right:16px;bottom:30px;background:rgba(26,26,26,.92);color:#fff;border-radius:14px;padding:11px 14px;font-size:13px;z-index:20;text-align:center;opacity:0;transform:translateY(8px);transition:opacity .2s,transform .2s;pointer-events:none}
+.toast.on{opacity:1;transform:none}
+
+/* shared light UI */
+.scr{padding:14px 16px 40px;display:grid;gap:12px;align-content:start;min-height:100%}
+.card{background:#fff;border-radius:16px;box-shadow:var(--sh-card);padding:16px;display:grid;gap:10px}
+.h1{font-family:var(--display);font-weight:400;font-size:30px;line-height:1;margin:0;color:var(--red);text-wrap:balance}
+.h2{font-family:var(--display);font-weight:400;font-size:22px;line-height:1.1;margin:0}
+.sub{font-size:14px;color:var(--muted);margin:0}
+.cap{font-size:13px;color:var(--muted)}
+.lbl{font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.btn{border:0;border-radius:999px;padding:14px 18px;font:500 16px var(--ui);width:100%;display:flex;justify-content:center;align-items:center;gap:8px;transition:transform .1s ease-out,opacity .15s,background .15s}
+.btn:active{transform:scale(.97)}
+.btn.r{background:var(--red);color:#fff}.btn.r:hover{background:var(--red6)}
+.btn.w{background:#fff;color:var(--red)}
+.btn.s{background:#fff;color:var(--red);box-shadow:inset 0 0 0 1.5px var(--g2)}
+.btn.o{background:transparent;color:#fff;box-shadow:inset 0 0 0 2px rgba(255,255,255,.75)}
+.btn.sm{padding:10px 14px;font-size:14px;width:auto}
+.btn[disabled]{opacity:.4;pointer-events:none}
+.back{border:0;background:#fff;box-shadow:var(--sh-card);border-radius:999px;padding:8px 14px;font-weight:500;font-size:13.5px;justify-self:start;color:var(--red)}
+.coin{width:18px;height:18px;object-fit:contain;flex:none;display:inline-block;vertical-align:-4px}
+.bal{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--red);border-radius:999px;padding:5px 12px 5px 6px;font-weight:500;font-size:15px;font-variant-numeric:tabular-nums;box-shadow:var(--sh-card)}
+.bal .coin{width:22px;height:22px}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 9px;font-size:11px;font-weight:500;letter-spacing:.04em;white-space:nowrap;text-transform:uppercase}
+.chip.live{background:var(--red);color:#fff}
+.chip.live::before{content:"";width:7px;height:7px;border-radius:50%;background:#fff;animation:pulse 1.2s ease-in-out infinite}
+.chip.today{background:var(--red);color:#fff}
+.chip.soon{background:#fde8e9;color:var(--red8)}
+.chip.done{background:var(--g1);color:var(--muted)}
+@keyframes pulse{50%{opacity:.3}}
+.toprow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+
+/* intro */
+.intro{position:absolute;inset:0;z-index:9;overflow:hidden;cursor:pointer;background:#0b0507;transition:opacity .45s ease}
+.intro.out{opacity:0;pointer-events:none}
+.intro .ph{position:absolute;inset:0;background:url(img/truck-hero.webp) 64% 50%/cover;opacity:0}
+.intro.play .ph{animation:ihz 2.8s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes ihz{0%{opacity:0;transform:scale(1.3)}18%{opacity:1}100%{opacity:1;transform:scale(1.04)}}
+.intro .shade{position:absolute;inset:0;background:linear-gradient(rgba(10,0,2,.15),transparent 30%,rgba(10,0,2,.7))}
+.intro .cur{position:absolute;inset:0;background:radial-gradient(100% 60% at 50% 60%,#f0333f,#e41e2b 50%,#a61019);clip-path:circle(0% at 50% 66%)}
+.intro.play .cur{animation:cur .9s cubic-bezier(.65,0,.25,1) 2.3s forwards}
+@keyframes cur{to{clip-path:circle(150% at 50% 66%)}}
+.intro .stripes{position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.08) 0 12px,transparent 12px 32px);-webkit-mask-image:linear-gradient(transparent 45%,#000);mask-image:linear-gradient(transparent 45%,#000);opacity:0}
+.intro.play .stripes{animation:fade .6s ease 3s forwards}
+.gbox{position:absolute;left:50%;width:330px;height:330px;margin-left:-165px}
+.gbox img{position:absolute;inset:0;width:100%;height:100%}
+.intro .gbox{top:250px;width:420px;height:420px;margin-left:-210px;opacity:0;transform:translateY(60px) scale(.6)}
+.intro.play .gbox{animation:bxin .7s cubic-bezier(.3,1.5,.5,1) 2.8s forwards,shake .45s ease-in-out 3.55s 1}
+@keyframes bxin{to{opacity:1;transform:none}}
+@keyframes shake{20%{transform:rotate(-4deg)}45%{transform:rotate(4deg)}70%{transform:rotate(-2deg)}100%{transform:none}}
+.gbox .lo,.gbox .ra,.gbox .gl,.gbox .bm{opacity:0}
+.intro.play .gbox .lc{animation:hide .01s linear 4s forwards}
+.intro.play .gbox .lo{animation:lidpop .5s cubic-bezier(.3,1.6,.5,1) 4s forwards}
+.intro.play .gbox .gl,.intro.play .gbox .bm{animation:fade .5s ease 4.05s forwards}
+.intro.play .gbox .ra{animation:fade .6s ease 4.1s forwards,spin 14s linear 4.1s infinite}
+@keyframes hide{to{opacity:0}}
+@keyframes lidpop{from{opacity:1;transform:translateY(30px) rotate(6deg)}to{opacity:1;transform:none}}
+@keyframes fade{to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ititle{position:absolute;left:0;right:0;top:96px;display:grid;justify-items:center;gap:8px;text-align:center;color:#fff;opacity:0;transform:translateY(40px) scale(.9)}
+.intro.play .ititle{animation:tin .8s var(--ease) 4.25s forwards}
+@keyframes tin{to{opacity:1;transform:none}}
+.ititle img{width:190px}
+.ititle h1{margin:0;font-family:var(--display);font-weight:400;font-size:46px;line-height:.95}
+.ititle p{margin:4px 0 0;font-size:13px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;opacity:.92}
+.intro .skip{position:absolute;right:16px;top:52px;font-size:12.5px;font-weight:500;color:#fff;background:rgba(255,255,255,.18);border-radius:999px;padding:5px 12px;z-index:3}
+.flake{position:absolute;top:-10px;color:rgba(255,255,255,.9);animation:fall linear infinite;pointer-events:none;z-index:2}
+@keyframes fall{to{transform:translateY(840px) translateX(var(--dx))}}
+
+/* consent */
+.cons{min-height:100%;display:grid;align-content:start;background:var(--red);color:#fff}
+.cons .hero{position:relative;aspect-ratio:4/3.1;overflow:hidden}
+.cons .hero img{width:100%;height:100%;object-fit:cover;object-position:60% 50%}
+.cons .hero::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(228,30,43,0) 40%,var(--red))}
+.cons .hero div{position:absolute;left:18px;right:18px;bottom:6px;z-index:1;display:grid;gap:6px}
+.cons .hero div img{width:130px;height:auto}
+.cons .hero b{font-family:var(--display);font-weight:400;font-size:38px;line-height:.95}
+.cons .body{padding:6px 16px 28px;display:grid;gap:10px}
+.chk{display:flex;gap:12px;align-items:flex-start;border:0;background:#fff;border-radius:16px;padding:14px;text-align:left;color:var(--ink);font-size:14px;line-height:1.4}
+.chk .b{width:24px;height:24px;border-radius:8px;border:2px solid var(--g2);display:grid;place-items:center;flex:none;background:#fff}
+.chk[aria-checked="true"] .b{background:var(--red);border-color:var(--red)}
+.chk[aria-checked="true"] .b::after{content:"";width:6px;height:11px;border:solid #fff;border-width:0 2.4px 2.4px 0;transform:rotate(45deg) translate(-1px,-1px)}
+.chk u{color:var(--red);text-decoration:none;font-weight:500;white-space:nowrap}
+.cons .btn{margin-top:6px}
+
+/* welcome bonus */
+.wel{position:absolute;inset:0;z-index:8;background:radial-gradient(100% 70% at 50% 45%,#f0333f,#e41e2b 55%,#a61019);color:#fff;display:grid;align-content:center;justify-items:center;text-align:center;padding:24px;gap:6px;opacity:0;pointer-events:none;transition:opacity .35s}
+.wel.on{opacity:1;pointer-events:auto}
+.wel .stage{position:relative;width:330px;height:300px}
+.wel .gbox{top:-10px}
+.wel .gbox .lo,.wel .gbox .ra,.wel .gbox .gl,.wel .gbox .bm{opacity:0}
+.wel.on .gbox{animation:shake .45s ease-in-out .4s 1}
+.wel.on .gbox .lc{animation:hide .01s linear .9s forwards}
+.wel.on .gbox .lo{animation:lidpop .5s cubic-bezier(.3,1.6,.5,1) .9s forwards}
+.wel.on .gbox .gl,.wel.on .gbox .bm{animation:fade .5s ease .95s forwards}
+.wel.on .gbox .ra{animation:fade .6s ease 1s forwards,spin 14s linear 1s infinite}
+.wel .coinfly{position:absolute;left:50%;top:150px;width:118px;margin-left:-59px;opacity:0;transform:translateY(40px) scale(.4)}
+.wel.on .coinfly{animation:coin .9s cubic-bezier(.3,1.4,.5,1) 1.15s forwards,bob 2.4s ease-in-out 2.1s infinite}
+@keyframes coin{to{opacity:1;transform:translateY(-70px) scale(1)}}
+@keyframes bob{0%,100%{transform:translateY(-70px)}50%{transform:translateY(-80px)}}
+.wel .tx{opacity:0;transform:translateY(12px);display:grid;gap:6px;justify-items:center}
+.wel.on .tx{animation:tin .6s var(--ease) 1.7s forwards}
+.wel .big{font-family:var(--display);font-size:64px;line-height:.9}
+.wel .tx p{margin:0;font-size:15px;max-width:30ch}
+.wel .btn{margin-top:14px;width:240px}
+
+/* concept 1: tiles */
+.tilescr{background:var(--red);color:#fff;min-height:100%}
+.tilescr .toprow h2{margin:0;font-family:var(--display);font-weight:400;font-size:34px;line-height:1}
+.metro{display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:66px;gap:12px;padding-bottom:10px}
+.tile{border:0;padding:0;position:relative;overflow:hidden;text-align:left;border-radius:16px;box-shadow:var(--sh-tile);transition:transform .15s ease-out,box-shadow .15s}
+.tile:active{transform:translateY(4px);box-shadow:0 2px 0 #a61019,0 6px 12px rgba(80,0,8,.3)}
+.t-ai{grid-column:span 4;grid-row:span 4}
+.t-route{grid-column:span 2;grid-row:span 3}
+.t-bus{grid-column:span 2;grid-row:span 3}
+.t-vote{grid-column:span 4;grid-row:span 2}
+.t-trk{grid-column:span 2;grid-row:span 2}
+.t-bay{grid-column:span 2;grid-row:span 2}
+.tile .tl{position:absolute;left:12px;right:12px;bottom:10px;display:grid;gap:2px;z-index:3}
+.tile .tl b{font-size:17px;font-weight:500;line-height:1.1}
+.tile .tl small{font-size:12px;opacity:.9;line-height:1.25}
+.bx-red{background:var(--red6);color:#fff}
+.bx-white{background:#fff;color:var(--red)}
+.bx-white .tl small{color:var(--muted)}
+.rib{position:absolute;inset:0;z-index:1;pointer-events:none}
+.rib::before,.rib::after{content:"";position:absolute;background:#fff}
+.bx-white .rib::before,.bx-white .rib::after{background:var(--red)}
+.rib::before{left:var(--rx,72%);top:0;bottom:0;width:12px;transform:translateX(-50%)}
+.rib::after{top:var(--ry,34%);left:0;right:0;height:12px;transform:translateY(-50%)}
+.tile .bow{position:absolute;width:56px;left:var(--rx,72%);top:var(--ry,34%);transform:translate(-50%,-62%);z-index:2;transition:transform .42s cubic-bezier(.3,1.5,.5,1),opacity .35s}
+.bx-stripe{background:repeating-linear-gradient(135deg,var(--red6) 0 20px,#fff 20px 32px)}
+.bx-stripe .lab{position:absolute;left:10px;right:10px;bottom:10px;background:var(--red);border-radius:12px;padding:10px 12px;z-index:3;color:#fff;display:grid;gap:2px}
+.bx-stripe .lab b{font-size:17px;font-weight:500;line-height:1.1}.bx-stripe .lab small{font-size:12px;opacity:.9}
+.bx-stripe .bow{left:74%;top:16%}
+.t-ai{background:#fff;color:var(--ink)}
+.t-ai .shots{position:absolute;right:14px;top:16px;bottom:16px;width:52%;z-index:2}
+.t-ai .shots img{position:absolute;width:74%;aspect-ratio:1;object-fit:cover;border:5px solid #fff;box-shadow:0 8px 18px rgba(60,0,6,.3)}
+.t-ai .shots img:nth-child(1){right:0;top:0;transform:rotate(5deg)}
+.t-ai .shots img:nth-child(2){left:0;top:28%;transform:rotate(-6deg)}
+.t-ai .shots img:nth-child(3){right:6%;bottom:0;transform:rotate(3deg)}
+.t-ai .tl{left:16px;right:52%;bottom:16px;top:16px;align-content:space-between}
+.t-ai .tl b{font-family:var(--display);font-weight:400;font-size:38px;line-height:.92;color:var(--red)}
+.t-ai .tl small{font-size:13px;color:var(--muted);opacity:1}
+.t-ai .go{display:inline-flex;align-items:center;gap:6px;justify-self:start;background:var(--red);color:#fff;border-radius:999px;padding:9px 14px;font-weight:500;font-size:14px}
+.t-vote{background:var(--red8);color:#fff}
+.t-vote img{position:absolute;right:0;top:0;height:100%;width:46%;object-fit:cover;object-position:50% 25%;-webkit-mask-image:linear-gradient(90deg,transparent,#000 40%);mask-image:linear-gradient(90deg,transparent,#000 40%)}
+.t-vote .tl{right:46%;top:12px;bottom:12px;align-content:center}
+.t-bay{background:radial-gradient(circle at 80% 30%,#f2434e,#a90f1a)}
+.t-bay .kvb{position:absolute;right:-16%;bottom:-20%;width:76%}
+.t-bay .tl{bottom:auto;top:12px}.t-bay .tl img{width:96px}
+.tile.pop{animation:tilePop .43s ease-in forwards}
+.tile.pop .bow{transform:translate(-50%,-180%) rotate(-25deg) scale(1.1);opacity:0}
+@keyframes tilePop{40%{transform:scale(.95)}100%{transform:scale(1.03);filter:brightness(1.15)}}
+
+/* concept 2: clean landing */
+.land .head{display:flex;justify-content:space-between;align-items:center}
+.land .head .lk{display:grid;gap:0;line-height:1}
+.land .head .lk img{width:118px;filter:brightness(0) saturate(100%) invert(18%) sepia(94%) saturate(4800%) hue-rotate(350deg) brightness(92%)}
+.land .head .lk span{font-family:var(--display);font-size:22px;color:var(--ink)}
+.aic{grid-template-columns:1fr;gap:12px}
+.aic .shots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.aic .shots button{border:0;padding:0;border-radius:10px;overflow:hidden;position:relative;aspect-ratio:1}
+.aic .shots img{width:100%;height:100%;object-fit:cover}
+.aic .shots span{position:absolute;left:6px;bottom:6px;background:rgba(255,255,255,.92);color:var(--ink);font-size:11px;font-weight:500;border-radius:999px;padding:2px 8px}
+.secth{display:flex;justify-content:space-between;align-items:baseline;margin:10px 2px 0}
+.secth h3{margin:0;font-family:var(--display);font-weight:400;font-size:24px;line-height:1}
+.secth span{font-size:13px;color:var(--muted)}
+.list{background:#fff;border-radius:16px;box-shadow:var(--sh-card);overflow:hidden}
+.acc{border-bottom:1px solid var(--g1)}
+.acc:last-child{border-bottom:0}
+.acch{width:100%;border:0;background:none;display:grid;grid-template-columns:48px 1fr auto 18px;gap:12px;align-items:center;padding:11px 14px;text-align:left;color:var(--ink)}
+.dt{text-align:center;background:var(--g1);border-radius:10px;padding:5px 0;line-height:1;color:var(--ink)}
+.dt b{display:block;font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}.dt small{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.acc.open .dt,.acc.tash .dt{background:var(--red);color:#fff}.acc.open .dt small,.acc.tash .dt small{color:#fff}
+.acch .nm b{display:block;font-size:15px;font-weight:500}.acch .nm small{font-size:12.5px;color:var(--muted);display:block;line-height:1.3}
+.acch .cv{width:18px;height:18px;color:var(--muted);transition:transform .25s var(--ease)}
+.acc.open .acch .cv{transform:rotate(180deg)}
+.accp{padding:0 14px 14px 74px;display:grid;gap:10px;animation:accIn .3s var(--ease)}
+@keyframes accIn{from{opacity:0;transform:translateY(-6px)}}
+.days{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.days button{border:0;border-radius:10px;background:var(--g1);padding:6px 0;display:grid;justify-items:center;line-height:1.1;font-weight:500;font-size:16px;position:relative;color:var(--ink)}
+.days button small{font-size:9.5px;color:var(--muted)}
+.days button[aria-pressed="true"]{background:var(--red);color:#fff}.days button[aria-pressed="true"] small{color:#fff}
+.days button .ld{position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px var(--red);animation:pulse 1.2s infinite}
+.tline{display:grid;gap:0;margin:0;padding:0;list-style:none}
+.tline li{display:grid;grid-template-columns:86px 1fr;gap:10px;font-size:13.5px;padding:5px 0;position:relative}
+.tline li b{font-weight:500;font-variant-numeric:tabular-nums}
+.tline li.main{color:var(--red)}
+.note2{display:flex;gap:8px;align-items:center;background:#fde8e9;color:var(--red8);border-radius:12px;padding:8px 10px;font-size:13px}
+.note2 svg{width:18px;height:18px;flex:none}
+.pl{font-size:14px;display:flex;gap:6px;align-items:flex-start}
+.pl svg{width:16px;height:16px;flex:none;margin-top:2px;color:var(--red)}
+.feat{border:0;padding:0;background:#fff;border-radius:16px;box-shadow:var(--sh-card);overflow:hidden;display:grid;text-align:left;color:var(--ink)}
+.feat img{width:100%;aspect-ratio:16/8;object-fit:cover}
+.feat .tx{padding:14px 16px 16px;display:grid;gap:6px}
+.feat .tx b{font-size:17px;font-weight:500;line-height:1.2}
+.feat .tx span{font-size:13.5px;color:var(--muted)}
+.guest{grid-template-columns:84px 1fr;align-items:center;gap:14px}
+.guest img{width:84px;height:84px;border-radius:50%;object-fit:cover;object-position:50% 20%}
+.guest b{font-size:17px;font-weight:500;display:block}
+.vrow{display:grid;grid-template-columns:88px 1fr 40px;gap:8px;align-items:center;font-size:13.5px}
+.vbar{height:6px;border-radius:3px;background:var(--g1);overflow:hidden}
+.vbar i{display:block;height:100%;background:var(--red);border-radius:3px;transition:width .6s var(--ease)}
+.vrow b{text-align:right;font-weight:500;font-variant-numeric:tabular-nums}
+
+/* route + city */
+.uzmap{position:relative;aspect-ratio:900/608;background:var(--red);border-radius:16px;overflow:hidden;box-shadow:var(--sh-card)}
+.uzmap>img{position:absolute;inset:6%;width:88%;height:88%;opacity:.2;filter:brightness(10)}
+.uzmap svg{position:absolute;inset:6%;width:88%;height:88%;overflow:visible}
+.uzmap .tag{position:absolute;left:12px;top:10px;font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+.cityban{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:16/9;color:#fff}
+.cityban img{width:100%;height:100%;object-fit:cover}
+.cityban .ov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(166,16,25,.94),rgba(166,16,25,.5) 52%,transparent 80%);display:grid;align-content:end;padding:16px;gap:2px}
+.cityban .ov b{font-family:var(--display);font-weight:400;font-size:40px;line-height:.9}
+.cityban .ov small{font-size:13px}
+.aimini{border:0;background:var(--red);color:#fff;border-radius:16px;padding:10px;display:grid;grid-template-columns:64px 1fr 18px;gap:12px;align-items:center;text-align:left}
+.aimini img{width:64px;height:64px;object-fit:cover;border-radius:10px;border:2px solid #fff}
+.aimini b{display:block;font-size:15px;font-weight:500}.aimini small{font-size:12.5px;opacity:.92;display:block;line-height:1.3}
+.aimini svg{width:18px;height:18px}
+.livemap{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:360/250;box-shadow:var(--sh-card)}
+.livemap svg{width:100%;height:100%;display:block}
+.livemap .chip{position:absolute;left:10px;top:10px}
+.nownext{display:grid;gap:8px}
+.nownext .r{display:grid;grid-template-columns:20px 1fr auto;gap:8px;align-items:center;font-size:13.5px}
+.nownext .r small{color:var(--muted);font-size:12px}
+.nownext .dot{width:12px;height:12px;border-radius:50%;justify-self:center}
+.cnt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+.cnt span{background:var(--g1);color:var(--red);border-radius:12px;padding:7px 0 5px;font-size:24px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.05}
+.cnt small{display:block;font-size:9.5px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.sw{display:flex;justify-content:space-between;align-items:center;gap:12px;border:0;background:var(--g1);border-radius:12px;padding:10px 12px;text-align:left;font-size:13.5px;width:100%;color:var(--ink)}
+.sw .t{width:42px;height:24px;border-radius:999px;background:var(--g2);position:relative;flex:none;transition:background .2s}
+.sw .t::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .25s cubic-bezier(.3,1.4,.5,1)}
+.sw[aria-checked="true"] .t{background:var(--red)}.sw[aria-checked="true"] .t::after{transform:translateX(18px)}
+
+/* party bus */
+.gal{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -16px;padding:0 16px}
+.gal::-webkit-scrollbar{display:none}
+.gal figure{margin:0;flex:0 0 84%;scroll-snap-align:center;border-radius:16px;overflow:hidden;position:relative}
+.gal img{width:100%;aspect-ratio:16/10;object-fit:cover}
+.gal figcaption{position:absolute;left:8px;bottom:8px;background:rgba(255,255,255,.92);color:var(--ink);border-radius:999px;padding:3px 10px;font-size:12px;font-weight:500}
+.floors{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.floors .card{padding:12px;gap:4px;align-content:start}
+.floors b{font-size:14.5px;font-weight:500}.floors span{font-size:12.5px;color:var(--muted);line-height:1.35}
+.floors .lbl{color:var(--red)}
+.pick6{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+.pick6 button,.slots button{border:1.5px solid var(--g2);background:#fff;border-radius:12px;padding:6px 0;display:grid;justify-items:center;color:var(--ink);font-weight:500;font-size:16px;line-height:1.15}
+.pick6 button small,.slots button small{font-size:10px;color:var(--muted)}
+.pick6 button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}.pick6 button[aria-pressed="true"] small{color:#fff}
+.slots{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.slots button[aria-pressed="true"]{border-color:var(--red);color:var(--red);box-shadow:0 0 0 2px rgba(228,30,43,.15)}
+.slots button[disabled]{opacity:.45;pointer-events:none}
+.ticket{background:#fff;border-radius:20px;overflow:hidden;display:grid;box-shadow:var(--sh-card)}
+.ticket .tp{background:var(--red);color:#fff;padding:16px;display:grid;gap:2px;position:relative}
+.ticket .tp b{font-family:var(--display);font-weight:400;font-size:30px;line-height:1}
+.ticket .tp::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:16px;background:radial-gradient(circle at 8px 8px,transparent 7px,#fff 7.5px) -8px 0/16px 16px repeat-x}
+.ticket .bd{padding:18px 14px 14px;display:grid;gap:10px;justify-items:center;text-align:center}
+.qr{width:150px;height:150px}
+
+/* vote */
+.ghero{position:relative;border-radius:16px;overflow:hidden;background:var(--red8);color:#fff;display:grid;grid-template-columns:1fr 46%;min-height:170px}
+.ghero img{height:100%;width:100%;object-fit:cover;object-position:50% 20%;grid-column:2;grid-row:1}
+.ghero .tx{grid-column:1;grid-row:1;padding:16px;display:grid;align-content:end;gap:4px;position:relative;z-index:1}
+.ghero .tx b{font-family:var(--display);font-weight:400;font-size:26px;line-height:1}
+.ghero .tx small{font-size:12.5px;opacity:.92}
+.cvl{display:grid;gap:0}
+.cvr{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--g1)}
+.cvr:last-child{border-bottom:0}
+.cvr .pn{font-weight:500;color:var(--muted);text-align:center}
+.cvr b{font-size:15px;font-weight:500;display:block}.cvr small{font-size:12px;color:var(--muted);display:block}
+.cvr .vbar{margin-top:5px}
+.cvr.mine{background:#fde8e9}
+.vb{border:0;background:var(--red);color:#fff;border-radius:999px;padding:7px 14px;font-weight:500;font-size:13px}
+.pc{font-weight:500;font-variant-numeric:tabular-nums}
+
+/* AI frame */
+.scn{display:grid;gap:10px}
+.scn>button{border:2px solid transparent;border-radius:16px;padding:0;background:#fff;box-shadow:var(--sh-card);display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;text-align:left;overflow:hidden;color:var(--ink)}
+.scn>button img{width:96px;height:96px;object-fit:cover}
+.scn>button b{display:block;font-size:16px;font-weight:500}.scn>button small{font-size:12.5px;color:var(--muted)}
+.scn>button[aria-pressed="true"]{border-color:var(--red)}
+.cntp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.cntp button{width:40px;height:36px;border-radius:999px;border:1.5px solid var(--g2);background:#fff;font-weight:500;color:var(--ink)}
+.cntp button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff}
+.paybar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border-radius:14px;padding:12px 14px;font-size:14px;box-shadow:var(--sh-card)}
+.paybar b{display:flex;align-items:center;gap:5px;font-size:16px;font-weight:500}
+.linkb{border:0;background:none;padding:6px 0;font-size:14px;font-weight:500;color:var(--red);justify-self:center}
+/* gallery picker */
+.gall{min-height:100%;background:#000;color:#fff;display:flex;flex-direction:column}
+.gall .gh{position:sticky;top:0;z-index:2;background:rgba(18,18,18,.94);backdrop-filter:blur(10px);display:grid;grid-template-columns:80px 1fr 80px;align-items:center;padding:10px 12px}
+.gall .gh button{border:0;background:none;color:#4ea3ff;font-size:15px;padding:0;text-align:left}
+.gall .gh button:last-child{text-align:right;font-weight:600}
+.gall .gh button[disabled]{color:#555}
+.gall .gh b{text-align:center;font-size:15px;font-weight:600}
+.gall .tabs{display:flex;gap:18px;justify-content:center;font-size:13px;color:#8e8e93;padding:2px 0 8px;background:rgba(18,18,18,.94)}
+.gall .tabs span:first-child{color:#fff;font-weight:600}
+.ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.ggrid button{border:0;padding:0;position:relative;aspect-ratio:1;background:#222}
+.ggrid img{width:100%;height:100%;object-fit:cover}
+.ggrid .n{position:absolute;right:6px;top:6px;width:24px;height:24px;border-radius:50%;border:2px solid #fff;background:rgba(0,0,0,.25);font-size:13px;font-weight:600;display:grid;place-items:center}
+.ggrid button[aria-pressed="true"] .n{background:var(--red)}
+.ggrid button[aria-pressed="true"] img{opacity:.75}
+.gall .gf{margin-top:auto;position:sticky;bottom:0;background:rgba(18,18,18,.94);padding:10px 14px 14px;font-size:13px;color:#d8d8dc;text-align:center}
+/* consent 2 sheet + generation */
+.thumbs{display:flex;gap:6px;justify-content:center}
+.thumbs img{width:56px;height:56px;border-radius:10px;object-fit:cover}
+.gen{display:grid;justify-items:center;gap:18px;padding:30px 0;text-align:center}
+.genbox{width:280px;aspect-ratio:1;position:relative;border-radius:6px;overflow:hidden;background:var(--red);border:10px solid #fff;box-shadow:var(--sh-card)}
+.genbox .fs{position:absolute;inset:0;display:grid;grid-template-columns:repeat(var(--n,1),1fr)}
+.genbox .fs img{width:100%;height:100%;object-fit:cover;filter:blur(3px) saturate(.8);opacity:.85}
+.genbox::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.65) 50%,transparent 70%);animation:shim 1.1s linear infinite}
+@keyframes shim{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+.gst{display:grid;gap:8px;text-align:left;width:240px}
+.gst div{display:flex;gap:10px;align-items:center;font-size:14.5px;color:var(--muted);transition:color .3s}
+.gst div i{width:22px;height:22px;border-radius:50%;border:2px solid var(--g2);flex:none;display:grid;place-items:center;font-style:normal;font-size:12px;color:#fff;transition:all .3s}
+.gst div.on{color:var(--ink)}.gst div.on i{border-color:var(--red);border-top-color:transparent;animation:spin .8s linear infinite}
+.gst div.ok{color:var(--ink)}.gst div.ok i{background:var(--red);border-color:var(--red);animation:none}
+.gst div.ok i::after{content:"✓"}
+.seg{display:flex;background:#fff;border-radius:999px;padding:3px;box-shadow:var(--sh-card)}
+.seg button{flex:1;border:0;background:none;border-radius:999px;padding:8px 0;font-size:13.5px;font-weight:500;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--red);color:#fff}
+.resv{justify-self:center;position:relative}
+.resv img{display:block;box-shadow:0 14px 34px rgba(80,0,8,.25)}
+.resv .sto{width:226px;aspect-ratio:9/16;border-radius:16px}
+.resv .sq{width:300px;aspect-ratio:1;border-radius:4px}
+.resv .tagx{position:absolute;left:8px;top:8px;background:rgba(0,0,0,.5);color:#fff;font-size:11px;border-radius:6px;padding:2px 8px}
+.row2b{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.perk{display:flex;gap:12px;align-items:center;font-size:14px;line-height:1.35}
+.perk .ic{width:36px;height:36px;border-radius:50%;background:#fde8e9;color:var(--red);display:grid;place-items:center;flex:none}
+.perk .ic svg{width:18px;height:18px}
+.perk code{font:500 15px ui-monospace,Menlo,monospace;color:var(--red);letter-spacing:.06em}
+.mst{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
+.mst i{width:8px;height:8px;border-radius:50%;background:#e3a400;flex:none}
+.mst.y i{background:var(--ok)}.mst.air i{background:var(--red);animation:pulse 1s infinite}.mst.n i{background:var(--muted)}
+
+/* sheet */
+.sheet{position:absolute;inset:0;background:rgba(26,26,26,0);display:flex;align-items:flex-end;z-index:7;transition:background .25s;pointer-events:none}
+.sheet.on{background:rgba(26,26,26,.5);pointer-events:auto}
+.sheet .in{background:#fff;color:var(--ink);border-radius:24px 24px 0 0;padding:10px 16px 24px;width:100%;display:grid;gap:12px;transform:translateY(100%);transition:transform .38s var(--sheet)}
+.sheet.on .in{transform:none}
+.sheet .grab{width:40px;height:5px;border-radius:3px;background:var(--g2);justify-self:center}
+.sheet h4{margin:0;font-size:19px;font-weight:500;text-align:center}
+.kvr{display:flex;justify-content:space-between;gap:10px;font-size:14px;border-bottom:1px solid var(--g1);padding:8px 0}
+.kvr b{display:flex;align-items:center;gap:5px;font-weight:500}
+.sheet .chk{background:var(--g1)}
+
+/* ---------- desk ---------- */
+.desk{display:grid;gap:16px;min-width:0}
+.panel{background:var(--desk);border:1px solid var(--deskline);border-radius:18px;padding:16px;display:grid;gap:12px;align-content:start}
+.panel h2{margin:0;font-size:12.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--dmuted);font-weight:600}
+.cons2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:560px){.cons2{grid-template-columns:1fr}}
+.con{border:1px solid var(--deskline);background:transparent;border-radius:14px;padding:12px;text-align:left;display:grid;gap:5px;align-content:start}
+.con b{font-size:15px}.con span{font-size:12.5px;color:var(--dmuted);line-height:1.4}
+.con[aria-pressed="true"]{background:var(--dtext);color:var(--stage);border-color:var(--dtext)}
+.con[aria-pressed="true"] span{color:#5b3a3e}
+.flow{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px;counter-reset:f;margin:0;padding:0;list-style:none}
+.flow li{counter-increment:f}
+.flow button{width:100%;height:100%;display:grid;grid-template-columns:26px 1fr;gap:9px;align-items:start;text-align:left;border:1px solid var(--deskline);background:transparent;border-radius:12px;padding:9px 10px;transition:background .15s}
+.flow button::before{content:counter(f);width:24px;height:24px;border-radius:50%;background:var(--deskline);display:grid;place-items:center;font-size:12px;font-weight:700}
+.flow button b{display:block;font-size:13.5px}
+.flow button span{font-size:12px;color:var(--dmuted);line-height:1.35;display:block}
+.flow button[aria-current="step"]{background:var(--dtext);color:var(--stage);border-color:var(--dtext)}
+.flow button[aria-current="step"]::before{background:var(--red);color:#fff}
+.flow button[aria-current="step"] span{color:#5b3a3e}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:1px solid var(--deskline);background:transparent;border-radius:999px;padding:8px 13px;font-size:13.5px}
+.opt[aria-pressed="true"]{background:var(--dtext);color:var(--stage);border-color:var(--dtext)}
+.panel ul{margin:0;padding-left:18px;display:grid;gap:7px;font-size:13.5px}
+.panel li em{font-style:normal;color:#ff9aa1}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.mine-track{display:grid;gap:8px;font-size:13.5px}
+.mine-track .mt{display:grid;grid-template-columns:54px 1fr;gap:10px;align-items:center}
+.mine-track img{width:54px;height:54px;border-radius:8px;object-fit:cover}
+.steps4{display:flex;gap:4px;flex-wrap:wrap}
+.steps4 span{font-size:11.5px;border-radius:999px;padding:3px 9px;background:var(--deskline);color:var(--dmuted)}
+.steps4 span.on{background:var(--red);color:#fff}
+
+/* ---------- moderator phone ---------- */
+.mphone{width:340px;max-width:100%;height:740px;border:10px solid #0b0809;border-radius:48px;background:var(--g1);color:var(--ink);position:relative;overflow:hidden;box-shadow:0 26px 50px rgba(0,0,0,.55);display:flex;flex-direction:column}
+.mphone .pst{height:34px;display:flex;justify-content:space-between;align-items:center;padding:0 24px;font-size:13px;font-weight:600;flex:none;background:var(--red);color:#fff}
+.mphone .pbar{display:grid;grid-template-columns:64px 1fr 64px;align-items:center;padding:2px 12px 8px;flex:none;background:var(--red);color:#fff}
+.mphone .pbar span{font-size:13px}.mphone .pbar .t{text-align:center;line-height:1.1}.mphone .pbar .t b{display:block;font-size:14px;font-weight:500}.mphone .pbar .t small{font-size:11px;opacity:.85}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px 12px 0;flex:none}
+.mstats div{background:#fff;border-radius:12px;padding:7px 4px;text-align:center;box-shadow:var(--sh-card)}
+.mstats b{display:block;font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;line-height:1.1}
+.mstats small{font-size:10.5px;color:var(--muted)}
+.mstats .q b{color:#b07800}.mstats .y b{color:var(--ok)}.mstats .n b{color:var(--red)}
+.deck{flex:1;position:relative;margin:12px 16px 0}
+.mcard{position:absolute;left:0;right:0;top:0;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 10px 26px rgba(60,10,15,.16);touch-action:none;user-select:none;transition:transform .3s cubic-bezier(.2,.8,.3,1),opacity .3s}
+.mcard.under{transform:scale(.95) translateY(14px);opacity:.7}
+.mcard.drag{transition:none;cursor:grabbing}
+.mcard img{width:100%;aspect-ratio:1;object-fit:cover;pointer-events:none}
+.mcard .meta{padding:10px 12px 12px;display:grid;gap:4px}
+.mcard .meta b{font-size:15px;font-weight:500}.mcard .meta small{font-size:12px;color:var(--muted)}
+.mcard .src{position:absolute;left:10px;top:10px;font-size:11px;font-weight:500;border-radius:999px;padding:3px 9px;background:rgba(255,255,255,.94);color:var(--ink)}
+.mcard .src.live{background:var(--red);color:#fff}
+.mcard .src.you{background:#ffd84a;color:#4a2a00}
+.aicx{display:inline-flex;gap:5px;align-items:center;font-size:11.5px;font-weight:500;border-radius:8px;padding:3px 8px;justify-self:start}
+.aicx.ok{background:#e7f6ee;color:#1b6b40}.aicx.warn{background:#fff2d6;color:#7a5000}
+.stmp{position:absolute;top:22px;padding:6px 12px;border:4px solid;border-radius:10px;font-weight:800;font-size:22px;letter-spacing:.06em;opacity:0;background:rgba(255,255,255,.88)}
+.stmp.y{left:16px;color:var(--ok);border-color:var(--ok);transform:rotate(-14deg)}
+.stmp.n{right:16px;color:var(--red);border-color:var(--red);transform:rotate(14deg)}
+.empty{position:absolute;inset:0 0 40px;display:grid;place-items:center;text-align:center;color:var(--muted);font-size:13.5px;padding:20px;border:2px dashed var(--g2);border-radius:20px}
+.mact{display:flex;justify-content:center;gap:22px;padding:12px 0 8px;flex:none}
+.mact button{width:60px;height:60px;border-radius:50%;border:0;background:#fff;box-shadow:0 6px 16px rgba(60,10,15,.14);font-size:26px;font-weight:800;display:grid;place-items:center}
+.mact button:active{transform:scale(.92)}
+.mact .n{color:var(--red)}.mact .y{color:var(--ok)}
+.mact .sk{width:44px;height:44px;font-size:15px;align-self:center;color:var(--muted)}
+.mhint{text-align:center;font-size:11.5px;color:var(--muted);padding:0 0 14px;flex:none}
+.simbar{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.simbar button{border:1px solid var(--deskline);background:var(--desk);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:600}
+.simbar button[aria-checked="true"]{background:var(--dtext);color:var(--stage)}
+
+/* ---------- LED manager window ---------- */
+.win{background:var(--win);border:1px solid var(--winline);border-radius:12px;overflow:hidden;color:var(--wintext);box-shadow:0 26px 50px rgba(0,0,0,.55);font-size:13px;min-width:0}
+.wtitle{height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 0 0 12px;background:#101216;border-bottom:1px solid var(--winline);font-size:12.5px}
+.wtitle .nm{display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden}
+.wtitle .nm i{width:16px;height:16px;border-radius:4px;background:var(--red);display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:800;color:#fff;flex:none}
+.wtitle .ctl{display:flex}.wtitle .ctl span{width:44px;height:34px;display:grid;place-items:center;color:var(--winmuted)}
+.wmain{padding:14px;display:grid;gap:12px;min-width:0}
+.tb{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.tb .l{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.onair{display:inline-flex;gap:6px;align-items:center;background:rgba(228,30,43,.16);color:#ff7a83;font-weight:800;font-size:11.5px;letter-spacing:.08em;border-radius:6px;padding:4px 9px}
+.onair::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--red);animation:pulse 1.2s infinite}
+.onair.off{background:var(--win3);color:var(--winmuted)}.onair.off::before{background:var(--winmuted);animation:none}
+.pill{background:var(--win3);border-radius:6px;padding:4px 9px;color:var(--winmuted);font-size:12px}
+.pill b{color:#7fe0a8;font-weight:600}
+.wb{border:1px solid var(--winline);background:var(--win3);border-radius:7px;padding:7px 12px;font-weight:600;font-size:12.5px}
+.wb.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.wb.red{background:var(--red);border-color:var(--red);color:#fff}
+.stats4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.stats4 div{background:var(--win2);border:1px solid var(--winline);border-radius:9px;padding:8px 10px}
+.stats4 b{display:block;font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+.stats4 small{font-size:11.5px;color:var(--winmuted)}
+.stats4 .hl b{color:#ff8b94}
+@media (max-width:560px){.stats4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mons{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:560px){.mons{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.mon{display:grid;gap:6px}
+.mon .scr2{aspect-ratio:1;border-radius:6px;background:#000;border:6px solid #0b0c0f;box-shadow:0 0 0 1px var(--winline);position:relative;overflow:hidden}
+.mon .cp{display:flex;justify-content:space-between;font-size:11.5px;color:var(--winmuted);gap:6px}
+.mon .cp b{color:var(--wintext);font-weight:600}
+.mon .cp i{font-style:normal;color:#7fe0a8}
+.mon .now{font-size:11px;color:var(--winmuted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{height:3px;background:var(--win3);border-radius:2px;overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--red)}
+.wgrid{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:12px}
+@media (max-width:1080px){.wgrid{grid-template-columns:minmax(0,1fr)}}
+.box{background:var(--win2);border:1px solid var(--winline);border-radius:9px;padding:10px;display:grid;gap:8px;min-width:0}
+.box h3{margin:0;font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--winmuted);font-weight:600;display:flex;justify-content:space-between;gap:8px}
+.box h3 b{color:var(--wintext)}
+.box h3 .pri{color:#ff8b94}
+.qstrip{display:flex;gap:6px;overflow-x:auto;min-height:60px;align-items:center;scrollbar-width:thin;padding-bottom:2px}
+.qstrip img{width:56px;height:56px;object-fit:cover;border-radius:5px;flex:none;animation:fin .3s ease-out}
+.qstrip img.you{box-shadow:0 0 0 2px #ffd84a}
+.qstrip .ph{color:var(--winmuted);font-size:12px}
+.qstrip .more{flex:none;width:56px;height:56px;border-radius:5px;background:var(--win3);display:grid;place-items:center;color:var(--winmuted);font-size:12px;font-weight:600}
+.log{font:12px/1.55 ui-monospace,Consolas,monospace;color:var(--winmuted);height:132px;overflow:auto;display:grid;align-content:start;scrollbar-width:thin}
+.log div b{color:var(--wintext);font-weight:500}.log div em{font-style:normal;color:#ff8b94}.log div u{text-decoration:none;color:#ffd84a}
+.set{display:grid;gap:9px;align-content:start}
+.set label{display:grid;gap:4px;font-size:12px;color:var(--winmuted)}
+.wseg{display:flex;background:var(--win3);border-radius:7px;padding:2px;gap:2px}
+.wseg button{flex:1;border:0;background:transparent;border-radius:5px;padding:5px 0;font-size:12px;color:var(--winmuted)}
+.wseg button[aria-pressed="true"]{background:#3a404c;color:var(--wintext)}
+/* LED layers */
+.lay{position:absolute;inset:0;opacity:0;transition:opacity .9s ease,transform .9s cubic-bezier(.3,.7,.2,1)}
+.lay.on{opacity:1}
+.lay img{width:100%;height:100%;object-fit:cover}
+.fx-slide .lay{transform:translateX(100%);opacity:1}.fx-slide .lay.on{transform:none}.fx-slide .lay.out{transform:translateX(-100%)}
+.fx-flip .lay{transform:rotateY(90deg);opacity:1;backface-visibility:hidden}.fx-flip .lay.on{transform:none;transition-delay:.45s}.fx-flip .lay.out{transform:rotateY(-90deg)}
+.fx-slide,.fx-flip{perspective:600px}
+.brand{width:100%;height:100%;background:radial-gradient(circle at 50% 45%,#f0333f,#a61019);display:grid;place-items:center;position:relative;overflow:hidden}
+.brand img{width:70%;height:auto;animation:bp 2.4s ease-in-out infinite}
+@keyframes bp{50%{transform:scale(1.06)}}
+.idle{width:100%;height:100%;display:grid;place-items:center;color:#555;font-size:11px;background:#050505}
+
+/* ---------- truck ---------- */
+.truckwrap{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--deskline);background:var(--night)}
+.truckimg{position:relative;width:100%;aspect-ratio:3168/1344}
+.truckimg>img{position:absolute;inset:0;width:100%;height:100%}
+.tled{position:absolute;background:#000;overflow:hidden;box-shadow:0 0 18px 4px rgba(255,240,220,.22)}
+.tled::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.12) 0 1px,transparent 1px 3px);pointer-events:none;z-index:2}
+.tled .tag{position:absolute;left:4px;top:3px;z-index:3;font-size:9px;font-weight:700;color:#fff;background:rgba(0,0,0,.45);border-radius:4px;padding:1px 4px}
+.tled.you{box-shadow:0 0 0 3px #ffd84a,0 0 26px 8px rgba(255,216,74,.5)}
+.trucklab{position:absolute;left:14px;top:12px;display:flex;gap:8px;flex-wrap:wrap;z-index:3}
+.trucklab span{background:rgba(15,26,51,.7);backdrop-filter:blur(6px);border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:600}
+.notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.notes div{background:var(--desk);border:1px solid var(--deskline);border-radius:14px;padding:12px 14px;font-size:13px;color:var(--dmuted)}
+.notes b{display:block;color:var(--dtext);font-size:14px;margin-bottom:3px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
+
+html,body{height:100%}
+body{background:#a61019;overscroll-behavior:none}
+.app{position:fixed;top:0;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--g1);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
+.app .intro .skip{top:14px}
+.app .intro .ititle{top:9%}
+.app .intro .gbox{top:auto;bottom:6%}
+.app .wel .stage{height:280px}
+.choose{min-height:100%;background:var(--red);color:#fff;padding:22px 18px 30px;display:grid;gap:14px;align-content:start}
+.choose .hd{display:grid;justify-items:start;gap:4px;margin-bottom:4px}
+.choose .hd img{width:150px}
+.choose .hd b{font-family:var(--display);font-weight:400;font-size:40px;line-height:.95}
+.choose .hd span{font-size:14px;opacity:.92}
+.ccard{border:0;padding:0;background:#fff;color:var(--ink);border-radius:16px;box-shadow:var(--sh-tile);display:grid;grid-template-columns:110px 1fr;overflow:hidden;text-align:left;transition:transform .12s}
+.ccard:active{transform:translateY(4px)}
+.ccard .pv{background:var(--red6);position:relative;overflow:hidden}
+.ccard .pv img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ccard .tx{padding:14px;display:grid;gap:4px;align-content:center}
+.ccard .tx small{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--red)}
+.ccard .tx b{font-size:18px;font-weight:500;line-height:1.15}
+.ccard .tx span{font-size:13px;color:var(--muted);line-height:1.35}
+.demo{display:grid;gap:8px;margin-top:6px}
+.demo .lbl{color:#fff;opacity:.85}
+.dseg{display:flex;background:rgba(0,0,0,.18);border-radius:999px;padding:3px}
+.dseg button{flex:1;border:0;background:none;border-radius:999px;padding:9px 6px;font-size:13px;font-weight:500;color:#fff}
+.dseg button[aria-pressed="true"]{background:#fff;color:var(--red)}
+.swc{border:0;background:none;color:var(--muted);font-size:13.5px;font-weight:500;padding:8px;justify-self:center;text-decoration:underline;text-underline-offset:3px}
+.tilescr .swc{color:#fff;opacity:.85}
+</style></head><body>
+<div class="app mini on" id="mini">
+  <div class="scroll" id="scroll"><div id="view"></div></div>
+  <div class="wel" id="wel"></div>
+  <div class="intro out" id="intro" aria-label="Заставка"></div>
+  <div class="sheet" id="sheet"><div class="in" id="sheetIn"></div></div>
+  <div class="toast" id="toast"></div>
+</div>
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const view=$("#view"), scrollEl=$("#scroll"), mini=$("#mini");
+const MONTH=["янв","фев","мар","апр","мая","июн","июл","авг","сен","окт","ноя","дек"];
+const T=(d,h,m=0)=>new Date(2026,11,d,h,m).getTime();
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+/* ---------- data: final route (client screenshot) ---------- */
+const CITIES=[
+  {id:"tashkent",ru:"Ташкент",lon:69.24,lat:41.31,days:[{d:25,p:"Тараса Шевченко"},{d:26,p:"Анхор парк",draw:1},{d:27,p:"Централ парк"},{d:28,p:"Юнусабад Гэллери",draw:1},{d:29,p:"Сеул Мун"},{d:30,p:"Ташкент Сити",draw:3}]},
+  {id:"namangan",ru:"Наманган",lon:71.67,lat:41.00,d:18,p:"Афсоналар Водийси"},
+  {id:"andijan",ru:"Андижан",lon:72.34,lat:40.78,d:19,p:"Навруз Мол"},
+  {id:"fergana",ru:"Фергана",lon:71.78,lat:40.38,d:20,p:"Аль Фаргони парк"},
+  {id:"termez",ru:"Термез",lon:67.28,lat:37.30,d:22,p:"У хокимията, ул. Янги Узбекистон"},
+  {id:"karshi",ru:"Карши",lon:65.79,lat:38.86,d:23,p:"Супермаркет Марка"},
+  {id:"samarkand",ru:"Самарканд",lon:66.96,lat:39.65,d:24,p:"Улица Сибирская"},
+  {id:"navoi",ru:"Навои",lon:65.38,lat:40.10,d:25,p:"Хокимиятская ёлка"},
+  {id:"bukhara",ru:"Бухара",lon:64.42,lat:39.77,d:26,p:"Крепость Арк"},
+  {id:"khiva",ru:"Хива",lon:60.36,lat:41.38,d:27,p:"Арда Хива"},
+  {id:"urgench",ru:"Ургенч",lon:60.63,lat:41.55,d:28,p:"Центральная ёлка"},
+  {id:"nukus",ru:"Нукус",lon:59.61,lat:42.46,d:29,p:"Центральная площадь"},
+];
+const LB={tashkent:[0,-18,'middle'],namangan:[-6,-14,'end'],andijan:[12,6,'start'],fergana:[0,30,'middle'],termez:[0,30,'middle'],karshi:[-12,8,'end'],samarkand:[12,8,'start'],navoi:[0,-16,'middle'],bukhara:[-12,8,'end'],khiva:[0,32,'middle'],urgench:[10,-12,'start'],nukus:[0,-16,'middle']};
+CITIES.forEach(c=>{ c.x=(c.lon-55.996)/17.136*100; c.y=(45.59-c.lat)/8.406*100; });
+const byId=id=>CITIES.find(c=>c.id===id);
+const REGS=CITIES.filter(c=>!c.days).sort((a,b)=>a.d-b.d);
+const ORDER=[byId("tashkent"),...REGS];
+const SCENES=[
+  {id:"dast",n:"Дастархан",ppl:"2 человека",img:"scene-dastarkhan",need:()=>2,ex:[0,1]},
+  {id:"disco",n:"Дискотека",ppl:"от 1 до 4 человек",img:"scene-disco",need:()=>st.dn,ex:[2,3,5,4]},
+  {id:"bath",n:"Ванна с белым мишкой",ppl:"1 человек",img:"scene-bath",need:()=>1,ex:[6]},
+];
+const RESULT={dast:["ai-dastarkhan","story-dastarkhan"],bath:["ai-bath","story-bath"],disco1:["y0","story-y0"],disco2:["z1","story-z1"],disco3:["z2","story-z2"],disco4:["ai-disco","story-disco"]};
+const resOf=()=>{const s=SCENES[st.scene]; return RESULT[s.id==="disco"?"disco"+st.dn:s.id];};
+// phone gallery: selfies mixed with ordinary photos
+const GALLERY=[{f:"selfie3"},{f:"truck-hero",nf:1},{f:"selfie0"},{f:"selfie1"},{f:"bus-ext",nf:1},{f:"selfie2"},{f:"selfie5"},{f:"bus-low",nf:1},{f:"selfie4"},{f:"selfie6"},{f:"scene-dastarkhan",nf:1},{f:"bus-up",nf:1}];
+const SELF=i=>GALLERY.findIndex(g=>g.f==="selfie"+i);
+const NOWS=[
+  {k:"pre",l:"7 ноября · анонс",t:new Date(2026,10,7,12,0).getTime()},
+  {k:"nam",l:"18 дек · Наманган",t:T(18,17,30)},
+  {k:"tash",l:"28 дек · Ташкент, трак в пути",t:T(28,18,52)},
+  {k:"fin",l:"30 дек · финальный день",t:T(30,17,20)},
+];
+const st={concept:"tiles",open:"tashkent",screen:"bot",consent:[false,false],accepted:false,welcomed:false,nowK:"tash",city:"tashkent",tday:null,bal:0,
+  scene:0,dn:4,sel:[],ex:false,ai:"scene",c2:false,view:"story",pbDay:3,pbSlot:-1,ticket:null,vote:null,remind:{},mine:[],promo:null};
+let t0=Date.now();
+const now=()=>NOWS.find(n=>n.k===st.nowK).t+(Date.now()-t0);
+
+/* ---------- helpers ---------- */
+const coin='<img class="coin" src="img/el-tanga.webp" alt="танга">';
+const chev='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+const cvIc='<svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>';
+const pinIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>';
+const carIc='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16l1.5-5.5A2 2 0 0 1 8.4 9h7.2a2 2 0 0 1 1.9 1.5L19 16"/><rect x="3" y="15" width="18" height="4" rx="1.5"/><circle cx="7" cy="19.5" r="1.5"/><circle cx="17" cy="19.5" r="1.5"/></svg>';
+const fmtD=ms=>{const d=new Date(ms);return d.getDate()+" "+MONTH[d.getMonth()];};
+const isToday=d=>{const n=new Date(now());return n.getMonth()===11&&n.getDate()===d;};
+function slots(c){ return c.days ? c.days.map(x=>[T(x.d,18),T(x.d,20,30),x]) : [[T(c.d,0),T(c.d,23,59),{d:c.d,p:c.p}]]; }
+function cityState(c){
+  const n=now(), s=slots(c);
+  const live=s.find(x=>n>=x[0]&&n<x[1]); if(live) return {k:c.days?"live":"today",slot:live};
+  if(c.days){ const td=s.find(x=>isToday(x[2].d)&&n<x[0]); if(td) return {k:"today",slot:td}; }
+  const next=s.find(x=>n<x[0]); if(next) return {k:"soon",slot:next};
+  return {k:"done",slot:s[s.length-1]};
+}
+const chip=k=>k==="live"?'<span class="chip live">в пути</span>':k==="today"?'<span class="chip today">сегодня</span>':k==="soon"?'<span class="chip soon">скоро</span>':'<span class="chip done">был</span>';
+function cdHTML(target){ return `<div class="cnt" data-cd="${target}">${["дней","часов","минут","секунд"].map(l=>`<div><span>00</span><small>${l}</small></div>`).join("")}</div>`; }
+function tickCD(){ $$("[data-cd]").forEach(el=>{ let ms=Math.max(0,+el.dataset.cd-now()); const v=[Math.floor(ms/864e5),Math.floor(ms/36e5)%24,Math.floor(ms/6e4)%60,Math.floor(ms/1e3)%60]; el.querySelectorAll("span").forEach((s,i)=>s.textContent=String(v[i]).padStart(2,"0")); }); }
+setInterval(tickCD,1000);
+function toast(msg,el="#toast"){ const t=$(el); t.textContent=msg; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),2300); }
+function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const hash=s=>[...s].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619),2166136261);
+const boxLayers=()=>`<div class="gbox"><img class="ra" src="img/box-rays.webp" alt=""><img class="gl" src="img/box-glow.webp" alt=""><img class="bm" src="img/box-beam.webp" alt=""><img src="img/box-body.webp" alt=""><img class="lc" src="img/box-lid.webp" alt=""><img class="lo" src="img/box-lid-open.webp" alt=""></div>`;
+
+/* ---------- intro ---------- */
+function playIntro(next){
+  const el=$("#intro");
+  const flakes=[...Array(28)].map(()=>`<span class="flake" style="left:${Math.random()*100}%;font-size:${6+Math.random()*9}px;animation-duration:${5+Math.random()*6}s;animation-delay:${-Math.random()*8}s;--dx:${(Math.random()*40-20).toFixed(0)}px">❄</span>`).join("");
+  el.innerHTML=`<div class="ph"></div><div class="shade"></div><div class="cur"></div><div class="stripes"></div>${boxLayers()}
+    <div class="ititle"><img src="img/cc-logo-white.webp" alt="Coca-Cola"><h1>новогодний караван</h1><p>18–30 декабря · 12 городов</p></div>${flakes}<span class="skip">Пропустить</span>`;
+  el.classList.remove("out","play"); void el.offsetWidth; el.classList.add("play");
+  const done=()=>{ if(el._done) return; el._done=true; el.classList.add("out"); next(); };
+  el._done=false; el.onclick=done; clearTimeout(el._t); el._t=setTimeout(done,6300);
+}
+
+/* ---------- welcome bonus ---------- */
+function showWelcome(){
+  const w=$("#wel");
+  w.innerHTML=`<div class="stage">${boxLayers()}<img class="coinfly" src="img/p-tanga.webp" alt=""></div>
+    <div class="tx"><span class="big">+40 танга</span><p>Подарок для новых участников. Этого хватит на две AI-открытки.</p><button class="btn w" id="welOk">Забрать</button></div>`;
+  w.classList.remove("on"); void w.offsetWidth; w.classList.add("on");
+  $("#welOk").onclick=()=>{ w.classList.remove("on"); st.welcomed=true; countUp(40); };
+}
+function countUp(to){ const from=st.bal; st.bal=to+from; const t1=performance.now(); const step=()=>{ const p=Math.min(1,(performance.now()-t1)/900); $$(".bal span").forEach(s=>s.textContent=Math.round(from+(st.bal-from)*p)); if(p<1) requestAnimationFrame(step); }; requestAnimationFrame(step); }
+const balHTML=()=>`<span class="bal">${coin}<span>${st.bal}</span></span>`;
+
+/* ---------- screens ---------- */
+function consent(){
+  const [a,b]=st.consent;
+  return `<div class="cons">
+    <div class="hero"><img src="img/truck-hero.webp" alt=""><div><img src="img/cc-logo-white.webp" alt="Coca-Cola"><b>новогодний караван</b></div></div>
+    <div class="body">
+      <button class="chk" role="checkbox" aria-checked="${a}" data-chk="0"><span class="b"></span><span>Принимаю условия участия. <u>Условия</u></span></button>
+      <button class="chk" role="checkbox" aria-checked="${b}" data-chk="1"><span class="b"></span><span>Даю согласие на использование моих фото для AI-открыток и показа на экранах трака. <u>Подробнее</u></span></button>
+      <button class="btn w" id="accept" ${a&&b?"":"disabled"}>Продолжить</button>
+    </div></div>`;
+}
+
+const bow=(c="#fff")=>`<svg class="bow" viewBox="0 0 60 30" aria-hidden="true"><path d="M30 16C22 2 6 0 6 10s16 8 24 6z" fill="${c}"/><path d="M30 16C38 2 54 0 54 10s-16 8-24 6z" fill="${c}"/><path d="M28 16l-10 14M32 16l10 14" stroke="${c}" stroke-width="4"/><circle cx="30" cy="15" r="5" fill="${c}"/></svg>`;
+function nextInfo(){
+  const nx=ORDER.map(c=>({c,s:cityState(c)}));
+  const live=nx.find(o=>o.s.k==="live"); if(live) return `${live.c.ru}: трак в пути`;
+  const td=nx.filter(o=>o.s.k==="today"); if(td.length) return `Сегодня: ${td.map(o=>o.c.ru).join(", ")}`;
+  const n=nx.filter(o=>o.s.k==="soon").sort((a,b)=>a.s.slot[0]-b.s.slot[0])[0];
+  return n?`Дальше: ${n.c.ru}, ${fmtD(n.s.slot[0])}`:"Маршрут завершён";
+}
+function tiles(){
+  const top=topCities(1)[0];
+  return `<div class="scr tilescr">
+    <div class="toprow"><h2>Караван</h2>${balHTML()}</div>
+    <div class="metro">
+      <button class="tile t-ai" data-tile="ai"><span class="shots"><img src="img/ai-dastarkhan.webp" alt=""><img src="img/ai-disco.webp" alt=""><img src="img/ai-bath.webp" alt=""></span>
+        <span class="tl"><span style="display:grid;gap:6px"><b>AI-открытка</b><small>Вы в новогодней сцене Coca-Cola</small></span><span class="go">Создать · 20 ${coin}</span></span></button>
+      <button class="tile t-route bx-stripe" data-tile="route">${bow()}<span class="lab"><b>Маршрут</b><small>${nextInfo()}</small></span></button>
+      <button class="tile t-bus bx-white" data-tile="partybus" style="--rx:74%;--ry:30%"><span class="rib"></span>${bow("#e41e2b")}<span class="tl"><b>Party Bus</b><small>Ташкент, 25–30 декабря</small></span></button>
+      <button class="tile t-vote" data-tile="vote"><img src="img/a-munisa.webp" alt=""><span class="tl"><b>Где выступит гость?</b><small>Лидирует ${top.ru}. Голосуйте за свой город</small></span></button>
+      <button class="tile t-trk bx-red" data-tile="tashkent" style="--rx:78%;--ry:30%"><span class="rib"></span>${bow()}<span class="tl"><b>Ташкент</b><small>где трак сейчас</small></span></button>
+      <button class="tile t-bay" data-tile="bayram"><img class="kvb" src="img/kv-scene.webp" alt=""><span class="tl"><img src="img/lockup-ru.webp" alt="Bayram Promo"></span></button>
+    </div>
+  </div>`;
+}
+
+function landing(){
+  const top=topCities(3);
+  return `<div class="scr land">
+    <div class="head"><span class="lk"><img src="img/cc-logo-white.webp" alt="Coca-Cola"><span>новогодний караван</span></span>${balHTML()}</div>
+    <div class="card aic">
+      <div class="toprow"><h2 class="h1">AI-открытка</h2><span class="cap">20 ${coin}</span></div>
+      <p class="sub">Загрузите селфи, и мы поместим вас в новогоднюю сцену Coca-Cola.</p>
+      <div class="shots">${SCENES.map((s,i)=>`<button data-aiscene="${i}"><img src="img/${RESULT[s.id==="disco"?"disco4":s.id][0]}.webp" alt=""><span>${s.n.split(" ")[0]}</span></button>`).join("")}</div>
+      <button class="btn r" data-go="ai">Создать открытку</button>
+    </div>
+    <div class="secth" id="s-route"><h3>Маршрут</h3><span>12 городов · 18–30 декабря</span></div>
+    <div class="list">${ORDER.map(accItem).join("")}</div>
+    <div class="secth"><h3>Party Bus</h3><span>Ташкент · 25–30 дек</span></div>
+    <button class="feat" data-go="partybus"><img src="img/bus-ext.webp" alt="Party Bus"><span class="tx"><b>Двухэтажный автобус в колонне каравана</b><span>DJ, Coke Bar и фотостудия. Билет за 150 танга.</span></span></button>
+    <div class="secth"><h3>Где выступит гость</h3><span>голосование</span></div>
+    <button class="card" data-go="vote" style="border:0;text-align:left;color:var(--ink)">
+      <span class="guest" style="display:grid"><img src="img/a-munisa.webp" alt="Munisa Rizayeva"><span><b>Munisa Rizayeva</b><span class="cap">выступит в городе, который наберёт больше голосов</span></span></span>
+      ${top.map(c=>`<span class="vrow"><span>${c.ru}</span><span class="vbar"><i style="width:${c.pc*2}%"></i></span><b>${c.pc}%</b></span>`).join("")}
+      <span class="btn r">${st.vote?"Результаты":"Проголосовать"}</span>
+    </button>
+  </div>`;
+}
+
+/* route accordion (landing + route screen) */
+function tashPanel(c){
+  const n=now(); if(st.tday==null){ const s=cityState(c); st.tday=c.days.indexOf(s.slot[2]); }
+  const sl=slots(c)[st.tday]; const day=sl[2]; const k=n>=sl[0]&&n<sl[1]?"live":n<sl[0]?"soon":"done";
+  let trk="";
+  if(k==="live"){ const m=streetMap(c,sl); st._map={slot:sl,...m}; trk=`<div class="livemap">${m.svg}<span class="chip live">трак в пути</span></div><div class="nownext"><div class="r"><span class="dot" style="background:var(--red);box-shadow:0 0 0 4px #fde8e9"></span><span id="nowTxt">…</span><span></span></div><div class="r"><span class="dot" style="background:var(--g2)"></span><span>Дальше: <b id="nextTxt">…</b></span><small id="etaTxt"></small></div></div>`; }
+  else if(k==="soon"){ trk=`<span class="cap">Трекинг включится ${day.d} декабря в 18:00</span>${cdHTML(sl[0])}`; }
+  else trk=`<span class="cap">Этот день прошёл. Выберите другой.</span>`;
+  return `<div class="days" role="group" aria-label="День">${c.days.map((x,i)=>{const q=slots(c)[i]; const lv=n>=q[0]&&n<q[1]; return `<button data-tday="${i}" aria-pressed="${i===st.tday}">${x.d}<small>дек</small>${lv?'<span class="ld"></span>':""}</button>`}).join("")}</div>
+    <ul class="tline"><li><b>18:00</b><span>Выезд колонны</span></li><li class="main"><b>18:40–19:20</b><span>${day.p}</span></li><li><b>20:00</b><span>В парке</span></li></ul>
+    ${day.draw?`<div class="note2">${carIc}<span>На площадке розыгрыш ${day.draw} ${day.draw===1?"автомобиля":"автомобилей"}</span></div>`:""}
+    ${trk}`;
+}
+function accItem(c){
+  const s=cityState(c); const open=st.open===c.id;
+  const date=c.days?`<b style="font-size:14px">25–30</b><small>дек</small>`:`<b>${c.d}</b><small>дек</small>`;
+  let panel="";
+  if(open){
+    if(c.days) panel=tashPanel(c)+(cityState(c).k==="live"?`<button class="btn r sm" data-city="tashkent" style="width:100%">Трекинг на весь экран</button>`:"");
+    else panel=`<div class="pl">${pinIc}<span>${c.p}</span></div><span class="cap">${c.d} декабря. Время остановки сообщим в боте.</span>
+      ${s.k==="soon"?`<button class="sw" role="switch" aria-checked="${!!st.remind[c.id]}" data-remind="${c.id}">Напомнить за день<span class="t"></span></button>`:s.k==="today"?`<span class="chip today" style="justify-self:start">караван сегодня здесь</span>`:`<span class="cap">Караван уже побывал здесь</span>`}`;
+  }
+  return `<div class="acc${open?" open":""}${c.days?" tash":""}"><button class="acch" data-acc="${c.id}" aria-expanded="${open}"><span class="dt">${date}</span><span class="nm"><b>${c.ru}</b><small>${c.days?"6 дней · трекинг трака":c.p}</small></span>${chip(s.k)}${cvIc}</button>${open?`<div class="accp">${panel}</div>`:""}</div>`;
+}
+function uzMap(){
+  const pts=REGS.map(c=>`${c.x*9},${c.y*6.08}`).join(" ");
+  const dot=c=>{const k=cityState(c).k; const x=c.x*9,y=c.y*6.08; const fill=k==="live"||k==="today"?"#ffd84a":k==="done"?"#e41e2b":"#fff"; const big=c.days?9:6.5;
+    return `<g data-acc="${c.id}" style="cursor:pointer">${k==="live"||k==="today"?`<circle cx="${x}" cy="${y}" r="16" fill="#fff" opacity=".35"><animate attributeName="r" values="8;20;8" dur="1.6s" repeatCount="indefinite"/></circle>`:""}<circle cx="${x}" cy="${y}" r="${big}" fill="${fill}" stroke="#fff" stroke-width="3"/>
+    <text x="${x+LB[c.id][0]}" y="${y+LB[c.id][1]}" text-anchor="${LB[c.id][2]}" fill="#fff" font-size="27" font-weight="500" font-family="TCCC Unity,system-ui">${c.ru}</text></g>`;};
+  return `<div class="uzmap"><img src="img/uz-map.webp" alt=""><svg viewBox="0 0 900 608" aria-label="Карта маршрута"><polyline points="${pts}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" opacity=".85"/>${CITIES.map(dot).join("")}</svg><span class="tag">Регионы 18–29 дек · Ташкент 25–30 дек</span></div>`;
+}
+function routeScreen(){
+  return `<div class="scr"><button class="back" data-go="home">‹ Назад</button><h2 class="h1">Маршрут</h2><p class="sub">Нажмите на город, чтобы увидеть дату и место.</p>${uzMap()}<div class="list">${ORDER.map(accItem).join("")}</div></div>`;
+}
+
+/* live street map (Tashkent) */
+function streetMap(c,slot){
+  const r=mulberry(hash(c.id+slot[2].d)); const W=360,H=250;
+  const cols=[...Array(10)].map((_,i)=>-20+i*44+r()*14), rows=[...Array(8)].map((_,j)=>-10+j*40+r()*12);
+  let g="";
+  rows.forEach((y,j)=>{ g+=`<path d="M-40 ${y} L${W+40} ${y+(r()*20-10)}" stroke="${j%3?"#e8e4e4":"#fff"}" stroke-width="${j%3?2:6}" fill="none"/>`; });
+  cols.forEach((x,i)=>{ g+=`<path d="M${x} -40 L${x+(r()*24-12)} ${H+40}" stroke="${i%3?"#e8e4e4":"#fff"}" stroke-width="${i%3?2:6}" fill="none"/>`; });
+  const parks=[...Array(3)].map(()=>`<rect x="${(r()*300).toFixed(0)}" y="${(r()*200).toFixed(0)}" width="${(36+r()*40).toFixed(0)}" height="${(26+r()*30).toFixed(0)}" rx="8" fill="#dfeedd"/>`).join("");
+  const river=`<path d="M-20 ${60+r()*40} C 90 ${r()*120}, 200 ${140+r()*80}, ${W+20} ${120+r()*80}" stroke="#cfe2f2" stroke-width="14" fill="none" stroke-linecap="round"/>`;
+  const pts=[]; let ci=1,rj=2+Math.floor(r()*3); const P=(i,j)=>[cols[i],rows[j]]; pts.push(P(ci,rj));
+  while(ci<8){ ci++; pts.push(P(ci,rj)); if(r()<.55){ rj=Math.max(1,Math.min(6,rj+(r()<.5?-1:1))); pts.push(P(ci,rj)); } }
+  const d="M"+pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L");
+  const stops=["Выезд колонны",slot[2].p,"Парк"]; const idx=[0,Math.round((pts.length-1)*.55),pts.length-1];
+  const pins=idx.map((pi,i)=>`<g transform="translate(${pts[pi][0]},${pts[pi][1]})"><circle r="${i===1?12:9}" fill="${i===1?"#e41e2b":"#fff"}" stroke="#e41e2b" stroke-width="3"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="${i===1?"#fff":"#e41e2b"}" font-family="TCCC Unity,system-ui">${i+1}</text></g>`).join("");
+  const truck=`<g id="truckMk"><circle r="17" fill="#e41e2b" opacity=".25"><animate attributeName="r" values="12;20;12" dur="1.4s" repeatCount="indefinite"/></circle><circle r="12" fill="#e41e2b" stroke="#fff" stroke-width="3"/><path d="M-7 -3h8v7h-8zM1 -1h3l3 3v2H1z" fill="#fff"/></g>`;
+  return {svg:`<svg viewBox="0 0 ${W} ${H}" aria-label="Карта: маршрут каравана"><rect width="${W}" height="${H}" fill="#f4f1ee"/>${parks}${river}${g}
+    <path id="rBase" d="${d}" fill="none" stroke="#e41e2b" stroke-width="4" stroke-dasharray="1 8" stroke-linecap="round" opacity=".6"/>
+    <path id="rDone" d="${d}" fill="none" stroke="#e41e2b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>${pins}${truck}</svg>`,pts,idx,stops};
+}
+let raf=null;
+function animateTruck(m){
+  cancelAnimationFrame(raf);
+  const base=$("#rDone"), mk=$("#truckMk"); if(!base) return;
+  const L=base.getTotalLength(); const pts=m.pts; let acc=[0]; for(let i=1;i<pts.length;i++) acc.push(acc[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
+  const fr=acc.map(a=>a/acc[acc.length-1]); const stopFr=m.idx.map(i=>fr[i]);
+  const p0=Math.min(.9,Math.max(.04,(now()-m.slot[0])/(m.slot[1]-m.slot[0]))); const s0=performance.now();
+  const step=()=>{ if(!document.body.contains(base)) return;
+    let p=Math.min(.98,p0+((performance.now()-s0)/1000)*.01);
+    base.style.strokeDasharray=`${L*p} ${L}`; const q=base.getPointAtLength(L*p); mk&&mk.setAttribute("transform",`translate(${q.x},${q.y})`);
+    const nx=stopFr.findIndex(f=>f>p); const prev=nx===-1?2:nx-1; const el=$("#nowTxt");
+    if(el){ el.innerHTML=nx===-1?`Колонна в парке`:`Едет от «${m.stops[prev]}» к «${m.stops[nx]}»`;
+      $("#nextTxt").textContent=nx===-1?"финиш":m.stops[nx];
+      const mins=nx===-1?0:Math.max(1,Math.round((stopFr[nx]-p)*(m.slot[1]-m.slot[0])/6e4)); $("#etaTxt").textContent=nx===-1?"":`через ${mins} мин`; }
+    raf=requestAnimationFrame(step); };
+  step();
+}
+
+function city(){
+  const c=byId(st.city); if(st.tday==null){ const s=cityState(c); st.tday=c.days?c.days.indexOf(s.slot[2]):0; }
+  return `<div class="scr">
+    <button class="back" data-go="home">‹ Назад</button>
+    <div class="cityban"><img src="img/truck-hero.webp" alt=""><div class="ov"><b>${c.ru}</b><small>${c.days?"25–30 декабря · каждый день с 18:00":`${c.d} декабря · ${c.p}`}</small></div></div>
+    <button class="aimini" data-go="ai"><img src="img/ai-disco.webp" alt=""><span><b>Сделать AI-открытку</b><small>Она может появиться на экранах трака</small></span>${chev}</button>
+    <div class="card">${c.days?tashPanel(c):`<div class="pl">${pinIc}<span>${c.p}</span></div>`}</div>
+    ${c.days?`<button class="sw" role="switch" aria-checked="${!!st.remind["t"+st.tday]}" data-remind="t${st.tday}">Напомнить за час до выезда<span class="t"></span></button>`:""}
+  </div>`;
+}
+
+function partybus(){
+  const days=byId("tashkent").days; const seats=[[6,2,0],[8,5,1],[4,0,3],[9,7,2],[3,1,0],[5,2,4]];
+  const times=["18:00","19:00","20:00"]; const sd=seats[st.pbDay];
+  if(st.ticket){ const tk=st.ticket;
+    return `<div class="scr"><button class="back" data-go="home">‹ Назад</button>
+      <div class="ticket"><div class="tp"><span class="lbl" style="color:#fff">Билет</span><b>Party Bus</b><span style="font-size:13.5px">${tk.d} декабря · выезд в ${tk.t}</span></div>
+      <div class="bd">${qrSVG(tk.code)}<b style="font:600 20px ui-monospace,Menlo,monospace;letter-spacing:.12em;color:var(--red)">${tk.code}</b>
+      <div class="pl">${pinIc}<span>Сбор: ${tk.meet}, за 30 минут</span></div><span class="cap">Покажите QR промоутеру у стойки Coca-Cola.</span></div></div>
+      <button class="btn s" data-ticketreset>Купить ещё один</button></div>`;
+  }
+  return `<div class="scr">
+    <button class="back" data-go="home">‹ Назад</button>
+    <h2 class="h1">Party Bus</h2><p class="sub">Двухэтажный автобус едет в колонне каравана по Ташкенту.</p>
+    <div class="gal"><figure><img src="img/bus-ext.webp" alt=""><figcaption>Снаружи</figcaption></figure><figure><img src="img/bus-low.webp" alt=""><figcaption>1 этаж</figcaption></figure><figure><img src="img/bus-up.webp" alt=""><figcaption>2 этаж</figcaption></figure><figure><img src="img/bus-board.webp" alt=""><figcaption>Точка сбора</figcaption></figure></div>
+    <div class="floors"><div class="card"><span class="lbl">1 этаж</span><b>Фотостудия</b><span>Костюмы, печать открыток, мерч</span></div><div class="card"><span class="lbl">2 этаж</span><b>Вечеринка</b><span>DJ, Coke Bar, игры</span></div></div>
+    <div class="card">
+      <b style="font-size:16px;font-weight:500">Выберите поездку</b>
+      <div class="pick6" role="group" aria-label="Дата">${days.map((d,i)=>`<button data-pbday="${i}" aria-pressed="${i===st.pbDay}">${d.d}<small>дек</small></button>`).join("")}</div>
+      <div class="slots" role="group" aria-label="Время">${times.map((t,i)=>`<button data-pbslot="${i}" aria-pressed="${i===st.pbSlot}" ${sd[i]?"":"disabled"}>${t}<small>${sd[i]?`мест: ${sd[i]}`:"мест нет"}</small></button>`).join("")}</div>
+      <div class="pl">${pinIc}<span>Сбор: ${days[st.pbDay].p}</span></div>
+      <button class="btn r" data-buy ${st.pbSlot<0?"disabled":""}>Купить · 150 ${coin}</button>
+    </div>
+  </div>`;
+}
+function qrSVG(seed){
+  const r=mulberry(hash(seed)); const N=25; let cells="";
+  const finder=(x,y)=>`<rect x="${x}" y="${y}" width="7" height="7" fill="#1a1a1a"/><rect x="${x+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x+2}" y="${y+2}" width="3" height="3" fill="#1a1a1a"/>`;
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){ if((x<8&&y<8)||(x>16&&y<8)||(x<8&&y>16)) continue; if(r()<.48) cells+=`<rect x="${x}" y="${y}" width="1" height="1"/>`; }
+  return `<svg class="qr" viewBox="-1 -1 27 27" aria-label="QR-код"><rect x="-1" y="-1" width="27" height="27" fill="#fff"/><g fill="#1a1a1a">${cells}</g>${finder(0,0)}${finder(18,0)}${finder(0,18)}</svg>`;
+}
+
+function cityVotes(){ if(!st.cv){ st.cv={}; REGS.forEach((c,i)=>st.cv[c.id]=[14,11,9,6,8,13,4,10,7,5,6][i]); } return st.cv; }
+function topCities(n){ const v=cityVotes(); const tot=Object.values(v).reduce((a,b)=>a+b,0); return Object.entries(v).sort((a,b)=>b[1]-a[1]).slice(0,n).map(([id,x])=>({...byId(id),pc:Math.round(x/tot*100)})); }
+function vote(){
+  const v=cityVotes(); const tot=Object.values(v).reduce((a,b)=>a+b,0); const voted=!!st.vote;
+  const list=[...REGS].sort((a,b)=>v[b.id]-v[a.id]);
+  return `<div class="scr">
+    <button class="back" data-go="home">‹ Назад</button>
+    <div class="ghero"><img src="img/a-munisa.webp" alt="Munisa Rizayeva"><div class="tx"><span class="lbl" style="color:#fff">Приглашённый гость</span><b>Munisa Rizayeva</b><small>Выступит в городе, который наберёт больше голосов</small></div></div>
+    ${voted?`<div class="note2" style="background:#e7f6ee;color:var(--ok)">✓ <span>Ваш голос за ${byId(st.vote).ru} принят</span></div>`:""}
+    <div class="list cvl">${list.map((c,i)=>{const pc=Math.round(v[c.id]/tot*100); return `<div class="cvr${st.vote===c.id?" mine":""}"><span class="pn">${i+1}</span><span><b>${c.ru}</b><small>${c.d} декабря · ${c.p}</small><span class="vbar" style="display:block"><i style="width:${pc*2.4}%"></i></span></span>${voted?`<b class="pc">${pc}%</b>`:`<button class="vb" data-vote="${c.id}">Голос</button>`}</div>`}).join("")}</div>
+  </div>`;
+}
+
+/* ---------- AI frame ---------- */
+function ai(){
+  const s=SCENES[st.scene];
+  if(st.ai==="pick"){ const need=s.need();
+    return `<div class="gall"><div class="gh"><button data-aistep="scene">Отмена</button><b>Выберите ${need} ${need===1?"фото":"фото"}</b><button data-pickdone ${st.sel.length===need?"":"disabled"}>Готово</button></div>
+      <div class="tabs"><span>Недавние</span><span>Избранное</span><span>Селфи</span></div>
+      <div class="ggrid">${GALLERY.map((g,i)=>{const k=st.sel.indexOf(i); return `<button data-gal="${i}" aria-pressed="${k>-1}"><img src="img/${g.f}.webp" alt=""><span class="n">${k>-1?k+1:""}</span></button>`}).join("")}</div>
+      <div class="gf">${need===1?"Нужно одно селфи: лицо крупно, хороший свет":`Одно лицо на каждом фото · выбрано ${st.sel.length} из ${need}`}</div></div>`;
+  }
+  if(st.ai==="gen"){ const n=st.sel.length;
+    return `<div class="scr"><div class="gen"><div class="genbox"><div class="fs" style="--n:${n}">${st.sel.map(i=>`<img src="img/${GALLERY[i].f}.webp" alt="">`).join("")}</div></div>
+      <div class="gst" id="gst"><div class="on"><i></i>Находим лица</div><div><i></i>Собираем сцену «${s.n}»</div><div><i></i>Добавляем свет и снег</div></div></div></div>`;
+  }
+  if(st.ai==="done"){ const [sq,sto]=resOf(); const m=st.mine[st.mine.length-1];
+    return `<div class="scr">
+      <div class="toprow"><button class="back" data-aistep="scene">‹ Новая открытка</button>${balHTML()}</div>
+      <h2 class="h1" style="text-align:center">Открытка готова</h2>
+      <div class="seg" role="group"><button data-rv="story" aria-pressed="${st.view==="story"}">Stories 9:16</button><button data-rv="sq" aria-pressed="${st.view==="sq"}">Экран трака 1:1</button></div>
+      <div class="resv">${st.view==="story"?`<img class="sto" src="img/${sto}.webp" alt="Открытка в формате Stories">`:`<img class="sq" src="img/${sq}.webp" alt="Открытка 1:1">`}${st.ex?`<span class="tagx">пример</span>`:""}</div>
+      <div class="row2b"><button class="btn s" data-toast="Открытка сохранена в галерею">Сохранить</button><button class="btn r" data-toast="Откроется редактор Stories в Telegram">В Stories</button></div>
+      ${st.ex?`<div class="card"><span class="sub">Это пример на демо-фото. Создайте открытку со своими селфи, чтобы получить промокод.</span><button class="btn r" data-aistep="scene">Создать свою</button></div>`:
+      `<div class="card">
+        <div class="perk"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M9 6v12" stroke-dasharray="2 2"/></svg></span><span>Промокод на бесплатную Coca-Cola на остановке каравана<br><code>${st.promo}</code></span></div>
+        <div class="perk"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="5" width="20" height="13" rx="2"/><path d="M8 21h8"/></svg></span><span>Открытка может появиться на экранах трака<br><span class="mst ${m?m.status:"q"}" id="mineSt"><i></i>${stLabel(m)}</span></span></div>
+      </div>`}
+      <button class="linkb" data-go="home">На главную</button>
+    </div>`;
+  }
+  return `<div class="scr">
+    <div class="toprow"><button class="back" data-go="home">‹ Назад</button>${balHTML()}</div>
+    <h2 class="h1">AI-открытка</h2><p class="sub">Выберите сцену и загрузите селфи. Готовая открытка в формате Stories.</p>
+    <div class="scn" role="group" aria-label="Сцена">${SCENES.map((x,i)=>`<button data-scene="${i}" aria-pressed="${i===st.scene}"><img src="img/${x.img}.webp" alt=""><span><b>${x.n}</b><small>${x.ppl}</small></span></button>`).join("")}</div>
+    ${s.id==="disco"?`<div class="card" style="gap:8px"><b style="font-weight:500">Сколько человек в кадре?</b><div class="cntp" role="group">${[1,2,3,4].map(n=>`<button data-dn="${n}" aria-pressed="${n===st.dn}">${n}</button>`).join("")}<span class="cap">по одному селфи на человека</span></div></div>`:""}
+    <div class="paybar"><span>Стоимость</span><b>20 ${coin}</b></div>
+    <button class="btn r" data-aistep="pick">Выбрать фото</button>
+    <button class="linkb" data-example>Попробовать на примере</button>
+  </div>`;
+}
+function openConsent2(){
+  const s=SCENES[st.scene]; const ex=st.ex;
+  openSheet(`<h4>${ex?"Пример открытки":"Создать открытку"}</h4>
+    <div class="thumbs">${st.sel.map(i=>`<img src="img/${GALLERY[i].f}.webp" alt="">`).join("")}</div>
+    <div class="kvr"><span>Сцена</span><b>${s.n}</b></div>
+    <div class="kvr"><span>Стоимость</span><b>${ex?"бесплатно":`20 ${coin}`}</b></div>
+    ${ex?"":`<div class="kvr"><span>Баланс</span><b>${st.bal} → ${st.bal-20} ${coin}</b></div>`}
+    ${ex?"":`<button class="chk" role="checkbox" aria-checked="${st.c2}" data-c2><span class="b"></span><span>Даю согласие на использование этих фото для создания открытки и показа на экранах трака.</span></button>`}
+    <button class="btn r" data-confirmai ${ex||st.c2?"":"disabled"}>${ex?"Показать пример":"Создать открытку"}</button>`);
+}
+function runGen(){
+  st.ai="gen"; render(); let i=0;
+  const iv=setInterval(()=>{ const g=$$("#gst div"); if(g[i]){ g[i].classList.remove("on"); g[i].classList.add("ok"); } i++; if(g[i]) g[i].classList.add("on");
+    if(i>=3){ clearInterval(iv); setTimeout(()=>{ if(st.screen==="ai"&&st.ai==="gen"){ finishGen(); } },500); } },1000);
+}
+function finishGen(){
+  st.ai="done"; st.view="story";
+  if(!st.ex){ st.promo="KRV-"+Math.random().toString(36).slice(2,6).toUpperCase(); const [sq]=resOf();
+    const item={id:1300+st.mine.length+1,src:`img/${sq}.webp`,scene:SCENES[st.scene].n,status:"q"}; st.mine.push(item);
+    setTimeout(()=>{ item.status="y"; syncMine(); },5000);
+    setTimeout(()=>{ item.status="air"; syncMine(); toast("Ваша открытка сейчас на экране трака"); hapt("success"); },11000); }
+  render();
+}
+const stLabel=m=>!m?"на модерации":m.status==="q"?"на модерации":m.status==="y"?"одобрена, ждёт эфира":m.status==="air"?"сейчас на экране трака":m.status==="shown"?"уже была на экране трака":"не прошла модерацию";
+
+/* ---------- render ---------- */
+const VIEWS={consent,home:()=>st.concept==="tiles"?tiles():landing(),route:routeScreen,city,partybus,vote,ai};
+function render(top=true){
+  if(st.screen==="bot"||st.screen==="intro"){ syncFlow(); return; }
+  view.innerHTML=VIEWS[st.screen](); scrollEl.classList.toggle("redbg",st.screen==="consent"||(st.screen==="home"&&st.concept==="tiles")); if(top) scrollEl.scrollTop=0; tickCD();
+  if($("#truckMk")&&st._map) animateTruck(st._map); else cancelAnimationFrame(raf);
+  syncFlow();
+}
+function openSheet(html){ $("#sheetIn").innerHTML='<span class="grab"></span>'+html; $("#sheet").classList.add("on"); }
+function closeSheet(){ $("#sheet").classList.remove("on"); }
+$("#sheet").addEventListener("click",e=>{ if(e.target.id==="sheet") closeSheet(); });
+
+function openMini(skipIntro){
+  mini.classList.add("on"); mini.setAttribute("aria-hidden","false");
+  const after=()=>{ st.screen=st.accepted?"home":"consent"; render(); };
+  if(skipIntro){ $("#intro").classList.add("out"); after(); }
+  else { st.screen="intro"; view.innerHTML=""; syncFlow(); setTimeout(()=>playIntro(after),300); }
+}
+function closeMini(){ mini.classList.remove("on"); mini.setAttribute("aria-hidden","true"); $("#intro").classList.add("out"); $("#wel").classList.remove("on"); closeSheet(); st.screen="bot"; cancelAnimationFrame(raf); syncFlow(); }
+function go(screen){
+  if(!mini.classList.contains("on")){ mini.classList.add("on"); mini.setAttribute("aria-hidden","false"); $("#intro").classList.add("out"); }
+  if(screen!=="consent"){ st.accepted=true; if(!st.welcomed){ st.welcomed=true; st.bal=Math.max(st.bal,40); } }
+  st.screen=screen; render();
+}
+function openTile(b){
+  b.classList.add("pop"); const t=b.dataset.tile;
+  setTimeout(()=>{ b.classList.remove("pop");
+    if(t==="ai"){ st.ai="scene"; go("ai"); }
+    else if(t==="route"){ st.open=null; go("route"); }
+    else if(t==="tashkent"){ st.city="tashkent"; st.tday=null; go("city"); }
+    else if(t==="bayram") toast("Откроется мини-апп Bayram Promo");
+    else go(t);
+  },430);
+}
+
+mini.addEventListener("click",e=>{
+  const b=e.target.closest("button,[data-acc]"); if(!b||!view.contains(b)&&!b.closest("#view")) return;
+  if(b.dataset.chk!=null){ st.consent[+b.dataset.chk]=!st.consent[+b.dataset.chk]; render(false); return; }
+  if(b.id==="accept"){ st.accepted=true; st.screen="home"; render(); if(!st.welcomed) setTimeout(showWelcome,250); return; }
+  if(b.dataset.city){ st.city=b.dataset.city; st.tday=null; go("city"); return; }
+  if(b.dataset.acc){ const id=b.dataset.acc; if(!$(".list .acc")){ st.open=id; st.tday=null; go("route"); return; } st.open=st.open===id?null:id; st.tday=null; render(false); return; }
+  if(b.dataset.tile){ openTile(b); return; }
+  if(b.dataset.aiscene!=null){ st.scene=+b.dataset.aiscene; st.ai="scene"; go("ai"); return; }
+  if(b.dataset.go){ const g=b.dataset.go; if(g==="ai") st.ai="scene"; go(g); return; }
+  if(b.dataset.toast){ toast(b.dataset.toast); return; }
+  if(b.dataset.tday!=null){ st.tday=+b.dataset.tday; render(false); return; }
+  if(b.dataset.remind){ const k=b.dataset.remind; st.remind[k]=!st.remind[k]; render(false); toast(st.remind[k]?"Бот напомнит заранее":"Напоминание выключено"); return; }
+  if(b.dataset.pbday!=null){ st.pbDay=+b.dataset.pbday; st.pbSlot=-1; render(false); return; }
+  if(b.dataset.pbslot!=null){ st.pbSlot=+b.dataset.pbslot; render(false); return; }
+  if(b.hasAttribute("data-buy")){ const d=byId("tashkent").days[st.pbDay].d, t=["18:00","19:00","20:00"][st.pbSlot];
+    if(st.bal<150){ openSheet(`<h4>Не хватает танга</h4><p class="sub" style="text-align:center">Билет стоит 150 танга, на балансе ${st.bal}. Танга можно получить в Bayram Promo.</p><button class="btn r" data-sclose>Понятно</button>`); return; }
+    openSheet(`<h4>Билет в Party Bus</h4><div class="kvr"><span>Дата и время</span><b>${d} дек · ${t}</b></div><div class="kvr"><span>Стоимость</span><b>150 ${coin}</b></div><div class="row2b"><button class="btn s" data-sclose>Отмена</button><button class="btn r" data-confirmbuy>Купить</button></div>`); return; }
+  if(b.hasAttribute("data-ticketreset")){ st.ticket=null; st.pbSlot=-1; render(); return; }
+  if(b.dataset.vote){ cityVotes()[b.dataset.vote]+=1; st.vote=b.dataset.vote; render(false); toast("Голос за "+byId(b.dataset.vote).ru+" принят"); return; }
+  if(b.dataset.scene!=null){ st.scene=+b.dataset.scene; st.sel=[]; render(false); return; }
+  if(b.dataset.dn){ st.dn=+b.dataset.dn; st.sel=[]; render(false); return; }
+  if(b.dataset.rv){ st.view=b.dataset.rv; render(false); return; }
+  if(b.hasAttribute("data-example")){ st.ex=true; st.sel=SCENES[st.scene].ex.slice(0,SCENES[st.scene].need()).map(SELF); if(SCENES[st.scene].id==="disco"){ st.sel=[2,3,5,4].map(SELF); st.dn=4; } openConsent2(); return; }
+  if(b.dataset.aistep){ const s=b.dataset.aistep; if(s==="pick"){ if(st.bal<20){ openSheet(`<h4>Не хватает танга</h4><p class="sub" style="text-align:center">Открытка стоит 20 танга, на балансе ${st.bal}. Танга можно получить в Bayram Promo.</p><button class="btn r" data-sclose>Понятно</button>`); return; } st.ex=false; st.sel=[]; } st.ai=s; render(); return; }
+  if(b.dataset.gal!=null){ const i=+b.dataset.gal, need=SCENES[st.scene].need(); const k=st.sel.indexOf(i);
+    if(k>-1) st.sel.splice(k,1); else { if(GALLERY[i].nf){ toast("На этом фото не видно лица. Выберите селфи"); return; } if(st.sel.length>=need){ if(need===1) st.sel=[i]; else { toast(`Можно выбрать ${need} фото`); return; } } else st.sel.push(i); }
+    render(false); return; }
+  if(b.hasAttribute("data-pickdone")){ st.c2=false; openConsent2(); return; }
+});
+$("#sheet").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.hasAttribute("data-sclose")){ closeSheet(); return; }
+  if(b.hasAttribute("data-c2")){ st.c2=!st.c2; b.setAttribute("aria-checked",st.c2); $("[data-confirmai]").disabled=!st.c2; return; }
+  if(b.hasAttribute("data-confirmbuy")){ closeSheet(); st.bal-=150; const day=byId("tashkent").days[st.pbDay]; st.ticket={d:day.d,t:["18:00","19:00","20:00"][st.pbSlot],meet:day.p,code:"PB-"+day.d+Math.random().toString(36).slice(2,6).toUpperCase()}; render(); toast("Билет куплен"); return; }
+  if(b.hasAttribute("data-confirmai")){ closeSheet(); if(!st.ex) st.bal-=20; st.screen="ai"; runGen(); return; }
+});
+
+
+/* ---------- Telegram mini-app shell ---------- */
+function syncFlow(){}
+const tg=window.Telegram&&window.Telegram.WebApp;
+function hapt(t){ try{ tg&&tg.HapticFeedback&&tg.HapticFeedback.notificationOccurred(t); }catch(e){} }
+function syncMine(){ const m=st.mine[st.mine.length-1]; const el=$("#mineSt"); if(m&&el){ el.className="mst "+m.status; el.innerHTML="<i></i>"+stLabel(m); } }
+function choose(){
+  return `<div class="choose">
+    <div class="hd"><img src="img/cc-logo-white.webp" alt="Coca-Cola"><b>новогодний караван</b><span>Мини-приложение в боте Coca-Cola Dunyosi. Выберите концепт.</span></div>
+    <button class="ccard" data-pick="tiles"><span class="pv"><img src="img/ai-disco.webp" alt=""></span><span class="tx"><small>Концепт 1</small><b>Плитки-коробки</b><span>Разделы как подарочные коробки с трака. Главная — AI-открытка.</span></span></button>
+    <button class="ccard" data-pick="land"><span class="pv"><img src="img/truck-hero.webp" alt="" style="object-position:62% 50%"></span><span class="tx"><small>Концепт 2</small><b>Чистый лендинг</b><span>Светлый экран: AI-открытка, маршрут, Party Bus, голосование.</span></span></button>
+    <div class="demo"><span class="lbl">Показать мини-апп</span><div class="dseg" role="group">
+      <button data-demo="pre" aria-pressed="${st.nowK==="pre"}">до старта</button><button data-demo="tash" aria-pressed="${st.nowK==="tash"}">28 дек, трак в пути</button></div></div>
+  </div>`;
+}
+VIEWS.choose=choose;
+const _home=VIEWS.home; VIEWS.home=()=>_home().replace(/<\/div>\s*$/,`<button class="swc" data-go="choose">Сменить концепт</button></div>`);
+const _render=render;
+render=function(top=true){ _render(top); if(st.screen==="choose") scrollEl.classList.add("redbg"); syncBack(); syncMine(); };
+function go(screen){ if(screen!=="consent"&&screen!=="choose"){ st.accepted=true; if(!st.welcomed){ st.welcomed=true; st.bal=Math.max(st.bal,40); } } st.screen=screen; render(); }
+function startConcept(c){
+  st.concept=c; st.ai="scene"; st.open="tashkent"; st.tday=null;
+  st.screen="intro"; view.innerHTML=""; syncBack();
+  playIntro(()=>{ st.screen=st.accepted?"home":"consent"; render(); });
+}
+function syncBack(){
+  if(!tg||!tg.BackButton) return;
+  if(st.screen==="choose"||st.screen==="intro") tg.BackButton.hide(); else tg.BackButton.show();
+}
+function goBack(){
+  if($("#sheet").classList.contains("on")) return closeSheet();
+  if(st.screen==="ai"&&st.ai==="pick"){ st.ai="scene"; return render(); }
+  if(st.screen==="ai"&&st.ai==="done"){ st.ai="scene"; return render(); }
+  if(st.screen==="home"||st.screen==="consent") return go("choose");
+  if(st.screen==="city"&&st.concept==="tiles"&&st._fromRoute){ return go("route"); }
+  go("home");
+}
+mini.addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.pick){ hapt("success"); startConcept(b.dataset.pick); }
+  if(b.dataset.demo){ st.nowK=b.dataset.demo; t0=Date.now(); render(false); }
+},true);
+if(tg){
+  try{ tg.ready(); tg.expand(); tg.setHeaderColor&&tg.setHeaderColor("#e41e2b"); tg.setBackgroundColor&&tg.setBackgroundColor("#f2f2f2"); tg.disableVerticalSwipes&&tg.disableVerticalSwipes(); }catch(e){}
+  tg.BackButton&&tg.BackButton.onClick(goBack);
+}
+const qc=new URLSearchParams(location.search).get("c");
+st.nowK="tash";
+if(qc==="tiles"||qc==="land") startConcept(qc); else { st.screen="choose"; render(); }
+</script>
+</body></html>
