@@ -8,7 +8,7 @@ const TOKEN = (tokenFrom ? process.env[tokenFrom] : "").trim().replace(/^["']|["
 const BASE = (process.env.WEBAPP_URL || (process.env.RAILWAY_PUBLIC_DOMAIN ? "https://" + process.env.RAILWAY_PUBLIC_DOMAIN : "https://caravan-tg-bot-production.up.railway.app")).replace(/\/$/, "");
 const ROOT = path.join(__dirname, "public");
 const STATE = { tokenSet: !!TOKEN, tokenFrom: tokenFrom || null, envNames: Object.keys(process.env).filter(n => !/^(RAILWAY_|NIXPACKS|npm_|NODE_|PATH$|HOME$|HOSTNAME$|PWD$|SHLVL$|_$|LANG|TERM|YARN|COREPACK|PORT$)/.test(n)).sort(), tokenLooksValid: /^\d+:[\w-]{30,}$/.test(TOKEN), base: BASE, node: process.version, bot: "not started", lastError: null, updates: 0, startedAt: new Date().toISOString() };
-const TYPES = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml" };
+const TYPES = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".jpg": "image/jpeg", ".png": "image/png", ".woff2": "font/woff2", ".js": "text/javascript", ".css": "text/css", ".svg": "image/svg+xml", ".mp4": "video/mp4" };
 
 http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
@@ -17,6 +17,21 @@ http.createServer((req, res) => {
   if (p === "/status") { res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify(STATE, null, 2)); }
   const file = path.normalize(path.join(ROOT, p));
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
+  const ext0 = path.extname(file);
+  if (ext0 === ".mp4") {
+    return fs.stat(file, (err, stt) => {
+      if (err) { res.writeHead(404); return res.end("not found"); }
+      const range = req.headers.range, size = stt.size;
+      if (range) {
+        const [a, b] = range.replace(/bytes=/, "").split("-");
+        const start = parseInt(a, 10) || 0, end = b ? Math.min(parseInt(b, 10), size - 1) : size - 1;
+        res.writeHead(206, { "Content-Type": "video/mp4", "Content-Range": `bytes ${start}-${end}/${size}`, "Accept-Ranges": "bytes", "Content-Length": end - start + 1, "Cache-Control": "public, max-age=86400" });
+        return fs.createReadStream(file, { start, end }).pipe(res);
+      }
+      res.writeHead(200, { "Content-Type": "video/mp4", "Content-Length": size, "Accept-Ranges": "bytes", "Cache-Control": "public, max-age=86400" });
+      fs.createReadStream(file).pipe(res);
+    });
+  }
   fs.readFile(file, (err, buf) => {
     if (err) { res.writeHead(404); return res.end("not found"); }
     const ext = path.extname(file);
