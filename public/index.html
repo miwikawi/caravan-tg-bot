@@ -647,6 +647,26 @@ body{background:#a61019;overscroll-behavior:none}
 .row3{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .btn.anim{background:linear-gradient(90deg,var(--red),#ff4b57,var(--red));background-size:200% 100%;animation:sheen 2.4s linear infinite;color:#fff}
 @keyframes sheen{to{background-position:-200% 0}}
+
+/* intro v3: approved truck video */
+.intro .ivid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#0b0507}
+.intro .shade{background:linear-gradient(rgba(10,0,2,.55),transparent 38%,transparent 70%,rgba(10,0,2,.55))}
+.app .intro .ititle{top:8%;transform:translateY(16px);opacity:0}
+.intro.play .ititle{animation:tin .9s var(--ease) .9s forwards}
+/* gen loader: approved truck drives along the road */
+.road{position:relative;width:260px;height:44px;margin-top:-4px}
+.road::before{content:"";position:absolute;left:0;right:0;bottom:6px;border-bottom:3px dashed var(--g2)}
+.road img{position:absolute;bottom:6px;height:34px;width:auto;right:0;animation:drive 3s linear forwards}
+@keyframes drive{from{right:0}to{right:calc(100% - 150px)}}
+.t-trk .tcut{position:absolute;left:8px;right:8px;top:30%;width:auto;max-width:calc(100% - 16px);z-index:2;filter:drop-shadow(0 6px 6px rgba(80,0,8,.35))}
+.t-trk .tl{z-index:3}
+.t-bay .tl small{display:block;font-size:12px;opacity:.95;margin-top:4px}
+.lang{display:inline-flex;background:#fff;border-radius:999px;padding:3px;box-shadow:var(--sh-card)}
+.lang button{border:0;background:none;border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:500;color:var(--muted)}
+.lang button[aria-pressed="true"]{background:var(--red);color:#fff}
+.trip{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;align-items:center}
+.trip .big{font-family:var(--display);font-size:40px;line-height:.9;color:var(--red);grid-row:span 2}
+.trip b{font-size:16px;font-weight:500}.trip span{font-size:13px;color:var(--muted)}
 </style></head><body>
 <div class="app mini on" id="mini">
   <div class="scroll" id="scroll"><div id="view"></div></div>
@@ -726,17 +746,18 @@ setInterval(tickCD,1000);
 function toast(msg,el="#toast"){ const t=$(el); t.textContent=msg; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),2300); }
 function mulberry(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 const hash=s=>[...s].reduce((h,c)=>Math.imul(h^c.charCodeAt(0),16777619),2166136261);
-const boxLayers=(inner="")=>`<div class="gbox"><img class="gl" src="img/box-glow.webp" alt=""><img class="bm" src="img/box-beam.webp" alt="">${inner}<img class="bd" src="img/box-body.webp" alt=""><img class="lc" src="img/box-lid.webp" alt="">${[...Array(10)].map((_,i)=>{const a=(-160+i*14)*Math.PI/180,r=120+(i%3)*40;return `<i class="spk" style="--x:${(Math.cos(a)*r).toFixed(0)}px;--y:${(Math.sin(a)*r).toFixed(0)}px;--d:${(i%4)*.05}s"></i>`}).join("")}</div>`;
+const boxLayers=(inner="")=>`<div class="gbox"><img class="gl" src="img/box-glow.webp" alt="">${inner}<img class="bd" src="img/box-body.webp" alt=""><img class="lc" src="img/box-lid.webp" alt="">${[...Array(10)].map((_,i)=>{const a=(-160+i*14)*Math.PI/180,r=120+(i%3)*40;return `<i class="spk" style="--x:${(Math.cos(a)*r).toFixed(0)}px;--y:${(Math.sin(a)*r).toFixed(0)}px;--d:${(i%4)*.05}s"></i>`}).join("")}</div>`;
 
 /* ---------- intro ---------- */
 function playIntro(next){
   const el=$("#intro");
-  const flakes=[...Array(28)].map(()=>`<span class="flake" style="left:${Math.random()*100}%;font-size:${6+Math.random()*9}px;animation-duration:${5+Math.random()*6}s;animation-delay:${-Math.random()*8}s;--dx:${(Math.random()*40-20).toFixed(0)}px">❄</span>`).join("");
-  el.innerHTML=`<div class="ph"></div><div class="shade"></div><div class="cur"></div><div class="stripes"></div>${boxLayers()}
+  const flakes=[...Array(22)].map(()=>`<span class="flake" style="left:${Math.random()*100}%;font-size:${6+Math.random()*8}px;animation-duration:${6+Math.random()*6}s;animation-delay:${-Math.random()*8}s;--dx:${(Math.random()*40-20).toFixed(0)}px">❄</span>`).join("");
+  el.innerHTML=`<video class="ivid" src="vid/intro.mp4" poster="img/truck-convoy.webp" autoplay muted playsinline preload="auto"></video><div class="shade"></div>
     <div class="ititle"><img src="img/cc-logo-white.webp" alt="Coca-Cola"><h1>новогодний караван</h1><p>18–30 декабря · 12 городов</p></div>${flakes}<span class="skip">Пропустить</span>`;
+  const v=el.querySelector("video"); try{ v.play().catch(()=>{}); }catch(e){}
   el.classList.remove("out","play"); void el.offsetWidth; el.classList.add("play");
-  const done=()=>{ if(el._done) return; el._done=true; el.classList.add("out"); next(); };
-  el._done=false; el.onclick=done; clearTimeout(el._t); el._t=setTimeout(done,6300);
+  const done=()=>{ if(el._done) return; el._done=true; el.classList.add("out"); try{v.pause()}catch(e){} next(); };
+  el._done=false; el.onclick=done; clearTimeout(el._t); el._t=setTimeout(done,5600);
 }
 
 /* ---------- welcome bonus ---------- */
@@ -775,13 +796,13 @@ function tiles(){
   return `<div class="scr tilescr">
     <div class="toprow"><h2>Караван</h2>${balHTML()}</div>
     <div class="metro">
-      <button class="tile t-ai" data-tile="ai"><span class="fan"><img src="img/pc-dast_magic.webp" alt=""><img src="img/pc-bath_fly.webp" alt=""><img src="img/pc-disco_ny.webp" alt=""></span>
+      <button class="tile t-ai" data-tile="ai"><span class="fan"><img src="img/pc-dast_magic-${st.lang}.webp" alt=""><img src="img/pc-bath_fly-${st.lang}.webp" alt=""><img src="img/pc-disco_ny-${st.lang}.webp" alt=""></span>
         <span class="tl"><span style="display:grid;gap:6px"><b>AI-<br>открытка</b><small>Выберите свой Новый год</small></span><span class="go">Создать · 20 ${coin}</span></span></button>
       <button class="tile t-route bx-stripe" data-tile="route">${bow()}<span class="lab"><b>Маршрут</b><small>${nextInfo()}</small></span></button>
-      <button class="tile t-bus bx-white" data-tile="partybus" style="--rx:74%;--ry:30%"><span class="rib"></span>${bow("#e41e2b")}<span class="tl"><b>Party Bus</b><small>Ташкент, 25–30 декабря</small></span></button>
+      <button class="tile t-bus bx-white" data-tile="partybus" style="--rx:74%;--ry:30%"><span class="rib"></span>${bow("#e41e2b")}<span class="tl"><b>Party Bus</b><small>30 дек · 19:00</small></span></button>
       <button class="tile t-vote" data-tile="vote"><img src="img/a-munisa.webp" alt=""><span class="tl"><b>Где выступит гость?</b><small>Лидирует ${top.ru}. Голосуйте за свой город</small></span></button>
-      <button class="tile t-trk bx-red" data-tile="tashkent" style="--rx:78%;--ry:30%"><span class="rib"></span>${bow()}<span class="tl"><b>Ташкент</b><small>где трак сейчас</small></span></button>
-      <button class="tile t-bay" data-tile="bayram"><img class="kvb" src="img/kv-scene.webp" alt=""><span class="tl"><img src="img/lockup-ru.webp" alt="Bayram Promo"></span></button>
+      <button class="tile t-trk bx-red" data-tile="tashkent" style="--rx:78%;--ry:22%"><span class="rib"></span>${bow()}<img class="tcut" src="img/truck-bayram-side.webp" alt=""><span class="tl"><b>Ташкент</b><small>где трак сейчас</small></span></button>
+      <button class="tile t-bay" data-tile="bayram"><img class="kvb" src="img/kv-scene.webp" alt=""><span class="tl"><img src="img/lockup-ru.webp" alt="Bayram Promo"><small>Перейти в Bayram Promo ›</small></span></button>
     </div>
   </div>`;
 }
@@ -793,7 +814,7 @@ function landing(){
     <div class="card aic">
       <div class="toprow"><h2 class="h1">AI-открытка</h2><span class="cap">20 ${coin}</span></div>
       <p class="sub">Загрузите селфи, и мы поместим вас в новогоднюю сцену Coca-Cola.</p>
-      <div class="shots">${PS.map((x,i)=>`<button data-ps="${i}"><img src="img/pc-${x.cards[0].k}.webp" alt="" style="object-position:50% 60%"><span>${x.n}</span></button>`).join("")}</div>
+      <div class="shots">${PS.map((x,i)=>`<button data-ps="${i}"><img src="img/pc-${x.cards[0].k}-${st.lang}.webp" alt="" style="object-position:50% 60%"><span>${x.n}</span></button>`).join("")}</div>
       <button class="btn r" data-go="ai">Создать открытку</button>
     </div>
     <div class="secth" id="s-route"><h3>Маршрут</h3><span>12 городов · 18–30 декабря</span></div>
@@ -886,21 +907,19 @@ function city(){
   return `<div class="scr">
     <button class="back" data-go="home">‹ Назад</button>
     <div class="cityban"><img src="img/truck-hero.webp" alt=""><div class="ov"><b>${c.ru}</b><small>${c.days?"25–30 декабря · каждый день с 18:00":`${c.d} декабря · ${c.p}`}</small></div></div>
-    <button class="aimini" data-go="ai"><img src="img/ai-disco.webp" alt=""><span><b>Сделать AI-открытку</b><small>Она может появиться на экранах трака</small></span>${chev}</button>
+    <button class="aimini" data-go="ai"><img src="img/pc-disco_ny-${st.lang}.webp" alt="" style="object-position:50% 0"><span><b>Сделать AI-открытку</b><small>Выберите свой Новый год. Открытка может появиться на экранах трака</small></span>${chev}</button>
     <div class="card">${c.days?tashPanel(c):`<div class="pl">${pinIc}<span>${c.p}</span></div>`}</div>
     ${c.days?`<button class="sw" role="switch" aria-checked="${!!st.remind["t"+st.tday]}" data-remind="t${st.tday}">Напомнить за час до выезда<span class="t"></span></button>`:""}
   </div>`;
 }
 
 function partybus(){
-  const days=byId("tashkent").days; const seats=[[6,2,0],[8,5,1],[4,0,3],[9,7,2],[3,1,0],[5,2,4]];
-  const times=["18:00","19:00","20:00"]; const sd=seats[st.pbDay];
+  st.pbDay=5; st.pbSlot=1; const seats=12;
   if(st.ticket){ const tk=st.ticket;
     return `<div class="scr"><button class="back" data-go="home">‹ Назад</button>
       <div class="ticket"><div class="tp"><span class="lbl" style="color:#fff">Билет</span><b>Party Bus</b><span style="font-size:13.5px">${tk.d} декабря · выезд в ${tk.t}</span></div>
       <div class="bd">${qrSVG(tk.code)}<b style="font:600 20px ui-monospace,Menlo,monospace;letter-spacing:.12em;color:var(--red)">${tk.code}</b>
-      <div class="pl">${pinIc}<span>Сбор: ${tk.meet}, за 30 минут</span></div><span class="cap">Покажите QR промоутеру у стойки Coca-Cola.</span></div></div>
-      <button class="btn s" data-ticketreset>Купить ещё один</button></div>`;
+      <div class="pl">${pinIc}<span>Сбор: ${tk.meet}, за 30 минут</span></div><span class="cap">Покажите QR промоутеру у стойки Coca-Cola.</span></div></div></div>`;
   }
   return `<div class="scr">
     <button class="back" data-go="home">‹ Назад</button>
@@ -908,11 +927,9 @@ function partybus(){
     <div class="gal"><figure><img src="img/bus-ext.webp" alt=""><figcaption>Снаружи</figcaption></figure><figure><img src="img/bus-low.webp" alt=""><figcaption>1 этаж</figcaption></figure><figure><img src="img/bus-up.webp" alt=""><figcaption>2 этаж</figcaption></figure><figure><img src="img/bus-board.webp" alt=""><figcaption>Точка сбора</figcaption></figure></div>
     <div class="floors"><div class="card"><span class="lbl">1 этаж</span><b>Фотостудия</b><span>Костюмы, печать открыток, мерч</span></div><div class="card"><span class="lbl">2 этаж</span><b>Вечеринка</b><span>DJ, Coke Bar, игры</span></div></div>
     <div class="card">
-      <b style="font-size:16px;font-weight:500">Выберите поездку</b>
-      <div class="pick6" role="group" aria-label="Дата">${days.map((d,i)=>`<button data-pbday="${i}" aria-pressed="${i===st.pbDay}">${d.d}<small>дек</small></button>`).join("")}</div>
-      <div class="slots" role="group" aria-label="Время">${times.map((t,i)=>`<button data-pbslot="${i}" aria-pressed="${i===st.pbSlot}" ${sd[i]?"":"disabled"}>${t}<small>${sd[i]?`мест: ${sd[i]}`:"мест нет"}</small></button>`).join("")}</div>
-      <div class="pl">${pinIc}<span>Сбор: ${days[st.pbDay].p}</span></div>
-      <button class="btn r" data-buy ${st.pbSlot<0?"disabled":""}>Купить · 150 ${coin}</button>
+      <div class="trip"><span class="big">30</span><b>декабря · выезд в 19:00</b><span>Осталось мест: ${seats}</span></div>
+      <div class="pl">${pinIc}<span>Сбор: Ташкент Сити, за 30 минут до выезда</span></div>
+      <button class="btn r" data-buy>Купить билет · 150 ${coin}</button>
     </div>
   </div>`;
 }
@@ -1029,7 +1046,7 @@ function openTile(b){
     if(t==="ai"){ st.ai="scene"; go("ai"); }
     else if(t==="route"){ st.open=null; go("route"); }
     else if(t==="tashkent"){ st.city="tashkent"; st.tday=null; go("city"); }
-    else if(t==="bayram") toast("Откроется мини-апп Bayram Promo");
+    else if(t==="bayram") toast("Откроется Bayram Promo: сезон праздников");
     else go(t);
   },430);
 }
@@ -1076,12 +1093,21 @@ $("#sheet").addEventListener("click",e=>{
 /* ---------- AI postcards (GForce Caravan Postcard 2027) ---------- */
 const PS=[
   {id:"disco",n:"Диско",img:"inst-disco",cards:[
-    {k:"disco_ny",t:"Кружим друга",n:2,ex:[1,2]},{k:"disco_ball",t:"Полёт над танцполом",n:2,ex:[2,1]},{k:"disco_beats",t:"Брейк на танцполе",n:2,ex:[0,1]}]},
+    {k:"disco_ny",h:["Выбираю диско-Новый год","Disko Yangi yilni tanlayman"],n:2,ex:[1,2]},
+    {k:"disco_ball",h:["Выбираю диско-шар, а не снежок","Qor to‘pi emas, disko-sharni tanlayman"],n:2,ex:[2,1]},
+    {k:"disco_beats",h:["Выбираю диско, а не тёплое одеяло","Issiq ko‘rpa emas, diskoni tanlayman"],n:2,ex:[0,1]}]},
   {id:"dast",n:"Дастархан",img:"inst-dast",cards:[
-    {k:"dast_magic",t:"Пар из ушей",n:1,ex:[2]},{k:"dast_feast",t:"Мишура на ужин",n:1,ex:[1]},{k:"dast_main",t:"Главный герой стола",n:3,ex:[2,1,0]}]},
-  {id:"bath",n:"Полярная ванна",img:"inst-bath",cards:[
-    {k:"bath_chill",t:"Чилл с мишкой",n:1,ex:[2]},{k:"bath_fly",t:"Полёт на мишке",n:1,ex:[0]},{k:"bath_delulu",t:"Парим над шарами",n:2,ex:[2,1]}]},
+    {k:"dast_magic",h:["Выбираю немного магии к праздничному столу","Bayram dasturxoniga sehr tanlayman"],n:1,ex:[2]},
+    {k:"dast_feast",h:["Выбираю войти в 2027 вкусно","2027-yilga mazali kirishni tanlayman"],n:1,ex:[1]},
+    {k:"dast_main",h:["Выбираю быть главным героем стола","Dasturxon qahramoni bo‘lishni tanlayman"],n:3,ex:[2,1,0]}]},
+  {id:"bath",n:"Полярный бассейн",img:"inst-bath",cards:[
+    {k:"bath_chill",h:["Выбираю чиииилл Новый год","Chiiiill Yangi yilni tanlayman"],n:1,ex:[2]},
+    {k:"bath_fly",h:["Выбираю влететь в 2027","2027-yilga uchib kirishni tanlayman"],n:1,ex:[0]},
+    {k:"bath_delulu",h:["Выбираю мечтать с размахом","Katta orzu qilishni tanlayman"],n:2,ex:[2,1]}]},
 ];
+st.lang="ru";
+const LI=()=>st.lang==="uz"?1:0;
+const langSw=()=>`<span class="lang" role="group" aria-label="Язык открытки"><button data-lang="ru" aria-pressed="${st.lang==="ru"}">RU</button><button data-lang="uz" aria-pressed="${st.lang==="uz"}">UZ</button></span>`;
 const PGAL=[{f:"model0"},{f:"model1"},{f:"model2"},{f:"selfie3"},{f:"truck-hero",nf:1},{f:"selfie0"},{f:"selfie1"},{f:"bus-ext",nf:1},{f:"selfie2"},{f:"selfie5"},{f:"selfie4"},{f:"selfie6"}];
 st.ps=0; st.pv=0; st.animated=false;
 const curCard=()=>PS[st.ps].cards[st.pv];
@@ -1090,8 +1116,8 @@ function ai(){
   const S=PS[st.ps], C=curCard();
   if(st.ai==="card") return `<div class="scr">
     <div class="toprow"><button class="back" data-pstep="scene">‹ Сцены</button>${balHTML()}</div>
-    <h2 class="h1">${S.n}</h2><p class="sub">Выберите открытку. Мы поставим в неё вас и друзей.</p>
-    <div class="cards3" id="cards3">${S.cards.map((c,i)=>`<button data-pcv="${i}" aria-pressed="${i===st.pv}"><img src="img/tpl-${c.k}.webp" alt=""><span><b>${c.t}</b><small>${c.n===1?"Нужно одно селфи":`Нужно ${c.n} фото: по одному на человека`}</small></span></button>`).join("")}</div>
+    <div class="toprow"><h2 class="h1">${S.n}</h2>${langSw()}</div><p class="sub">Выберите открытку. Мы поставим в неё вас и друзей.</p>
+    <div class="cards3" id="cards3">${S.cards.map((c,i)=>`<button data-pcv="${i}" aria-pressed="${i===st.pv}"><img src="img/tpl-${c.k}-${st.lang}.webp" alt=""><span><b>${c.h[LI()]}</b><small>${c.n===1?"Нужно одно селфи":`Нужно ${c.n} фото: по одному на человека`}</small></span></button>`).join("")}</div>
     <div class="dots">${S.cards.map((c,i)=>`<i class="${i===st.pv?"on":""}"></i>`).join("")}</div>
     <div class="paybar"><span>Открытка</span><b>20 ${coin}</b></div>
     <button class="btn r" data-pstep="pick">Выбрать ${ppl(C.n)}</button>
@@ -1105,16 +1131,18 @@ function ai(){
   }
   if(st.ai==="gen"||st.ai==="anim"){ const anim=st.ai==="anim";
     return `<div class="scr"><div class="gen">
-      <div class="pcard"><img src="img/${anim?"pc-"+C.k:"tpl-"+C.k}.webp" alt=""><span class="win blur"></span></div>
+      <div class="pcard"><img src="img/${anim?"pc-"+C.k:"tpl-"+C.k}-${st.lang}.webp" alt=""><span class="win blur"></span></div>
       <div class="faces">${st.sel.map(i=>`<img src="img/${PGAL[i].f}.webp" alt="">`).join("")}</div>
       <div class="gst" id="gst">${(anim?["Оживляем героев","Добавляем движение","Собираем видео"]:["Находим лица","Ставим вас в открытку","Добавляем свет и снег"]).map((t,i)=>`<div class="${i?"":"on"}"><i></i>${t}</div>`).join("")}</div>
+      <div class="road"><img src="img/truck-bayram-side.webp" alt=""></div>
     </div></div>`;
   }
   if(st.ai==="done"){ const m=st.mine[st.mine.length-1];
     return `<div class="scr">
       <div class="toprow"><button class="back" data-pstep="scene">‹ Новая открытка</button>${balHTML()}</div>
       <h2 class="h1" style="text-align:center">${st.animated?"Открытка ожила":"Открытка готова"}</h2>
-      <div class="pcard"><img src="img/pc-${C.k}.webp" alt="Готовая открытка">${st.animated?`<video src="vid/${C.k}.mp4" autoplay loop muted playsinline></video>`:""}${st.ex?`<span class="play" style="top:8px;bottom:auto">пример</span>`:""}</div>
+      <div class="toprow" style="justify-content:center">${langSw()}</div>
+      <div class="pcard"><img src="img/pc-${C.k}-${st.lang}.webp" alt="Готовая открытка">${st.animated?`<video src="vid/${C.k}.mp4" autoplay loop muted playsinline></video>`:""}${st.ex?`<span class="play" style="top:8px;bottom:auto">пример</span>`:""}</div>
       ${st.animated?`<div class="row3"><button class="btn s" data-toast="Видео сохранено в галерею">Сохранить</button><button class="btn r" data-toast="Откроется отправка в Telegram">Отправить</button></div>`:
       `<button class="btn anim" data-anim>Оживить открытку</button>
        <div class="row3"><button class="btn s" data-toast="Открытка сохранена в галерею">Сохранить</button><button class="btn s" data-toast="Откроется редактор Stories в Telegram">В Stories</button></div>`}
@@ -1128,7 +1156,7 @@ function ai(){
   }
   return `<div class="scr">
     <div class="toprow"><button class="back" data-go="home">‹ Назад</button>${balHTML()}</div>
-    <h2 class="h1">AI-открытка</h2><p class="sub">Выберите свой Новый год: сцену, открытку и фото.</p>
+    <div class="toprow"><h2 class="h1">AI-открытка</h2>${langSw()}</div><p class="sub">Выберите свой Новый год: сцену, открытку и фото.</p>
     <div class="pscn">${PS.map((x,i)=>`<button data-ps="${i}"><img src="img/${x.img}.webp" alt=""><span><b>${x.n}</b><small>3 открытки · ${x.cards.map(c=>c.n).filter((v,j,a)=>a.indexOf(v)===j).sort().join(" или ")} чел.</small></span>${chev}</button>`).join("")}</div>
     <img class="strip" src="img/strip.webp" alt="">
   </div>`;
@@ -1137,7 +1165,7 @@ function openConsent2(){
   const C=curCard(), ex=st.ex;
   openSheet(`<h4>${ex?"Пример открытки":"Создать открытку"}</h4>
     <div class="faces">${st.sel.map(i=>`<img src="img/${PGAL[i].f}.webp" alt="">`).join("")}</div>
-    <div class="kvr"><span>Открытка</span><b>${PS[st.ps].n} · ${C.t}</b></div>
+    <div class="kvr"><span>Открытка</span><b>${PS[st.ps].n}</b></div><div class="kvr"><span>Надпись</span><b style="text-align:right;max-width:62%">${C.h[LI()]}</b></div>
     <div class="kvr"><span>Стоимость</span><b>${ex?"бесплатно":`20 ${coin}`}</b></div>
     ${ex?"":`<div class="kvr"><span>Баланс</span><b>${st.bal} → ${st.bal-20} ${coin}</b></div>`}
     ${ex?"":`<button class="chk" role="checkbox" aria-checked="${st.c2}" data-c2><span class="b"></span><span>Даю согласие на использование этих фото для создания открытки и показа на экранах трака.</span></button>`}
@@ -1152,9 +1180,10 @@ function runGen(){ st.animated=false; stepGen("gen",finishGen); }
 function finishGen(){
   st.ai="done"; hapt("success");
   if(!st.ex){ st.promo="KRV-"+Math.random().toString(36).slice(2,6).toUpperCase();
-    const item={id:1300+st.mine.length+1,status:"q"}; st.mine.push(item);
-    setTimeout(()=>{ item.status="y"; syncMine(); },5000);
-    setTimeout(()=>{ item.status="air"; syncMine(); toast("Ваша открытка сейчас на экране трака"); hapt("success"); },11000); }
+    const item={id:1300+st.mine.length+1,status:"q",k:curCard().k}; st.mine.push(item);
+    if(EMBED){ try{ parent.postMessage({type:"postcard",id:item.id,k:item.k,lang:st.lang,scene:PS[st.ps].n},"*"); }catch(e){} }
+    else { setTimeout(()=>{ item.status="y"; syncMine(); },5000);
+      setTimeout(()=>{ item.status="air"; syncMine(); toast("Ваша открытка сейчас на экране трака"); hapt("success"); },11000); } }
   render();
 }
 mini.addEventListener("click",e=>{
@@ -1169,12 +1198,14 @@ mini.addEventListener("click",e=>{
     render(false); }
   else if(d.pdone!=null){ st.c2=false; openConsent2(); }
   else if(d.pex!=null){ st.ex=true; st.sel=curCard().ex.slice(); openConsent2(); }
+  else if(d.lang){ st.lang=d.lang; render(false); }
   else if(d.anim!=null){ stepGen("anim",()=>{ st.animated=true; st.ai="done"; hapt("success"); render(false); }); }
   else hit=false;
   if(hit) e.stopImmediatePropagation();
 },true);
 
 /* ---------- Telegram mini-app shell ---------- */
+const EMBED=new URLSearchParams(location.search).has("embed");
 function syncFlow(){}
 const tg=window.Telegram&&window.Telegram.WebApp;
 function hapt(t){ try{ tg&&tg.HapticFeedback&&tg.HapticFeedback.notificationOccurred(t); }catch(e){} }
@@ -1191,7 +1222,7 @@ function choose(){
 VIEWS.choose=choose;
 const _home=VIEWS.home; VIEWS.home=()=>_home().replace(/<\/div>\s*$/,`<button class="swc" data-go="choose">Сменить концепт</button></div>`);
 const _render=render;
-render=function(top=true){ _render(top); if(st.screen==="choose") scrollEl.classList.add("redbg"); syncBack(); syncMine(); };
+render=function(top=true){ _render(top); if(EMBED){ try{ parent.postMessage({type:"screen",screen:st.screen},"*"); }catch(e){} } if(st.screen==="choose") scrollEl.classList.add("redbg"); syncBack(); syncMine(); };
 function go(screen){ if(screen!=="consent"&&screen!=="choose"){ st.accepted=true; if(!st.welcomed){ st.welcomed=true; st.bal=Math.max(st.bal,40); } } st.screen=screen; render(); }
 function startConcept(c){
   st.concept=c; st.ai="scene"; st.open="tashkent"; st.tday=null;
@@ -1222,5 +1253,20 @@ if(tg){
 const qc=new URLSearchParams(location.search).get("c");
 st.nowK="tash";
 if(qc==="tiles"||qc==="land") startConcept(qc); else { st.screen="choose"; render(); }
+
+if(EMBED){
+  window.addEventListener("message",e=>{ const m=e.data||{};
+    if(m.type==="status"){ const it=st.mine.find(x=>x.id===m.id); if(it){ it.status=m.status; syncMine(); if(m.status==="air") toast("Ваша открытка сейчас на экране трака"); } }
+    if(m.type==="now"){ st.nowK=m.k; t0=Date.now(); st.tday=null; if(!["intro","choose"].includes(st.screen)) render(false); }
+    if(m.type==="go"){ closeSheet(); $("#wel").classList.remove("on"); const f=m.screen;
+      if(f==="intro") return startConcept(st.concept);
+      if(f==="consent"){ st.accepted=false; st.consent=[false,false]; return go("consent"); }
+      if(f==="welcome"){ go("home"); st.bal=0; showWelcome(); return; }
+      if(f==="city"){ st.city="tashkent"; st.tday=null; }
+      if(f==="ai") st.ai="scene";
+      if(f==="route") st.open=null;
+      go(f); }
+  });
+}
 </script>
 </body></html>
