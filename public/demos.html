@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Coca-Cola Demos</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+@font-face{font-family:"Better With";src:url(fonts/BetterWith.woff2) format("woff2")}
+@font-face{font-family:"TCCC Unity";src:url(fonts/TCCCUnity-Medium.woff2) format("woff2");font-weight:500}
+:root{--red:#e41e2b}
+*{box-sizing:border-box;margin:0}
+body{background:var(--red);color:#fff;font-family:"TCCC Unity",system-ui,sans-serif;min-height:100vh;padding:28px 16px 32px}
+.logo{display:block;width:180px;margin:4px auto 10px}
+h1{font-family:"Better With",Georgia,serif;font-weight:400;font-size:28px;text-align:center;margin-bottom:6px}
+p.lead{text-align:center;opacity:.9;font-size:14px;margin-bottom:22px}
+a.card{display:block;background:#fff;color:#1b1b1b;border-radius:22px;overflow:hidden;text-decoration:none;margin:0 auto 16px;max-width:460px;box-shadow:0 10px 30px rgba(90,0,10,.35)}
+a.card .pv{height:190px;background:#c8101e center/cover no-repeat}
+a.card .tx{padding:14px 18px 18px}
+a.card small{color:var(--red);font-weight:500;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+a.card b{display:block;font-family:"Better With",Georgia,serif;font-weight:400;font-size:24px;margin:2px 0 4px}
+a.card span{font-size:14px;color:#555;line-height:1.35}
+</style></head><body>
+<img class="logo" src="img/cc-logo-white.webp" alt="Coca-Cola">
+<h1>Демо для клиента</h1>
+<p class="lead">Выберите, что открыть</p>
+<a class="card" href="./?c=tiles"><div class="pv" style="background-image:url(img/truck-hero.webp);background-position:62% 50%"></div><div class="tx"><small>Концепт</small><b>Караван Coca-Cola</b><span>Мини-приложение каравана: AI-открытка, маршрут, Party Bus, голосование.</span></div></a>
+<a class="card" href="game/?demo=1"><div class="pv" style="background-image:url(game/assets/ui/hero.png),url(game/assets/ui/bg.jpg);background-size:contain,cover;background-repeat:no-repeat"></div><div class="tx"><small>Концепт</small><b>Мини-игра Jetour Cola Rush</b><span>Игра для Bayram Promo. Демо-кошелёк: 60 танга на устройстве.</span></div></a>
+<script>try{var t=Telegram.WebApp;t.ready();t.expand();t.setHeaderColor&&t.setHeaderColor('#e41e2b');t.setBackgroundColor&&t.setBackgroundColor('#e41e2b')}catch(e){}</script>
+</body></html>

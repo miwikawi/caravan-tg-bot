@@ -1,0 +1,2121 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Jetour Cola Rush · Bayram</title>
+<style>
+  @font-face{font-family:BW;src:url(assets/fonts/BetterWith.woff2) format('woff2');font-display:swap}
+  @font-face{font-family:TU;src:url(assets/fonts/TCCCUnity-Regular.woff2) format('woff2');font-weight:400;font-display:swap}
+  @font-face{font-family:TU;src:url(assets/fonts/TCCCUnity-Medium.woff2) format('woff2');font-weight:500 900;font-display:swap}
+  /* Bayram: красный Coca-Cola, белые карточки, золото крышки */
+  :root{--red:#e41e2b;--red2:#c8101d;--deep:#7e0912;--ink:#2a0a0e;--mute:#8a6a6e;--soft:#f7eeef;--line:#ecdcde;--gold:#f6b53a;--gold2:#e8920f;color-scheme:dark}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+  html,body{margin:0;height:100%;background:#5a050c;overflow:hidden;touch-action:none;font-family:TU,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#fff}
+  body{display:flex;align-items:center;justify-content:center;overscroll-behavior:none}
+  #wrap{position:relative;overflow:hidden;flex:none;background:#5a050c}
+  canvas{display:block;width:100%;height:100%}
+  .hidden{display:none!important}
+  .ic{width:1.15em;height:1.15em;flex:none;display:inline-block;vertical-align:-.18em}
+
+  /* ---------- экраны ---------- */
+  .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;overflow-y:auto;overflow-x:hidden;text-align:center;
+    padding:calc(16px + var(--ins-t,0px)) 18px calc(18px + var(--ins-b,0px));
+    background:linear-gradient(180deg,rgba(150,8,20,.10) 0%,rgba(120,6,16,.50) 50%,rgba(84,4,12,.94) 100%),url(assets/ui/bg.jpg) center top/cover,#b3101b}
+  .screen{z-index:1}
+  .screen.lock{pointer-events:none}
+  .col{margin:auto 0;width:100%;display:flex;flex-direction:column;align-items:center;gap:12px}   /* центр по вертикали, но со скроллом, если не влезает */
+  .kicker{font-weight:500;font-size:12px;letter-spacing:.24em;text-transform:uppercase;opacity:.85}
+  h1,h2{margin:0;font-family:BW,TU,sans-serif;font-weight:400;text-transform:uppercase;line-height:.95;letter-spacing:.01em}
+  h2{font-size:30px;display:flex;align-items:center;justify-content:center;gap:8px;text-shadow:0 2px 10px rgba(60,0,8,.35)}
+  h2 .ic{width:.8em;height:.8em}
+  p{margin:0;font-size:15px;line-height:1.4;max-width:300px;opacity:.95}
+  .note{font-size:13px;opacity:.85;max-width:300px;line-height:1.35}
+
+  /* ---------- кнопки ---------- */
+  button{appearance:none;border:0;margin:0;padding:0;background:none;color:inherit;font:inherit;cursor:pointer}
+  button:disabled{opacity:.45;filter:grayscale(.5);cursor:default}
+  /* основная: на красном фоне белая, на белой панели красная */
+  button:not(.skin):not(.chip):not(.tile):not([data-l]){display:flex;align-items:center;justify-content:center;gap:10px;width:100%;max-width:320px;min-height:54px;padding:10px 18px;border-radius:16px;
+    font-family:BW,TU,sans-serif;font-size:21px;line-height:1;text-transform:uppercase;letter-spacing:.02em;
+    background:#fff;color:var(--red);box-shadow:0 4px 0 rgba(96,4,12,.55),0 12px 24px rgba(40,0,6,.28);transition:transform .08s,box-shadow .08s}
+  button:not(.skin):not(.chip):not(.tile):not([data-l]):active{transform:translateY(3px);box-shadow:0 1px 0 rgba(96,4,12,.55),0 6px 14px rgba(40,0,6,.28)}
+  button:not(.skin):not(.chip):not(.tile):not([data-l]) .ic{width:.95em;height:.95em}
+  button.ghost:not(.skin):not(.chip):not(.tile){min-height:46px;font-size:17px;background:rgba(255,255,255,.12);color:#fff;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+  button.ghost:not(.skin):not(.chip):not(.tile):active{transform:translateY(1px);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+  button.hot:not(.skin):not(.chip){background:linear-gradient(180deg,#ffc94d,var(--gold2));color:#4a1a00;box-shadow:0 4px 0 #9a5500,0 12px 24px rgba(40,0,6,.3);animation:pulseU 1.7s ease-in-out infinite}
+  .btns{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .pair{width:100%;max-width:320px;display:flex;gap:10px}
+  .pair button{flex:1}
+  .link{font-size:14px;opacity:.85;text-decoration:underline;text-underline-offset:3px;padding:6px 10px!important}
+
+  /* ---------- белая панель (старт и финиш) ---------- */
+  .sheet{position:relative;width:100%;background:#fff;color:var(--ink);border-radius:26px 26px 0 0;margin-top:-22px;
+    padding:18px 18px calc(16px + var(--ins-b,0px));display:flex;flex-direction:column;align-items:center;gap:12px;box-shadow:0 -10px 30px rgba(60,0,8,.35)}
+  .sheet:before{content:"";position:absolute;top:7px;left:50%;width:38px;height:4px;margin-left:-19px;border-radius:2px;background:var(--line)}
+  .sheet button:not(.skin):not(.chip):not(.tile):not([data-l]):not(.hot){background:linear-gradient(180deg,#f0313d,var(--red2));color:#fff;box-shadow:0 4px 0 #8e0a14,0 10px 20px rgba(200,16,29,.25)}
+  .sheet button:not(.skin):not(.chip):not(.tile):not([data-l]):not(.hot):active{box-shadow:0 1px 0 #8e0a14,0 4px 10px rgba(200,16,29,.25)}
+  .tiles{width:100%;max-width:320px;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
+  .tile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:62px;padding:9px 4px 8px;border-radius:14px;
+    background:var(--soft);color:var(--ink);font-weight:500;font-size:12px;line-height:1.1;transition:transform .08s,background .15s}
+  .tile .ic{width:22px;height:22px;color:var(--red)}
+  .tile:active{transform:scale(.96);background:var(--line)}
+  .tile.hot{grid-column:span 3;flex-direction:row;gap:10px;font-family:BW,TU,sans-serif;font-size:20px;text-transform:uppercase;color:#4a1a00}
+  .tile.hot .ic{color:#4a1a00}
+  .best{font-size:12px;color:var(--mute);min-height:14px;margin-top:-4px}
+
+  /* ---------- старт ---------- */
+  #start{padding:0;justify-content:flex-end;overflow:hidden}
+  .hero{position:relative;flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;
+    padding:calc(12px + var(--ins-t,0px)) 0 28px;background:url(assets/ui/bg.jpg) center top/cover,#d4131f}
+  .hero:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.8;
+    background-image:radial-gradient(1.6px 1.6px at 18px 22px,#fff 99%,transparent),radial-gradient(1.2px 1.2px at 74px 61px,#fff 99%,transparent),radial-gradient(2px 2px at 121px 18px,#fff 99%,transparent),radial-gradient(1.3px 1.3px at 160px 95px,#fff 99%,transparent),
+      radial-gradient(2.4px 2.4px at 40px 140px,#ffffffcc 99%,transparent),radial-gradient(1.8px 1.8px at 210px 170px,#ffffffcc 99%,transparent),radial-gradient(2.6px 2.6px at 120px 190px,#ffffffaa 99%,transparent);
+    background-size:180px 120px,180px 120px,180px 120px,180px 120px,240px 220px,240px 220px,240px 220px;animation:snow 14s linear infinite}
+  @keyframes snow{from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0}to{background-position:20px 120px,20px 120px,20px 120px,20px 120px,-30px 220px,-30px 220px,-30px 220px}}
+  .hero .logo{flex:none;width:140px;height:auto;filter:drop-shadow(0 3px 8px rgba(80,0,8,.35))}
+  .hero h1{flex:none;margin-top:4px;font-size:46px;color:#fff;text-shadow:0 3px 0 rgba(120,4,14,.55),0 8px 22px rgba(60,0,8,.4)}
+  .hero h1 span{color:#ffd27a}
+  .hero .car{flex:0 1 auto;min-height:0;width:100%;max-width:400px;height:auto;object-fit:contain;object-position:center bottom;margin-top:auto}
+  .stats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:100%}
+  #langSw{position:absolute;right:12px;top:calc(10px + var(--ins-t,0px));display:none;gap:2px;padding:3px;border-radius:999px;background:rgba(80,0,8,.35);z-index:2}
+  #langSw.on{display:flex}
+  #langSw button{font-weight:500;font-size:12px;padding:5px 10px;border-radius:999px;color:#fff;letter-spacing:.04em}
+  #langSw button.on{background:#fff;color:var(--red)}
+
+  /* ---------- плашки ---------- */
+  .pill{display:inline-flex;align-items:center;justify-content:center;flex-wrap:wrap;max-width:100%;padding:6px 12px;border-radius:999px;font-weight:500;font-size:13px;line-height:1.2;
+    background:rgba(60,0,8,.32);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.22)}
+  .pill .ic{margin-right:5px}
+  .pill small{font-size:11px;opacity:.75;margin-left:4px}
+  .pill i.sp,.rank i.sp,.line i.sp{display:inline-block;width:1px;height:12px;background:currentColor;opacity:.25;margin:0 8px;vertical-align:-1px}
+  .sheet .pill{background:var(--soft);color:var(--ink);box-shadow:none}
+  .sheet .pill .ic{color:var(--red)}
+  .sheet .pill small{color:var(--mute);opacity:1}
+  .ecoPill{cursor:pointer}
+  .sheet .ecoPill{background:#fff6e2;box-shadow:inset 0 0 0 1px #f3d79a}
+  .sheet .ecoPill .ic{color:var(--gold2)}
+  .chbanner{width:100%;max-width:320px;background:#fff6e2;color:var(--ink);border:1px solid #f3d79a;border-radius:14px;padding:9px 12px;font-weight:500;font-size:14px;line-height:1.3}
+  .chbanner .ic{color:var(--gold2);margin-right:6px}
+
+  /* ---------- скины ---------- */
+  .skins{display:flex;gap:8px;justify-content:center}
+  .skin{position:relative;width:52px;height:66px;border-radius:14px;background:var(--soft);display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:inset 0 0 0 2px transparent;transition:transform .1s}
+  .skin img{height:56px;width:auto;pointer-events:none;filter:drop-shadow(0 3px 3px rgba(40,0,6,.25))}
+  .skin.sel{background:#fff;box-shadow:inset 0 0 0 2.5px var(--red),0 4px 12px rgba(228,30,43,.25)}
+  .skin:active{transform:scale(.95)}
+  .skin.lock{cursor:default}
+  .skin.lock img{filter:grayscale(1) brightness(.9);opacity:.35}
+  .skin .req{position:absolute;left:5px;right:5px;bottom:4px;border-radius:7px;background:#fff;color:var(--ink);font-weight:500;font-size:10.5px;line-height:15px;box-shadow:0 1px 3px rgba(40,0,6,.15)}
+
+  /* ---------- финиш ---------- */
+  #over{padding:0;justify-content:flex-start}
+  #over .top{flex:1 0 auto;min-height:170px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:calc(14px + var(--ins-t,0px)) 20px 34px}
+  .big{font-family:BW,TU,sans-serif;font-size:76px;line-height:.9;text-shadow:0 4px 0 rgba(120,4,14,.55),0 10px 26px rgba(60,0,8,.4)}
+  #finalInfo{font-size:14px;opacity:.95}
+  #finalInfo .ic{margin-right:5px;color:#ffd27a}
+  #over .sheet{flex:none}
+  .lines{width:100%;max-width:320px;display:flex;flex-direction:column;gap:6px}
+  .lines:empty{display:none}
+  .line{font-size:14px;line-height:1.35;color:var(--ink)}
+  .line:empty{display:none}
+  .line .ic{color:var(--red);margin-right:5px}
+  .line b{color:var(--red)}
+  .rank{font-size:14px}
+  .chres{width:100%;max-width:320px;font-weight:500;font-size:16px;line-height:1.3;background:var(--soft);border-radius:14px;padding:10px 12px}
+  .chres .ic{color:var(--red);margin-right:6px}
+  .newach{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+  .newach span{display:inline-flex;align-items:center;background:#fff6e2;box-shadow:inset 0 0 0 1px #f3d79a;color:var(--ink);border-radius:999px;padding:5px 11px;font-weight:500;font-size:13px}
+  .newach .ic{color:var(--gold2);margin-right:5px}
+  .unlock{width:100%;max-width:320px;display:flex;align-items:center;gap:12px;background:linear-gradient(100deg,#ffbf3a,#ff7a12);border-radius:16px;padding:10px 14px;text-align:left;cursor:pointer;color:#fff;box-shadow:0 6px 18px rgba(232,146,15,.35);animation:pulseU 1.7s ease-in-out infinite}
+  .unlock b{display:block;font-family:BW,TU,sans-serif;font-weight:400;font-size:20px;line-height:1;text-transform:uppercase;text-shadow:0 1px 3px rgba(120,40,0,.35)}
+  .unlock small{display:block;font-size:12px;opacity:.95;margin-top:3px}
+  .unlock>.ic{margin-left:auto;width:22px;height:22px}
+
+  /* ---------- значки ---------- */
+  .badge{display:inline-flex;align-items:center;justify-content:center;width:var(--s,44px);height:var(--s,44px);border-radius:50%;background:var(--c,#e41e2b);color:#fff;box-shadow:0 0 0 3px #fff,0 6px 14px rgba(40,0,6,.35);flex:none}
+  .badge .ic{width:56%;height:56%;margin:0}
+  .badge.big{box-shadow:0 0 0 5px #fff,0 0 0 11px rgba(255,255,255,.22),0 14px 30px rgba(40,0,6,.45);animation:pop .7s cubic-bezier(.2,1.4,.4,1)}
+  @keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+  @keyframes pulseU{0%,100%{transform:scale(1)}50%{transform:scale(1.03)}}
+
+  /* ---------- правила ---------- */
+  .rlist{width:100%;max-width:330px;display:flex;flex-direction:column;gap:7px}
+  #rules .col{gap:10px}
+  #rules h2{font-size:28px}
+  #rulesGo{position:sticky;bottom:0;z-index:2}
+  .rcard{display:flex;align-items:center;gap:11px;background:#fff;color:var(--ink);border-radius:16px;padding:9px 12px;text-align:left;box-shadow:0 6px 16px rgba(40,0,6,.18)}
+  .rcard img,.rcard .rtap{flex:none;width:42px;height:42px;border-radius:13px;background:var(--soft);object-fit:contain;padding:5px}
+  .rcard .rtap{display:flex;align-items:center;justify-content:center;color:var(--red)}
+  .rcard .rtap .ic{width:26px;height:26px}
+  .rcard b{display:block;font-weight:500;font-size:14.5px;line-height:1.2;color:var(--red)}
+  .rcard small{display:block;font-size:12px;line-height:1.3;color:#5a3a3e;margin-top:2px}
+
+  /* ---------- карта ---------- */
+  #map{z-index:4;padding-left:12px;padding-right:12px}
+  #map .col{gap:9px}
+  #map h2{font-size:21px;line-height:1}
+  #map .pair button,#arrive .pair button{min-height:42px;font-size:16px}
+  .mapwrap{position:relative;width:336px;flex:none}
+  #mapCv{width:336px;height:232px;flex:none;border-radius:18px;background:#f3ead7;touch-action:none;box-shadow:0 0 0 3px #fff,0 12px 28px rgba(40,0,6,.4)}
+  button.mview:not(.skin):not(.chip):not(.tile){position:absolute;right:8px;top:8px;width:auto;min-height:0;padding:6px 10px;border-radius:10px;font-family:TU,sans-serif;font-weight:500;font-size:11px;text-transform:none;letter-spacing:0;
+    background:rgba(255,255,255,.92);color:var(--ink);box-shadow:0 2px 8px rgba(40,0,6,.25)}
+  .route{display:flex;align-items:center;gap:6px;width:336px;flex:none;height:30px}
+  .chip{flex:none;color:#fff}
+  .rbtn{flex:none;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.4);font:500 20px/28px TU,sans-serif;display:flex;align-items:center;justify-content:center}
+  .rbtn:disabled{opacity:.3}
+  .rdots{flex:1;position:relative;display:flex;align-items:center;justify-content:space-between;height:30px;padding:0 5px}
+  .rdots:before{content:"";position:absolute;left:12px;right:12px;top:50%;height:3px;margin-top:-1.5px;background:rgba(255,255,255,.22);border-radius:2px}
+  .rfill{position:absolute;left:12px;top:50%;height:3px;margin-top:-1.5px;background:linear-gradient(90deg,#fff,#ffd27a);border-radius:2px;width:0}
+  .rdot{position:relative;z-index:1;flex:none;width:13px;height:13px;border-radius:50%;background:#8c3a42;box-shadow:0 0 0 2px #6a0710;color:var(--ink);font:500 11px/1 TU,sans-serif;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:width .15s,height .15s}
+  .rdot:after{content:"";position:absolute;inset:-8px}
+  .rdot.done{background:#fff}.rdot.cur{background:var(--gold)}.rdot.lock{background:#6e2a31}
+  .rdot.sel{width:24px;height:24px;box-shadow:0 0 0 2px #fff,0 3px 8px rgba(0,0,0,.45);background:#fff}
+  .rdot.sel.cur{background:var(--gold)}
+  .rdot.sel.lock{background:#b9a3a6}
+  .mcard{width:336px;flex:none;border-radius:18px;padding:11px 14px 9px;text-align:left;background:#3a0509 center/cover;box-shadow:0 10px 24px rgba(40,0,6,.35)}
+  .mhead{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .mname{font-family:BW,TU,sans-serif;font-size:24px;line-height:1;text-transform:uppercase}
+  .mreg{font-size:12px;opacity:.8;margin-top:2px}
+  .mach{display:flex;align-items:center;margin:0 0 6px;font-weight:500;font-size:13px}
+  .mach .ic{margin-right:6px;color:#ffd27a}
+  .glabel{display:flex;justify-content:space-between;font-weight:500;font-size:12px}
+  .glabel span:first-child{display:inline-flex;align-items:center}
+  .glabel .ic{margin-right:5px}
+  .bar{height:7px;background:rgba(255,255,255,.2);border-radius:4px;margin:3px 0 6px;overflow:hidden}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#fff,#ffd27a);border-radius:4px}
+  .gnote{font-size:11px;opacity:.75}
+  .gok{display:flex;align-items:center;font-weight:500;font-size:13px}.gok .ic{margin-right:6px}.gok.lockd{opacity:.85}
+  #mGoal{font-size:13px;line-height:1.35}
+
+  /* ---------- достижения ---------- */
+  #ach{z-index:6}
+  #achList{width:100%;max-width:336px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .ac{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);border-radius:16px;padding:10px 11px;text-align:left;display:flex;flex-direction:column;gap:3px;color:#fff}
+  .ac .ai{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.14);margin-bottom:3px}
+  .ac .ai .ic{width:19px;height:19px}
+  .ac b{font-weight:500;font-size:13.5px;line-height:1.2}
+  .ac small{font-size:11.5px;line-height:1.3;opacity:.75}
+  .ac.on{background:#fff;color:var(--ink);box-shadow:0 6px 16px rgba(40,0,6,.2)}
+  .ac.on .ai{background:var(--red);color:#fff}
+  .ac.on small{color:var(--mute);opacity:1}
+
+  /* ---------- прибытие ---------- */
+  #arrive{z-index:7;background-size:cover;background-position:center}
+  #arIco{display:flex;justify-content:center;margin-bottom:6px}
+  #arTitle{font-size:36px;line-height:1}
+  #arAch{display:inline-flex;align-items:center;background:#fff6e2;color:var(--ink);border-radius:999px;padding:8px 16px;font-weight:500;font-size:14px}
+  #arAch .ic{color:var(--gold2);margin-right:6px}
+
+  /* ---------- заправка ---------- */
+  #fuel{z-index:8}
+  #fuIco{display:flex;justify-content:center;margin-bottom:4px}
+  #fuTitle{font-size:34px}
+  .fcard{width:100%;max-width:320px;background:#fff;color:var(--ink);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px;box-shadow:0 10px 26px rgba(40,0,6,.3)}
+  .fcard .pill{align-self:center;background:var(--soft);color:var(--ink);box-shadow:none}
+  .fcard .pill .ic{color:var(--red)}
+  .fcard button:not(.skin):not(.chip):not(.tile):not(.ghost){background:linear-gradient(180deg,#f0313d,var(--red2));color:#fff;box-shadow:0 4px 0 #8e0a14,0 10px 20px rgba(200,16,29,.25);font-size:18px;max-width:none}
+  .fcard button.ghost:not(.skin):not(.chip):not(.tile){max-width:none}
+  .fnote{font-size:12.5px;color:var(--mute);line-height:1.35}
+  .fnote:empty{display:none}
+  .fcard button.ghost:not(.skin):not(.chip):not(.tile){background:var(--soft);color:var(--red);box-shadow:none;min-height:50px;font-size:18px}
+
+  /* ---------- дуэль ---------- */
+  #duel{z-index:9}
+  #duTimer{min-height:18px;font-size:14px;opacity:.9}
+
+  /* ---------- рейтинг ---------- */
+  #lb{z-index:5}
+  #lbList{width:100%;max-width:330px;display:flex;flex-direction:column;gap:6px}
+  .lbr{display:flex;align-items:center;gap:10px;background:#fff;color:var(--ink);border-radius:14px;padding:10px 14px;font-size:15px;text-align:left;box-shadow:0 4px 12px rgba(40,0,6,.15)}
+  .lbr.me{background:linear-gradient(100deg,#ffc94d,var(--gold2));color:#4a1a00;font-weight:500}
+  .lbr b{width:24px;font-weight:500;color:var(--red)}
+  .lbr.me b{color:#4a1a00}
+  .lbr span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lbr i{font-style:normal;font-weight:500}
+  #lbMe{font-size:14px;opacity:.95}
+
+  /* ---------- уведомление ---------- */
+  .toast{position:absolute;left:50%;top:calc(var(--ins-t,0px) * var(--k,1) + 4.6em);transform:translateX(-50%);background:rgba(255,255,255,.97);color:var(--ink);border-radius:.9em;padding:.6em 1.1em;
+    font-weight:500;font-size:.85em;z-index:30;max-width:19em;text-align:center;box-shadow:0 .4em 1.4em rgba(40,0,6,.35)}
+
+  /* ---------- экономика танга ---------- */
+  .tgl{width:100%;max-width:320px;display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:#fff6e2;box-shadow:inset 0 0 0 1px #f3d79a;color:var(--ink);font-weight:500;font-size:14px;cursor:pointer;text-align:left}
+  .tgl .tgi{display:flex;color:var(--gold2)}.tgl .tgi .ic{width:20px;height:20px}
+  .tgl .tgx{flex:1}
+  .tgl .tgx .ic{width:14px;height:14px;color:var(--gold2);margin:0 2px 0 4px;vertical-align:-2px}
+  .tgl .sw{flex:none;width:40px;height:24px;border-radius:12px;background:#e3d3d5;position:relative;transition:background .15s}
+  .tgl .sw:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(40,0,6,.3);transition:transform .15s}
+  .tgl.on{background:linear-gradient(100deg,#ffd469,#ffb02e);box-shadow:none}
+  .tgl.on .sw{background:var(--red)}.tgl.on .sw:after{transform:translateX(16px)}
+  .tgl.on .tgi,.tgl.on .tgx .ic{color:#7a3a00}
+  .skin .req .ic{width:10px;height:10px;color:var(--gold2);margin-right:2px;vertical-align:-1px}
+  .xline{cursor:pointer;background:#fff6e2;box-shadow:inset 0 0 0 1px #f3d79a;border-radius:12px;padding:7px 10px}
+  .xline .ic{color:var(--gold2)}
+  .fhead{display:flex;align-items:baseline;justify-content:space-between;gap:8px;text-align:left}
+  .fhead b{font-family:BW,TU,sans-serif;font-weight:400;font-size:20px;text-transform:uppercase;color:var(--red);line-height:1}
+  .fhead span{font-size:12px;color:var(--mute);font-weight:500}
+  .fsub{font-size:13px;line-height:1.35;color:#5a3a3e;text-align:left}
+  .fsub .ic{color:var(--gold2);margin-right:4px}
+  #fuel .col{gap:10px}
+  #fuel .fcard{gap:8px;padding:12px 14px}
+  #fuel .fcard button{min-height:46px}
+  /* окна поверх: подтверждение покупки и второй шанс */
+  .screen.modal{z-index:20;padding:0;justify-content:flex-end;background:rgba(30,0,4,.6)}
+  .modal .sheet{margin-top:0;padding-top:24px;gap:10px;animation:up .25s cubic-bezier(.2,.9,.3,1)}
+  @keyframes up{from{transform:translateY(40%);opacity:0}to{transform:none;opacity:1}}
+  .modal h2{color:var(--red);text-shadow:none;font-size:30px}
+  .modal p{color:#5a3a3e;font-size:14px}
+  .sheet button.ghost:not(.skin):not(.chip):not(.tile):not([data-l]):not(.hot){background:var(--soft);color:var(--red);box-shadow:none;min-height:46px;font-size:17px}
+  #askIco,#rvIco{display:flex;justify-content:center;min-height:10px}
+  #askIco img{height:96px;width:auto;filter:drop-shadow(0 6px 8px rgba(40,0,6,.3))}
+  .rvbar{position:absolute;left:0;right:0;top:0;height:5px;border-radius:26px 26px 0 0;overflow:hidden;background:var(--line)}
+  .rvbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--gold2),var(--red));transform-origin:left}
+  .rvbar i.run{animation:rv var(--rvt,7s) linear forwards}
+  @keyframes rv{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+  #revive{background:rgba(30,0,4,.45)}
+  #fuIco:empty{display:none}
+  /* бусты на заезд */
+  .boosts{width:100%;max-width:320px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .bst{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 6px;border-radius:13px;background:#fff6e2;box-shadow:inset 0 0 0 1px #f3d79a;cursor:pointer;transition:transform .08s}
+  .bst:active{transform:scale(.95)}
+  .bst .bi{display:flex;color:var(--gold2)}.bst .bi .ic{width:19px;height:19px}
+  .bst b{font-weight:500;font-size:11.5px;line-height:1.1;color:var(--ink);white-space:nowrap}
+  .bst small{display:flex;align-items:center;gap:2px;font-weight:500;font-size:11px;color:#8a5a10}
+  .bst small .ic{width:11px;height:11px}
+  .bst.on{background:linear-gradient(160deg,#ffd469,#ffa51f);box-shadow:0 0 0 2px var(--red),0 4px 10px rgba(232,146,15,.35)}
+  .bst.on .bi,.bst.on small{color:#6a2f00}
+  .tcoin{width:84px;height:84px;filter:drop-shadow(0 8px 14px rgba(40,0,6,.4));animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
+  .xbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:8px 0 4px}
+  .xbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px}
+  .xday{font-size:12px;color:var(--mute)}
+  .xlim{font-size:12.5px;color:var(--red);margin-top:4px;font-weight:500}
+  .pill b.need{color:var(--red);font-weight:500;margin-left:4px}
+</style>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="texts.js"></script>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="c"></canvas>
+
+  <div id="start" class="screen">
+    <div class="hero">
+      <div id="langSw"><button type="button" data-l="ru">RU</button><button type="button" data-l="uz">UZ</button></div>
+      <img class="logo" src="assets/ui/logo.png" alt="Coca-Cola">
+      <h1 class="tt">Cola <span>Rush</span></h1>
+      <img class="car" src="assets/ui/hero.png" alt="">
+    </div>
+    <div class="sheet">
+      <div class="stats">
+        <div class="pill" id="progPill"></div>
+        <div class="pill ecoPill hidden" id="ecoPill"></div>
+      </div>
+      <div class="chbanner hidden" id="chBanner"></div>
+      <div class="skins" id="skinsStart"></div>
+      <div class="boosts hidden" id="boosts"></div>
+      <button id="playBtn" data-i="arrow" data-t="btn.go">Поехали</button>
+      <div class="tiles">
+        <button class="tile" id="mapBtn" data-i="map" data-t="btn.map">Карта</button>
+        <button class="tile hidden" id="duelBtn" data-i="swords" data-t="btn.duel">Дуэль</button>
+        <button class="tile hidden" id="lbBtn" data-i="trophy" data-t="btn.top">Рейтинг</button>
+        <button class="tile" id="rulesBtn" data-i="info" data-t="btn.rules">Правила</button>
+      </div>
+      <div class="best" id="bestStart"></div>
+    </div>
+  </div>
+
+  <div id="over" class="screen hidden">
+    <div class="top">
+      <div class="kicker" data-t="over.brand">Финиш</div>
+      <div class="big" id="finalScore">0</div>
+      <p id="finalInfo"></p>
+    </div>
+    <div class="sheet">
+      <div class="chres hidden" id="duelRes"></div>
+      <div class="chres hidden" id="chRes"></div>
+      <div class="unlock hidden" id="unlockCard"></div>
+      <div class="lines">
+        <div class="line" id="progInfo"></div>
+        <div class="line" id="rankInfo"></div>
+        <div class="line xline hidden" id="xLine" role="button"></div>
+      </div>
+      <div class="newach hidden" id="newAch"></div>
+      <div class="pill ecoPill hidden" id="ecoPill2"></div>
+      <div class="skins" id="skinsOver"></div>
+      <button id="againBtn" data-i="refresh" data-t="btn.again">Ещё раз</button>
+      <div class="tiles">
+        <button class="tile" id="menuBtn" data-i="home" data-t="btn.menu">Меню</button>
+        <button class="tile" id="mapBtn2" data-i="map" data-t="btn.map">Карта</button>
+        <button class="tile hidden" id="chBtn" data-i="swords" data-t="btn.challenge">Вызвать друга</button>
+        <button class="tile hidden" id="lbBtn2" data-i="trophy" data-t="btn.topWeek">Рейтинг недели</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="map" class="screen hidden"><div class="col">
+    <h2 data-i="map" data-t="map.title">Путешествие по Узбекистану</h2>
+    <div class="mapwrap"><canvas id="mapCv"></canvas><button class="ghost mview" id="mView" data-i="expand" data-t="map.overview">Обзор</button></div>
+    <div class="route"><button class="chip rbtn" id="rPrev" aria-label="Предыдущий город" data-ta="map.prev">&#8249;</button><div class="rdots" id="rDots"></div><button class="chip rbtn" id="rNext" aria-label="Следующий город" data-ta="map.next">&#8250;</button></div>
+    <div class="mcard" id="mCard">
+      <div class="mhead" id="mHead"></div>
+      <div class="mach" id="mAch"></div>
+      <div id="mGoal"></div>
+    </div>
+    <button id="mGo" data-i="car" data-t="btn.ride">Ехать</button>
+    <button class="hidden" id="mBuy" data-i="coin">Открыть</button>
+    <div class="pair"><button class="ghost" id="achBtn" data-i="medal" data-t="btn.ach">Достижения</button><button class="ghost" id="mClose" data-i="close" data-t="btn.close">Закрыть</button></div>
+  </div></div>
+
+  <div id="ach" class="screen hidden"><div class="col">
+    <h2 data-i="medal" data-t="btn.ach">Достижения</h2>
+    <div class="note" id="achCount"></div>
+    <div id="achList"></div>
+    <button id="achClose" data-i="close" data-t="btn.close">Закрыть</button>
+  </div></div>
+
+  <div id="arrive" class="screen hidden"><div class="col">
+    <div id="arIco"></div>
+    <h2 id="arTitle"></h2>
+    <p id="arSub"></p>
+    <div id="arAch"></div>
+    <div class="btns">
+      <button id="arGo" data-i="car" data-t="btn.ride">Ехать</button>
+      <div class="pair"><button class="ghost" id="arMap" data-i="map" data-t="btn.map">Карта</button><button class="ghost" id="arClose" data-t="btn.later">Позже</button></div>
+    </div>
+  </div></div>
+
+  <div id="rules" class="screen hidden"><div class="col">
+    <h2 data-t="rules.title">Как играть</h2>
+    <div class="rlist">
+      <div class="rcard"><img src="assets/can.png" alt=""><div><b data-t="rules.1t"></b><small data-t="rules.1d"></small></div></div>
+      <div class="rcard"><span class="rtap" data-ic="bolt"></span><div><b data-t="rules.2t"></b><small data-t="rules.2d"></small></div></div>
+      <div class="rcard"><img src="assets/cone.png" alt=""><div><b data-t="rules.3t"></b><small data-t="rules.3d"></small></div></div>
+      <div class="rcard"><img src="assets/plov.png" alt=""><div><b data-t="rules.4t"></b><small data-t="rules.4d"></small></div></div>
+      <div class="rcard"><span class="rtap" data-ic="map"></span><div><b data-t="rules.5t"></b><small data-t="rules.5d"></small></div></div>
+      <div class="rcard"><img src="assets/ui/tanga.png" alt=""><div><b data-t="rules.6t"></b><small data-t="rules.6d"></small></div></div>
+    </div>
+    <button id="rulesGo" data-i="arrow" data-t="rules.go">Понятно, поехали!</button>
+  </div></div>
+
+  <div id="fuel" class="screen hidden"><div class="col">
+    <div id="fuIco"></div>
+    <h2 id="fuTitle"></h2>
+    <div class="pill" id="fuBal"></div>
+    <div class="fcard">
+      <div class="fhead"><b data-t="w.fuel">Топливо</b></div>
+      <div class="fsub" id="fuSub"></div>
+      <button id="fuOne" data-i="fuel" data-t="btn.fuelOne">Заправить</button>
+      <button class="ghost" id="fuFull" data-i="fuel" data-t="btn.fuelFull">Полный бак</button>
+      <div class="fnote" id="fuNote"></div>
+    </div>
+    <div class="fcard hidden" id="xCard">
+      <div class="fhead"><b data-t="x.title">Обмен очков</b><span id="xRate"></span></div>
+      <div class="fsub" id="xInfo"></div>
+      <button id="xOne" data-i="star">Обменять</button>
+      <button class="ghost" id="xAll" data-i="star">Обменять всё</button>
+      <div class="fnote" id="xNote"></div>
+    </div>
+    <div class="note hidden" id="demoNote" data-t="w.demo"></div>
+    <div class="pair"><button class="ghost" id="fuClose" data-i="close" data-t="btn.close">Закрыть</button><button id="fuGo" data-i="arrow" data-t="btn.go">Поехали</button></div>
+  </div></div>
+
+  <div id="ask" class="screen modal hidden"><div class="sheet">
+    <div id="askIco"></div>
+    <h2 id="askT"></h2>
+    <p id="askS"></p>
+    <div class="pill" id="askBal"></div>
+    <button id="askGo" data-i="coin">OK</button>
+    <button class="ghost" id="askNo" data-i="close" data-t="btn.cancel">Отмена</button>
+  </div></div>
+
+  <div id="revive" class="screen modal hidden"><div class="sheet">
+    <div class="rvbar"><i id="rvBar"></i></div>
+    <div id="rvIco"></div>
+    <h2 data-t="revive.t">Второй шанс</h2>
+    <p data-t="revive.s"></p>
+    <div class="pill" id="rvBal"></div>
+    <button id="rvGo" data-i="refresh">Продолжить</button>
+    <button class="ghost" id="rvNo" data-i="flag" data-t="revive.no">Завершить</button>
+  </div></div>
+  <div class="toast hidden" id="toast"></div>
+
+  <div id="duel" class="screen hidden"><div class="col">
+    <h2 data-i="swords" data-t="duel.title">Дуэль 1 на 1</h2>
+    <div class="pill" id="duStatus"></div>
+    <p id="duSub"></p>
+    <div id="duTimer"></div>
+    <div class="btns">
+      <button id="duFriend" data-i="swords" data-t="duel.friend">Позвать друга</button>
+      <button id="duQueue" data-i="compass" data-t="duel.queue">Найти соперника</button>
+      <button class="hidden" id="duInvite" data-i="arrow" data-t="duel.invite">Отправить ссылку</button>
+      <button class="ghost hidden" id="duMore" data-i="refresh" data-t="duel.more">Подождать ещё</button>
+      <button class="ghost" id="duCancel" data-i="close" data-t="btn.cancel">Отмена</button>
+    </div>
+  </div></div>
+
+  <div id="lb" class="screen hidden"><div class="col">
+    <h2 data-i="trophy" data-t="lb.title">Рейтинг недели</h2>
+    <div id="lbList"></div>
+    <div id="lbMe"></div>
+    <button id="lbClose" data-i="close" data-t="btn.close">Закрыть</button>
+  </div></div>
+</div>
+<script>
+(() => {
+  // ---------- язык и тексты (сами тексты — в texts.js) ----------
+  // Язык: ?lang=uz|ru или #uz|#ru в ссылке (бот открывает игру с языком пользователя) → сохранённый выбор → language_code Telegram → ru
+  const LANG = (() => {
+    const h = (location.hash || '').replace('#', '');
+    const q = new URLSearchParams(location.search).get('lang') || (h === 'uz' || h === 'ru' ? h : null);
+    if (q === 'uz' || q === 'ru') { try { localStorage.setItem('jcr_lang', q); } catch (e) {} return q; }
+    try { const v = localStorage.getItem('jcr_lang'); if (v === 'uz' || v === 'ru') return v; } catch (e) {}
+    try { if ((window.Telegram.WebApp.initDataUnsafe.user.language_code || '').toLowerCase().startsWith('uz')) return 'uz'; } catch (e) {}
+    return 'ru';
+  })();
+  const TX = window.JCR_TEXTS || { ru: {}, uz: {} };
+  const tr = (k, v) => {
+    let s = TX[LANG] && TX[LANG][k] !== undefined ? TX[LANG][k] : TX.ru[k] !== undefined ? TX.ru[k] : k;
+    if (v) s = s.replace(/\{(\w+)\}/g, (m, n) => v[n] !== undefined ? v[n] : m);
+    return s;
+  };
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = tr(el.dataset.t); });
+  document.querySelectorAll('[data-ta]').forEach(el => { el.setAttribute('aria-label', tr(el.dataset.ta)); });
+  // ---------- настройки ----------
+  const W = 360;
+  let H = 640, INS_T = 0, INS_B = 0, HUD_CY = 29, HUD_W = 170, HUD_H = 27;      // H подстраивается под высоту экрана, INS_* безопасные зоны
+  const ROAD_W = 276, ROAD_X = (W - ROAD_W) / 2;   // дорога по центру, по бокам фон
+  const LANES = 3, LANE_W = 83;                    // 3 полосы под текстуру assets/road.jpg
+  const laneX = i => W / 2 + (i - 1) * LANE_W;
+  let PLAYER_Y = 500;
+  const CAR_W = 46, CAR_H = 96;
+  const SKINS = [
+    { id: 'white',  need: 0 },
+    { id: 'black',  need: 500 },
+    { id: 'orange', need: 1000 },
+    { id: 'blue',   need: 1500 },
+    { id: 'red',    need: 2500 },
+  ];
+  const TRAFFIC = ['blue', 'yellow', 'green', 'gray'];
+  const BOOST_NEED = 12;              // банок до турбо
+  const BOOST_TIME = 4;               // сек турбо
+  const CHG_TIME = 3.5, CHG_TAPS = 14, CHG_DECAY = .12;   // зарядка: секунд на тапы, тапов до полного заряда, потеря заряда в секунду
+  const MAX_LIVES = 3;
+
+  const cv = document.getElementById('c');
+  const ctx = cv.getContext('2d');
+  const wrap = document.getElementById('wrap');
+  const $ = id => document.getElementById(id);
+
+  // ---------- картинки (если файла нет, рисуем кодом) ----------
+  const IMG = {};
+  function load(name, file) {
+    const im = new Image(); im.onload = () => { IMG[name] = im; }; im.src = 'assets/' + file;
+  }
+  SKINS.forEach(s => load('jetour_' + s.id, 'jetour_' + s.id + '.png'));
+  TRAFFIC.forEach(c => load('car_' + c, 'car_' + c + '.png'));
+  load('road', 'road.jpg');
+  load('can', 'can.png'); load('bottle', 'bottle.png'); load('cone', 'cone.png'); load('hole', 'hole.png'); load('plov', 'plov.png');
+  function sprite(im, x, y, w, rot = 0) {
+    const h = im.height * w / im.width;
+    ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot);
+    ctx.drawImage(im, -w / 2, -h / 2, w, h); ctx.restore(); return h;
+  }
+
+  // ---------- Telegram Web App ----------
+  const tg = window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData !== undefined ? window.Telegram.WebApp : null;
+  let inTg = false;
+  function tgInsets() {                                   // безопасные зоны (вырез, кнопки Telegram в fullscreen)
+    if (!tg) return { t: 0, b: 0, a: 0, c: 0 };
+    const a = tg.safeAreaInset || {}, c = tg.contentSafeAreaInset || {};
+    return { t: (a.top || 0) + (c.top || 0), b: (a.bottom || 0) + (c.bottom || 0), a: a.top || 0, c: c.top || 0 };
+  }
+  if (tg) {
+    inTg = true;
+    try { tg.ready(); } catch (e) {}
+    try { tg.expand(); } catch (e) {}
+    try {
+      if (['ios', 'android'].includes(tg.platform) && tg.requestFullscreen && !tg.isFullscreen) tg.requestFullscreen();
+    } catch (e) {}
+    try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}   // чтобы свайп вниз не закрывал игру
+    try { tg.setHeaderColor && tg.setHeaderColor('#e41e2b'); tg.setBackgroundColor && tg.setBackgroundColor('#0b0c0f'); } catch (e) {}
+    ['viewportChanged', 'fullscreenChanged', 'safeAreaChanged', 'contentSafeAreaChanged'].forEach(ev => { try { tg.onEvent(ev, () => resize()); } catch (e) {} });
+  }
+
+  const realTg = !!(tg && tg.platform && tg.platform !== 'unknown');
+
+  // ---------- хаптик (Telegram HapticFeedback, запасной вариант: navigator.vibrate) ----------
+  let lastHap = 0;
+  const VIB = { select: 8, soft: 10, light: 12, rigid: 20, medium: 25, heavy: 45, success: [20, 40, 30], warning: [40, 40, 40], error: [70, 40, 110] };
+  function haptic(kind) {
+    const now = performance.now();
+    if (now - lastHap < 30) return;
+    lastHap = now;
+    try {
+      const hf = realTg && tg.HapticFeedback;
+      if (hf) {
+        if (kind === 'select') hf.selectionChanged();
+        else if (kind === 'success' || kind === 'error' || kind === 'warning') hf.notificationOccurred(kind);
+        else hf.impactOccurred(kind);                       // light | medium | heavy | rigid | soft
+      } else if (navigator.vibrate) navigator.vibrate(VIB[kind] || 15);
+    } catch (e) {}
+  }
+
+  function resize() {
+    const ins = tgInsets();
+    const vw = innerWidth, vh = innerHeight;
+    const k = Math.min(vw / W, vh / 560);
+    INS_T = ins.t / k; INS_B = ins.b / k;
+    H = vh / k;                                             // игра занимает всю высоту экрана
+    PLAYER_Y = Math.round(H - 140 - INS_B);
+    // HUD по центру строки с кнопками Telegram («Закрыть» слева, «свернуть» справа)
+    HUD_H = 27 / k;                                          // высота как у кнопок Telegram (~27pt)
+    if (ins.c > 0) { HUD_CY = (ins.a + ins.c / 2) / k; HUD_W = Math.max(120, Math.min(170, W - 2 * 118 / k)); }
+    else { HUD_CY = HUD_H / 2 + 12; HUD_W = 170; }
+    wrap.style.width = Math.round(W * k) + 'px'; wrap.style.height = vh + 'px';
+    const sc = k * Math.min(devicePixelRatio || 1, 2);
+    cv.width = Math.round(W * sc); cv.height = Math.round(H * sc);
+    ctx.setTransform(sc, 0, 0, sc, 0, 0);
+    wrap.style.fontSize = (k * 16) + 'px';
+    wrap.style.setProperty('--k', k); wrap.style.setProperty('--ins-t', INS_T + 'px'); wrap.style.setProperty('--ins-b', INS_B + 'px');
+    wrap.querySelectorAll('.screen').forEach(e => e.style.zoom = k);
+  }
+  addEventListener('resize', resize); resize();
+  try { document.fonts.load('20px BW'); document.fonts.load('500 12px TU'); document.fonts.load('400 12px TU'); } catch (e) {}
+
+  // ---------- иконки (одна заливка на иконку, сетка 24x24, evenodd) ----------
+  const ICON = {
+    home: 'M12 3l9 8h-2.5v9h-5v-6h-3v6h-5v-9H3z',
+    info: 'M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 1 1 0-19zM12 4.6a7.4 7.4 0 1 0 0 14.8a7.4 7.4 0 1 0 0-14.8zM10.9 10.2h2.2v6.6h-2.2zM10.9 6.9h2.2v2.1h-2.2z',
+    pin: 'M12 2C8.1 2 5 5.1 5 9c0 5.2 7 13 7 13s7-7.8 7-13c0-3.9-3.1-7-7-7zM12 6.8a2.2 2.2 0 1 1 0 4.4 2.2 2.2 0 0 1 0-4.4z',
+    can: 'M12 2.5a9.5 9.5 0 1 1 0 19a9.5 9.5 0 1 1 0-19zM12 5a7 7 0 1 0 0 14a7 7 0 1 0 0-14zM8.6 10.4h6.8v1.6H8.6zM9.2 12.6h5.6v3.6H9.2zM11.3 10.4h1.4v5.8h-1.4z',   // золотая крышка Bayram
+    star: 'M12 2.5l2.9 6.1 6.6.9-4.8 4.6 1.2 6.6L12 17.5l-5.9 3.2 1.2-6.6L2.5 9.5l6.6-.9z',
+    trophy: 'M7 3h10v7a5 5 0 0 1-10 0zM11 14.6h2V18h-2zM8 19h8v2H8zM3.5 5H7v2H5.6c.2 1.4 1 2.4 2 2.9v2c-2.3-.5-4.1-2.6-4.1-5.4zM20.5 5H17v2h1.4c-.2 1.4-1 2.4-2 2.9v2c2.3-.5 4.1-2.6 4.1-5.4z',
+    map: 'M3 6.5l5.5-2v14l-5.5 2zM9.7 4.5l4.6 2v14l-4.6-2zM15.5 6.5l5.5-2v14l-5.5 2z',
+    medal: 'M12 9a5 5 0 1 1 0 10 5 5 0 0 1 0-10zM12 11.2l.9 1.9 2 .3-1.5 1.4.4 2-1.8-1-1.8 1 .4-2-1.5-1.4 2-.3zM7.4 2h3.2l1.4 5-2 1.2zM16.6 2h-3.2L12 7l2 1.2z',
+    lock: 'M6 10h12v10H6zM8 10V7a4 4 0 0 1 8 0v3h-2V7a2 2 0 0 0-4 0v3zM12 13.4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3z',
+    close: 'M6.4 4.9L12 10.5l5.6-5.6 1.5 1.5L13.5 12l5.6 5.6-1.5 1.5L12 13.5l-5.6 5.6-1.5-1.5L10.5 12 4.9 6.4z',
+    check: 'M9.2 16.2L5.5 12.5 4 14l5.2 5.2L20 8.4 18.5 7z',
+    swords: 'M3 3h4l10.5 10.5-2 2L3 7zM13.5 18.5l5-5 1.4 1.4-5 5zM17.6 18.2l1.4-1.4 2.6 2.6-1.4 1.4zM21 3h-4L6.5 13.5l2 2L21 7zM10.5 18.5l-5-5-1.4 1.4 5 5zM6.4 18.2L5 16.8l-2.6 2.6 1.4 1.4z',
+    car: 'M8 2.5h8l2 5.500V20a1.500 1.500 0 0 1-1.500 1.500h-9A1.500 1.500 0 0 1 6 20V8zM8.700 8l-.8 3.200h8.200L15.300 8zM8 15.500h8v2.200H8zM4.200 6.500H5.700v4.500H4.200zM18.300 6.500h1.500V11h-1.500zM4.200 14.500H5.700V19H4.200zM18.300 14.500h1.500V19h-1.500z',
+    bolt: 'M13.5 2L5 13.5h5.5L9.5 22 19 9.5h-5.7z',
+    flag: 'M5 3h2v18H5zM7 4h11l-2.5 4 2.5 4H7z',
+    arrow: 'M4 11h11l-4-4 1.4-1.4L19 12l-6.6 6.4L11 17l4-4H4z',
+    refresh: 'M12 4a8 8 0 0 1 7.5 5.2L21 8.4V4l-1.8 1.8A10 10 0 0 0 2 12h2a8 8 0 0 1 8-8zM12 20a8 8 0 0 1-7.5-5.2L3 15.6V20l1.8-1.8A10 10 0 0 0 22 12h-2a8 8 0 0 1-8 8z',
+    compass: 'M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zM12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM16.2 7.8l-2.1 6.3-6.3 2.1 2.1-6.3z',
+    expand: 'M4 4h6v2H6v4H4zM14 4h6v6h-2V6h-4zM4 14h2v4h4v2H4zM18 14h2v6h-6v-2h4z',
+    // иконки городов
+    skyline: 'M3 20V10h4v10zM8 20V6h4v14zM13 20V9h3v11zM17 20V12h4v8zM9.6 2h.8v4H9.6z',
+    leaf: 'M20 4C9 4 4 9 4 15c0 1.8.6 3.3 1.5 4.5C7 15 10 11 15 9c-4 3-6.5 6.5-7.8 11.3C8.2 20.8 9.5 21 11 21c6 0 9-6 9-17z',
+    cotton: 'M8 5.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM16 5.8a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM12 12.4a3.2 3.2 0 1 1 0 6.4 3.2 3.2 0 0 1 0-6.4zM11 19.6h2V22h-2z',
+    mountain: 'M2 20L9 7l4 7 3-4 6 10z',
+    dome: 'M12 2.5c3.2 1.8 6 4.6 6 8.5H6c0-3.9 2.8-6.700 6-8.5zM5 12h14v2H5zM6 15h12v6H6zM10.500 16.500h3V21h-3zM2 9h2v12H2zM20 9h2v12h-2z',
+    gold: 'M3 20l2-5h6l2 5zM11.500 20l2-5h6l2 5zM7 13.500l2-5h6l2 5z',
+    minaret: 'M10.500 2h3l.8 3h-4.600zM10 6h4l1 14H9zM7 20.500h10v1.500H7zM11.600 9h.8v2h-.8zM11.600 14h.8v2h-.8z',
+    fort: 'M3 20V9h3v2h2V9h3v2h2V9h3v2h2V9h3v11zM10.500 20v-4.500a1.500 1.500 0 0 1 3 0V20z',
+    waves: 'M2 7c2-2 4-2 6 0s4 2 6 0 4-2 6 0v2c-2-2-4-2-6 0s-4 2-6 0-4-2-6 0zM2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0v2c-2-2-4-2-6 0s-4 2-6 0-4-2-6 0zM2 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0v2c-2-2-4-2-6 0s-4 2-6 0-4-2-6 0z',
+    wheat: 'M11 22V9h2v13zM11 8C9 7.500 8 6 8 4c2 .5 3 2 3 4zM11 12.500C9 12 8 10.500 8 8.500c2 .5 3 2 3 4zM11 17C9 16.500 8 15 8 13c2 .5 3 2 3 4zM13 8c2-.5 3-2 3-4-2 .5-3 2-3 4zM13 12.500c2-.5 3-2 3-4-2 .5-3 2-3 4zM13 17c2-.5 3-2 3-4-2 .5-3 2-3 4zM12 2c1 1 1.500 2.500 1 4h-2c-.5-1.500 0-3 1-4z',
+    palm: 'M11 22l.8-10h1.400l.8 10zM12.500 11C9 11 6 9 4 6c3-.5 6 .5 8.500 5zM12.500 11C16 11 19 9 21 6c-3-.5-6 .5-8.500 5zM12.500 10.500c-1-3 0-6 2-8-.5 3.500-.5 5.500-2 8zM12.500 10.500C9.500 9.500 7 7 6.500 4 9.500 5.500 11.500 7.500 12.500 10.500z',
+    flower: 'M12 4.2a2.800 2.800 0 1 1 0 5.600 2.800 2.800 0 0 1 0-5.600zM16.760 7.650a2.800 2.800 0 1 1 0 5.600 2.800 2.800 0 0 1 0-5.600zM14.940 13.250a2.800 2.800 0 1 1 0 5.600 2.800 2.800 0 0 1 0-5.600zM9.060 13.250a2.800 2.800 0 1 1 0 5.600 2.800 2.800 0 0 1 0-5.600zM7.240 7.650a2.800 2.800 0 1 1 0 5.600 2.800 2.800 0 0 1 0-5.600zM12 10.500a1.800 1.800 0 1 1 0 3.600 1.800 1.800 0 0 1 0-3.600z',
+    gear: 'M12 6a6 6 0 1 1 0 12 6 6 0 0 1 0-12zM12 9.500a2.500 2.500 0 1 0 0 5 2.500 2.500 0 0 0 0-5zM10.800 2.500h2.400V6h-2.400zM10.800 18h2.400v3.500h-2.400zM2.500 10.800H6v2.400H2.500zM18 10.800h3.500v2.400H18zM17.700 4.600l1.700 1.700-2.500 2.500-1.700-1.700zM6.300 4.600L4.600 6.300l2.500 2.500 1.700-1.700zM19.400 17.700l-1.700 1.700-2.500-2.500 1.700-1.700zM4.600 17.700l1.700 1.700 2.500-2.500-1.700-1.700z',
+    fuel: 'M4 3h10v18H4zM6 5h6v5H6zM3 21h12v1.500H3zM15.500 8H17l2.500 2.500V17a1 1 0 0 0 2 0V9.500l-2.200-2.200 1-1L22.500 9v8a3 3 0 0 1-6 0v-5.500z',
+    coin: 'M12 2a10 10 0 1 1 0 20a10 10 0 1 1 0-20zM12 4.1a7.9 7.9 0 1 0 0 15.8a7.9 7.9 0 1 0 0-15.8zM7.6 7.3h8.8v2.3H7.6zM10.85 9.6h2.3v7.5h-2.3z',   // танга: монета с «Т», как в мини-приложении
+    heart: 'M12 21s-8.5-5.3-8.5-11.2A4.7 4.7 0 0 1 12 7a4.7 4.7 0 0 1 8.5 2.8C20.5 15.7 12 21 12 21z',
+    magnet: 'M4.5 8h4.2v4.2a3.3 3.3 0 0 0 6.6 0V8h4.2v4.2a7.5 7.5 0 0 1-15 0zM4.5 3h4.2v3.6H4.5zM15.3 3h4.2v3.6h-4.2z',
+    pomegranate: 'M12 7c-4.400 0-8 3-8 7.200S7.600 21 12 21s8-2.600 8-6.800S16.400 7 12 7zM9 7l1-4 2 2 2-2 1 4zM8.800 13a1 1 0 1 0 2 0 1 1 0 0 0-2 0zM13.200 12a1 1 0 1 0 2 0 1 1 0 0 0-2 0zM11 16.500a1 1 0 1 0 2 0 1 1 0 0 0-2 0z',
+  };
+  const ICON_P2D = {};
+  const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const ico = (name, cls = '') => '<svg class="ic ' + cls + '" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" fill-rule="' + (name === 'swords' ? 'nonzero' : 'evenodd') + '" d="' + (ICON[name] || '') + '"/></svg>';
+  function drawIcon(c, name, x, y, size, color) {                              // иконка на canvas
+    const p = ICON_P2D[name] || (ICON_P2D[name] = new Path2D(ICON[name] || ''));
+    c.save(); c.translate(x - size / 2, y - size / 2); c.scale(size / 24, size / 24); c.fillStyle = color; c.fill(p, name === 'swords' ? 'nonzero' : 'evenodd'); c.restore();
+  }
+  function setBt(el, text, icon) { el.innerHTML = (icon ? ico(icon) : '') + '<span class="bt">' + esc(text) + '</span>'; }
+  function decorate() {                                                          // кнопки и заголовки: иконка + текст
+    document.querySelectorAll('button:not(.skin):not(.chip):not([data-l])').forEach(b => { if (b.dataset.done) return; setBt(b, b.textContent.trim(), b.dataset.i); b.dataset.done = 1; });
+    document.querySelectorAll('h2[data-i]').forEach(h => { if (h.dataset.done) return; h.innerHTML = ico(h.dataset.i) + '<span>' + esc(h.textContent) + '</span>'; h.dataset.done = 1; });
+  }
+
+  // ---------- Путешествие по Узбекистану: города, цели, темы ----------
+  // GOAL_C / GOAL_P и applyRun должны совпадать с server/journey.js
+  const GOAL_C = [25, 35, 45, 60, 75, 90, 110, 130, 150, 175, 200, 230, 260, 300];                                       // банок, чтобы открыть следующий город
+  const GOAL_P = [1500, 2200, 3000, 4000, 5200, 6500, 8000, 9500, 11500, 13500, 16000, 19000, 22000, 26000];           // очков
+  const CITY_COUNT = GOAL_C.length;
+  const CITY_IDS = ['tashkent', 'nurafshon', 'gulistan', 'jizzakh', 'samarkand', 'navoi', 'bukhara', 'urgench', 'nukus', 'karshi', 'termez', 'fergana', 'andijan', 'namangan'];
+  const CITY_IMG = {};                                                   // CITY_IMG[i] = { ground, banner }; список файлов в assets/cities/manifest.json
+  let CITY_MAN = {};
+  function ensureImg(i, kind) {                                          // подгружаем картинки города только когда они нужны
+    const id = CITY_IDS[i]; if (!(CITY_MAN[id] || []).includes(kind)) return;
+    const slot = CITY_IMG[i] = CITY_IMG[i] || {}; if (slot[kind] || slot['_' + kind]) return; slot['_' + kind] = 1;
+    const im = new Image();
+    im.onload = () => { slot[kind] = im; if (kind === 'ground') delete SIDE_CACHE[i]; if (typeof renderMapCard === 'function' && mapOpen) renderMapCard(); };
+    im.src = 'assets/cities/' + id + '/' + kind + '.jpg';
+  }
+  fetch('assets/cities/manifest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).then(m => { CITY_MAN = m; ensureImg(themeCity, 'ground'); }).catch(() => {});
+  const OCHRE = ['#d6b56f', '#a8844a'], GREYH = ['#b9b3a8', '#8c867c'];
+  // ll — координаты города, seed — центр региона и «вес» для карты, lab — подпись на карте, th — тема фона у дороги
+  const CITIES = [
+    { n: 'Ташкент',  reg: 'город Ташкент',            ach: 'Столичный старт',        ico: 'skyline', col: '#f0b84a', ll: [69.24, 41.30], seed: [69.24, 41.30, .10], lab: [-9, -8, 'right'], always: 1,
+      th: { base: '#2f7d3a', spk: ['#3a8f45', '#276b31'], props: [['tree', 6], ['poplar', 2], ['house', 2]], hp: GREYH } },
+    { n: 'Нурафшон', reg: 'Ташкентская область',      ach: 'Сердце области',         ico: 'leaf', col: '#79b86a', ll: [69.36, 41.05], seed: [69.9, 41.5, 1.0],   lab: [-9, 2, 'right'], cl: 1,
+      th: { base: '#3b8a3b', spk: ['#48a048', '#2e7330'], props: [['tree', 5], ['poplar', 3], ['bush', 2]] } },
+    { n: 'Гулистан', reg: 'Сырдарьинская область',    ach: 'Хлопковый рейс',         ico: 'cotton', col: '#c9d98a', ll: [68.78, 40.49], seed: [68.7, 40.6, .55],   lab: [7, 10, 'left'], cl: 1,
+      th: { base: '#8a7350', spk: ['#9a8260', '#76603f'], stripe: { c: '#7a6444', w: 9, gap: 18 }, props: [['cotton', 7], ['bush', 1], ['poplar', 1]] } },
+    { n: 'Джизак',   reg: 'Джизакская область',       ach: 'Горный перевал',         ico: 'mountain', col: '#8fb3a0', ll: [67.84, 40.12], seed: [67.8, 40.2, .9],    lab: [0, -9, 'center'],
+      th: { base: '#98a352', spk: ['#a8b35e', '#869146'], props: [['rock', 3], ['bush', 4], ['tree', 1]] } },
+    { n: 'Самарканд', reg: 'Самаркандская область',   ach: 'Покоритель Регистана',   ico: 'dome', col: '#4fb3bf', ll: [66.96, 39.65], seed: [66.8, 39.7, .85],   lab: [0, 12, 'center'],
+      th: { base: '#d9c9a0', spk: ['#e3d5ae', '#cdbb8e'], props: [['dome', 4], ['house', 2], ['tree', 2]], hp: OCHRE } },
+    { n: 'Навои',    reg: 'Навоийская область',       ach: 'Золото Кызылкума',       ico: 'gold', col: '#d8a45a', ll: [65.38, 40.10], seed: [64.8, 41.4, 2.3],   lab: [0, -9, 'center'],
+      th: { base: '#d6b172', spk: ['#e0c185', '#c9a15f'], props: [['dune', 5], ['rock', 2], ['bush', 1]], tint: 'rgba(255,170,60,.05)' } },
+    { n: 'Бухара',   reg: 'Бухарская область',        ach: 'Жемчужина Шёлкового пути', ico: 'minaret', col: '#c98a5a', ll: [64.42, 39.77], seed: [63.7, 39.9, 1.25], lab: [0, 12, 'center'],
+      th: { base: '#cfa86e', spk: ['#dbb882', '#b9925a'], props: [['house', 4], ['dome', 1], ['tree', 2], ['dune', 1]], hp: OCHRE, tint: 'rgba(255,160,60,.05)' } },
+    { n: 'Ургенч',   reg: 'Хорезмская область',       ach: 'Страж Ичан-Калы',        ico: 'fort', col: '#e0c070', ll: [60.63, 41.55], seed: [60.7, 41.6, .5],    lab: [0, 11, 'center'],
+      th: { base: '#cdb274', spk: ['#d9c085', '#b79d5f'], props: [['palm', 3], ['dune', 3], ['house', 1], ['tree', 1]], hp: OCHRE, tint: 'rgba(255,170,70,.05)' } },
+    { n: 'Нукус',    reg: 'Каракалпакстан',           ach: 'Путь к Аралу',           ico: 'waves', col: '#8bc5d8', ll: [59.61, 42.46], seed: [58.6, 43.6, 2.7],   lab: [0, -10, 'center'],
+      th: { base: '#e0dac4', spk: ['#ece6d2', '#cfc8ac'], props: [['dune', 3], ['rock', 2], ['boat', 3]], tint: 'rgba(120,200,230,.06)' } },
+    { n: 'Карши',    reg: 'Кашкадарьинская область',  ach: 'Степной ветер',          ico: 'wheat', col: '#d6c65a', ll: [65.79, 38.86], seed: [66.0, 38.7, 1.35],  lab: [0, 12, 'center'],
+      th: { base: '#b8a145', spk: ['#c7b24e', '#a38d36'], stripe: { c: '#c7b24e', w: 10, gap: 20 }, props: [['wheat', 5], ['bush', 2], ['tree', 1]] } },
+    { n: 'Термез',   reg: 'Сурхандарьинская область', ach: 'Южные ворота',           ico: 'palm', col: '#e09a5a', ll: [67.28, 37.22], seed: [67.5, 37.9, .95],   lab: [9, 0, 'left'],
+      th: { base: '#c98a4a', spk: ['#d79a58', '#b57838'], props: [['palm', 3], ['rock', 2], ['dune', 3]], tint: 'rgba(255,120,40,.07)' } },
+    { n: 'Фергана',  reg: 'Ферганская область',       ach: 'Цветущая долина',        ico: 'flower', col: '#f09ab8', ll: [71.78, 40.38], seed: [71.6, 40.4, .45],   lab: [0, 11, 'center'], cl: 1,
+      th: { base: '#4f9a47', spk: ['#5cab53', '#41873a'], props: [['blossom', 5], ['tree', 3], ['bush', 1]] } },
+    { n: 'Андижан',  reg: 'Андижанская область',      ach: 'Город мастеров',         ico: 'gear', col: '#a3c46a', ll: [72.34, 40.78], seed: [72.4, 40.8, .33],   lab: [-8, -9, 'right'], cl: 1,
+      th: { base: '#6c9c3c', spk: ['#7aac46', '#5c8a31'], stripe: { c: '#7aac46', w: 10, gap: 20 }, props: [['tree', 3], ['blossom', 2], ['house', 2], ['poplar', 2]], hp: ['#c9b99a', '#a39478'] } },
+    { n: 'Наманган', reg: 'Наманганская область',     ach: 'Гранатовый финиш',       ico: 'pomegranate', col: '#d9606a', ll: [71.67, 41.00], seed: [71.4, 41.1, .42],   lab: [0, -10, 'center'], cl: 1,
+      th: { base: '#3f8a46', spk: ['#4d9a55', '#337538'], props: [['pomegranate', 4], ['tree', 3], ['rock', 2], ['poplar', 1]] } },
+  ];
+  (window.JCR_CITIES && (window.JCR_CITIES[LANG] || window.JCR_CITIES.ru) || []).forEach((L, i) => {   // названия городов из texts.js
+    if (CITIES[i]) { CITIES[i].n = L[0]; CITIES[i].reg = L[1]; CITIES[i].ach = L[2]; CITIES[i].to = L[3]; }
+  });
+  const ACH = [
+    ...CITIES.map((c, i) => ({ id: 'city_' + i, ico: c.ico, t: c.ach, d: i === 0 ? tr('ach.city0') : tr('ach.city', { city: c.n }) })),
+    { id: 'first_turbo', ico: 'bolt', t: tr('ach.turbo.t'), d: tr('ach.turbo.d') },
+    { id: 'cans100', ico: 'can', t: tr('ach.caps.t'), d: tr('ach.caps.d') },
+    { id: 'score10k', ico: 'star', t: tr('ach.score.t'), d: tr('ach.score.d') },
+    { id: 'win_challenge', ico: 'swords', t: tr('ach.win.t'), d: tr('ach.win.d') },
+    { id: 'halfway', ico: 'compass', t: tr('ach.half.t'), d: tr('ach.half.d') },
+    { id: 'journey', ico: 'trophy', t: tr('ach.journey.t'), d: tr('ach.journey.d') },
+  ];
+
+  function newProgress() { return { city: 0, cans: 0, pts: 0, done: false, ach: {}, totals: { runs: 0, cans: 0, pts: 0, best: 0 } }; }
+  function applyRun(p, r) {                                  // r: { city, cans, score, turbos, won }
+    const out = { unlocked: null, newAch: [] };
+    const grant = id => { if (!p.ach[id]) { p.ach[id] = Date.now(); out.newAch.push(id); } };
+    p.totals.runs++; p.totals.cans += r.cans; p.totals.pts += r.score; p.totals.best = Math.max(p.totals.best, r.score);
+    grant('city_0');
+    if (r.turbos >= 1) grant('first_turbo');
+    if (r.cans >= 100) grant('cans100');
+    if (r.score >= 10000) grant('score10k');
+    if (r.won) grant('win_challenge');
+    if (!p.done && r.city === p.city) {
+      p.cans += r.cans; p.pts += r.score;
+      if (p.cans >= GOAL_C[p.city] && p.pts >= GOAL_P[p.city]) {
+        if (p.city === CITY_COUNT - 1) { p.done = true; grant('journey'); }
+        else { p.city++; p.cans = 0; p.pts = 0; out.unlocked = p.city; grant('city_' + p.city); if (p.city >= 7) grant('halfway'); }
+      }
+    }
+    return out;
+  }
+  let prog = (() => { try { const p = JSON.parse(localStorage.getItem('jcr_prog')); if (p && typeof p.city === 'number' && p.ach) return p; } catch (e) {} return newProgress(); })();
+  const saveProg = () => { try { localStorage.setItem('jcr_prog', JSON.stringify(prog)); } catch (e) {} };
+  const maxCity = () => prog.done ? CITY_COUNT - 1 : prog.city;
+  let selCity = 0, themeCity = 0;
+  try { selCity = Math.min(+localStorage.getItem('jcr_sel') || 0, maxCity()); } catch (e) {}
+  themeCity = selCity;
+
+  // ---------- фон за дорогой: у каждого города своя тема ----------
+  const SIDE_H = 720;
+  function rand(seed) { let a = seed; return () => (a = (a * 1664525 + 1013904223) % 4294967296) / 4294967296; }
+  const SIDE_CACHE = {};
+  const sideLayer = layer => (SIDE_CACHE[themeCity] || (SIDE_CACHE[themeCity] = makeSide(themeCity)))[layer];
+
+  function makeSide(ci) {
+    const T = CITIES[ci].th, hp = T.hp || OCHRE, r = rand(7 + ci * 31);
+    const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = SIDE_H; return c; };
+    const grass = mk(), trees = mk(), gx = grass.getContext('2d'), c = trees.getContext('2d');
+    const gi = CITY_IMG[ci] && CITY_IMG[ci].ground;
+    if (gi) { gx.drawImage(gi, 0, 0, W, SIDE_H); return { grass, trees }; }      // своя картинка обочины вместо нарисованной
+    gx.fillStyle = T.base; gx.fillRect(0, 0, W, SIDE_H);
+    if (T.stripe) for (let x = (r() * 10) | 0; x < W; x += T.stripe.gap) { gx.fillStyle = T.stripe.c; gx.fillRect(x, 0, T.stripe.w, SIDE_H); }
+    for (let i = 0; i < 900; i++) { gx.fillStyle = r() < .5 ? T.spk[0] : T.spk[1]; gx.fillRect(r() * W, r() * SIDE_H, 2 + r() * 3, 2 + r() * 3); }
+    const sh = (x, y, rx, ry) => { c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(x + 5, y + 6, rx, ry, 0, 0, 7); c.fill(); };
+    const ball = (x, y, rad, c0, c1) => { const g2 = c.createRadialGradient(x - rad * .3, y - rad * .3, 2, x, y, rad); g2.addColorStop(0, c0); g2.addColorStop(1, c1); c.fillStyle = g2; c.beginPath(); c.arc(x, y, rad, 0, 7); c.fill(); };
+    const PROP = {
+      tree(o, y) { sh(o.x, y, o.r, o.r); o.k ? ball(o.x, y, o.r, '#5fb35a', '#2d7a3a') : ball(o.x, y, o.r, '#46a04a', '#1f5f2c'); c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.arc(o.x - o.r * .35, y - o.r * .35, o.r * .35, 0, 7); c.fill(); },
+      poplar(o, y) { sh(o.x, y, o.r * .5, o.r * 1.3); const g2 = c.createLinearGradient(o.x - o.r * .5, 0, o.x + o.r * .5, 0); g2.addColorStop(0, '#2d7a3a'); g2.addColorStop(1, '#1b5427'); c.fillStyle = g2; c.beginPath(); c.ellipse(o.x, y, o.r * .5, o.r * 1.25, 0, 0, 7); c.fill(); },
+      blossom(o, y) { sh(o.x, y, o.r, o.r); ball(o.x, y, o.r, '#fbd0e0', '#d9608f'); c.fillStyle = 'rgba(255,255,255,.7)'; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(o.x + (o.q[i] - .5) * o.r * 1.4, y + (o.q[5 - i] - .5) * o.r * 1.4, 1.6, 0, 7); c.fill(); } },
+      bush(o, y) { sh(o.x, y, o.r * .8, o.r * .6); for (let i = 0; i < 3; i++) ball(o.x + (i - 1) * o.r * .45, y + (i % 2) * 3, o.r * .5, '#5da557', '#2f6f35'); },
+      cotton(o, y) { sh(o.x, y, o.r * .7, o.r * .7); ball(o.x, y, o.r * .65, '#6a9a4a', '#3f6b2e'); c.fillStyle = '#fff'; for (let i = 0; i < 7; i++) { const a = i * .9; c.beginPath(); c.arc(o.x + Math.cos(a) * o.r * .45, y + Math.sin(a) * o.r * .45, o.r * .24, 0, 7); c.fill(); } },
+      rock(o, y) { sh(o.x, y, o.r * .9, o.r * .7); const poly = (k, col) => { c.fillStyle = col; c.beginPath(); for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283, rr = o.r * k * (.72 + o.q[i % 6] * .3); i ? c.lineTo(o.x + Math.cos(a) * rr, y + Math.sin(a) * rr) : c.moveTo(o.x + Math.cos(a) * rr, y + Math.sin(a) * rr); } c.closePath(); c.fill(); }; poly(.95, '#7d7d78'); poly(.62, '#a3a39c'); },
+      dune(o, y) { const g2 = c.createLinearGradient(o.x - o.r, y - o.r, o.x + o.r, y + o.r); g2.addColorStop(0, '#f1e0b0'); g2.addColorStop(1, '#c8a560'); c.fillStyle = g2; c.beginPath(); c.ellipse(o.x, y, o.r * 1.3, o.r * .85, .4, 0, 7); c.fill(); c.strokeStyle = 'rgba(120,80,30,.3)'; c.lineWidth = 1.5; c.beginPath(); c.arc(o.x, y + o.r * .9, o.r * 1.1, 3.5, 5.6); c.stroke(); },
+      palm(o, y) { sh(o.x, y, o.r, o.r * .8); c.lineCap = 'round'; for (let i = 0; i < 9; i++) { const a = i / 9 * 6.283; c.strokeStyle = i % 2 ? '#2f6b2f' : '#3f8a3a'; c.lineWidth = 3.4; c.beginPath(); c.moveTo(o.x, y); c.lineTo(o.x + Math.cos(a) * o.r * 1.15, y + Math.sin(a) * o.r * 1.15); c.stroke(); } ball(o.x, y, o.r * .22, '#8a6a3a', '#5a3f1f'); },
+      dome(o, y) { const s = o.r; sh(o.x, y, s, s); c.fillStyle = hp[0]; c.beginPath(); c.roundRect(o.x - s, y - s, s * 2, s * 2, 4); c.fill(); c.strokeStyle = hp[1]; c.lineWidth = 2; c.stroke(); ball(o.x, y, s * .62, '#8ff0e6', '#17808c'); c.fillStyle = '#f3c64a'; c.beginPath(); c.arc(o.x, y, s * .12, 0, 7); c.fill(); },
+      house(o, y) { const w = o.r * 1.7, h = o.r * 1.3; sh(o.x, y, w * .6, h * .6); c.fillStyle = hp[0]; c.fillRect(o.x - w / 2, y - h / 2, w, h); c.fillStyle = hp[1]; c.fillRect(o.x, y - h / 2, w / 2, h); c.fillStyle = 'rgba(0,0,0,.22)'; c.fillRect(o.x - w / 2 + 3, y - h / 2 + 3, w * .3, h * .3); c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1; c.strokeRect(o.x - w / 2, y - h / 2, w, h); },
+      wheat(o, y) { const w = o.r * 1.4, h = o.r * 2.6; c.fillStyle = '#d8bd4f'; c.fillRect(o.x - w / 2, y - h / 2, w, h); c.strokeStyle = '#b99a2e'; c.lineWidth = 1.2; for (let x = -w / 2 + 3; x < w / 2; x += 4) { c.beginPath(); c.moveTo(o.x + x, y - h / 2); c.lineTo(o.x + x, y + h / 2); c.stroke(); } c.strokeStyle = 'rgba(0,0,0,.25)'; c.strokeRect(o.x - w / 2, y - h / 2, w, h); },
+      pomegranate(o, y) { PROP.tree({ x: o.x, r: o.r, k: 1 }, y); c.fillStyle = '#d6303c'; for (let i = 0; i < 6; i++) { c.beginPath(); c.arc(o.x + (o.q[i] - .5) * o.r * 1.3, y + (o.q[5 - i] - .5) * o.r * 1.3, 2.2, 0, 7); c.fill(); } },
+      boat(o, y) { sh(o.x, y, o.r * .6, o.r * 1.1); c.fillStyle = '#a0553a'; c.beginPath(); c.roundRect(o.x - o.r * .5, y - o.r * 1.1, o.r, o.r * 2.2, o.r * .45); c.fill(); c.fillStyle = '#6e3a28'; c.beginPath(); c.roundRect(o.x - o.r * .3, y - o.r * .8, o.r * .6, o.r * 1.2, 3); c.fill(); c.fillStyle = '#d7b9a0'; c.fillRect(o.x - o.r * .2, y - o.r * .2, o.r * .4, o.r * .4); },
+    };
+    const bag = []; T.props.forEach(([t, w]) => { for (let k = 0; k < w * 2; k++) bag.push(t); });
+    const big = { dome: 1, house: 1, wheat: 1 };
+    const list = [];
+    for (let i = 0; i < 16; i++) {
+      const t = bag[(r() * bag.length) | 0], left = i % 2 === 0, y = (i >> 1) * (SIDE_H / 8) + r() * 40;
+      let rad = t === 'dome' ? 12 + r() * 5 : t === 'house' ? 11 + r() * 5 : t === 'wheat' ? 11 + r() * 3 : t === 'boat' ? 8 + r() * 3 : t === 'bush' ? 9 + r() * 4 : 12 + r() * 9;
+      const xl = big[t] ? Math.max(rad + 2, Math.min(40 - rad, 4 + r() * 24)) : 8 + r() * 22;
+      list.push({ t, x: left ? xl : W - xl, y, r: rad, k: r() < .35 ? 1 : 0, q: [r(), r(), r(), r(), r(), r()] });
+    }
+    list.forEach(o => [-SIDE_H, 0, SIDE_H].forEach(dy => PROP[o.t](o, o.y + dy)));
+    return { grass, trees };
+  }
+  function drawSide(layer, off) {
+    const o = off % SIDE_H, img = sideLayer(layer);
+    for (let y = o - SIDE_H; y < H; y += SIDE_H) ctx.drawImage(img, 0, y);
+  }
+
+  // ---------- звук ----------
+  let ac = null;
+  function beep(f, d = .1, type = 'sine', v = .06, slide = 0) {
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.value = f;
+      if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f + slide), ac.currentTime + d);
+      g.gain.setValueAtTime(v, ac.currentTime);
+      g.gain.exponentialRampToValueAtTime(.0001, ac.currentTime + d);
+      o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + d);
+    } catch (e) {}
+  }
+  const sfx = {
+    cola: () => { beep(700, .08, 'triangle'); setTimeout(() => beep(1000, .1, 'triangle'), 60); },
+    hit: () => beep(160, .3, 'sawtooth', .09, -100),
+    turbo: () => beep(300, .5, 'square', .05, 700),
+    smash: () => beep(420, .12, 'square', .05, -250),
+    charge: () => beep(220, .45, 'sawtooth', .05, 500),
+  };
+
+  // ---------- состояние ----------
+  let state = 'menu';
+  let best = 0, skin = 0;
+  try { best = +localStorage.getItem('jcr_best') || 0; skin = +localStorage.getItem('jcr_skin') || 0; } catch (e) {}
+  if (!SKINS[skin] || SKINS[skin].need > best) skin = 0;
+  function skinOwned(s) {                                                                  // магазин: белая бесплатно, остальные куплены; без магазина — за рекорд
+    if (shopOn()) return s.need === 0 || ((eco && eco.skins) || []).includes(s.id);
+    return s.need <= best;
+  }
+  function renderSkins() {
+    if (!SKINS[skin] || !skinOwned(SKINS[skin])) skin = 0;
+    ['skinsStart', 'skinsOver'].forEach(id => {
+      const box = $(id); box.innerHTML = '';
+      SKINS.forEach((s, i) => {
+        const b = document.createElement('button');
+        const locked = !skinOwned(s);
+        b.className = 'skin' + (i === skin ? ' sel' : '') + (locked ? ' lock' : '');
+        b.innerHTML = '<img src="assets/jetour_' + s.id + '.png" alt="">' + (locked ? '<span class="req">' + (shopOn() ? ico('coin') + skinPrice(s.id) : s.need) + '</span>' : '');
+        b.onclick = () => { if (locked) { if (shopOn()) askSkin(i); else haptic('error'); return; } haptic('select'); skin = i; try { localStorage.setItem('jcr_skin', i); } catch (e) {} renderSkins(); };
+        box.appendChild(b);
+      });
+    });
+  }
+  let g;
+
+  function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function reset(seed) {
+    g = {
+      rng: mulberry32(seed || (Math.random() * 2147483647) | 0),    // одинаковый seed = одинаковая трасса (для вызовов)
+      t: 0, rt: 0, dist: 0, speed: 240, score: 0, colas: 0,                   // t — игровое время (замедляется при зарядке), rt — реальное (для дуэли)
+      lane: 1, px: laneX(1), tilt: 0,
+      lives: MAX_LIVES, inv: 0, shake: 0,
+      boost: 0, turbo: 0, turboMax: BOOST_TIME, turbos: 0,
+      chg: { on: false, v: 0, t: 0, pulse: 0 }, flash: 0, zoomOut: 0,
+      ents: [], parts: [], nextSpawn: 400, roadOff: 0, sideOff: 0,
+      plov: 0, prng: mulberry32(((seed || 7) ^ 0x5bd1e995) | 0), nextPlov: 2600,   // плов: свой генератор, трасса по seed не меняется
+    };
+  }
+  reset();
+
+  // ---------- сервер: таблица лидеров и вызовы (только внутри Telegram) ----------
+  const initData = realTg && tg.initData ? tg.initData : '';
+  const online = !!initData && !/[?&]demo=1/.test(location.search);   // ?demo=1: демо-показ в Telegram без сервера игры
+  let pendingChallenge = new URLSearchParams(location.search).get('c');
+  async function api(path, body) {
+    const ctrl = new AbortController(), to = setTimeout(() => ctrl.abort(), 6000);
+    try {
+      const r = await fetch('api/' + path, { method: body ? 'POST' : 'GET', headers: { 'content-type': 'application/json', 'x-init-data': initData }, body: body ? JSON.stringify(body) : undefined, signal: ctrl.signal });
+      if (!r.ok) { const er = new Error(r.status); try { er.data = await r.json(); } catch (x) {} throw er; }
+      return await r.json();
+    } finally { clearTimeout(to); }
+  }
+  const show = (id, on = true) => $(id).classList.toggle('hidden', !on);
+  async function openLb() {
+    show('lb'); $('lbList').innerHTML = '<div class="lbr"><span>' + tr('lb.loading') + '</span></div>'; $('lbMe').textContent = '';
+    try {
+      const d = await api('leaderboard');
+      $('lbList').innerHTML = '';
+      if (!d.top.length) $('lbList').innerHTML = '<div class="lbr"><span>' + tr('lb.empty') + '</span></div>';
+      d.top.forEach(r => {
+        const row = document.createElement('div'); row.className = 'lbr' + (r.me ? ' me' : '');
+        const b = document.createElement('b'); b.textContent = r.place;
+        const n = document.createElement('span'); n.textContent = r.name;
+        const i = document.createElement('i'); i.textContent = r.score;
+        row.append(b, n, i); $('lbList').appendChild(row);
+      });
+      $('lbMe').textContent = d.me ? tr('lb.me', { rank: d.me.rank, score: d.me.score }) : tr('lb.play');
+    } catch (e) { $('lbList').innerHTML = '<div class="lbr"><span>' + tr('lb.error') + '</span></div>'; }
+  }
+  $('lbBtn').onclick = openLb; $('lbBtn2').onclick = openLb; $('lbClose').onclick = () => show('lb', false);
+  if (online) {
+    show('lbBtn');
+    show('duelBtn');
+    if (pendingChallenge) api('challenge/' + encodeURIComponent(pendingChallenge)).then(c => {
+      if (c.kind === 'duel') { pendingChallenge = null; onDuelInvite(c); return; }                                   // ссылка на живую дуэль
+      if (c.closed) { pendingChallenge = null; $('chBanner').innerHTML = ico('check') + (c.beatenBy ? tr('ch.beatenBy', { name: esc(c.beatenBy) }) : tr('ch.beaten')); show('chBanner'); return; }   // повторно принять нельзя
+      if (c.self) { pendingChallenge = null; $('chBanner').innerHTML = ico('swords') + tr('ch.self'); show('chBanner'); return; }   // свой вызов принять нельзя
+      $('chBanner').innerHTML = ico('swords') + tr('ch.from', { name: esc(c.fromName), score: c.fromScore }); show('chBanner');
+    }).catch(() => { pendingChallenge = null; });
+  }
+  let shareBusy = false;
+  $('chBtn').onclick = async () => {
+    if (shareBusy || !g.runId) return; shareBusy = true; $('chBtn').disabled = true;
+    try {
+      const c = g.challengeLink ? g.challengeLink : (g.challengeLink = await api('challenge', { runId: g.runId }));
+      const text = tr('ch.share', { score: c.score });
+      const url = 'https://t.me/share/url?url=' + encodeURIComponent(c.link) + '&text=' + encodeURIComponent(text);
+      if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
+    } catch (e) { haptic('error'); }
+    shareBusy = false; $('chBtn').disabled = false;
+  };
+
+  // ---------- дуэль 1 на 1: живой соперник по WebSocket ----------
+  // «Удалённая машина» (makeRemote) не знает о транспорте: ей скармливают точки [t, dist, lane, score, flags] (t — реальные секунды с общего старта),
+  // а она отдаёт положение в любой момент с интерполяцией. При обрыве связи точки перестают приходить, и машина становится призраком.
+  const WS_URL = (location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + location.pathname.replace(/[^/]*$/, '') + 'ws';
+  const DUEL_WAIT = 90;                                                                     // секунд ожидания до подсказки «ждать ещё?»
+  let duel = null, pendingDuel = null;
+  function makeRemote(opp, lane0) {
+    return {
+      name: opp && opp.name ? String(opp.name) : tr('duel.opp'), skin: opp && SKINS[opp.skin] ? opp.skin : 0, lane0,
+      pts: [], lastT: -1, live: true, fin: false, finScore: null, x: laneX(lane0), lag: .25,                  // рисуем на 250 мс позже последней точки, чтобы было между чем интерполировать
+      push(p) { if (!Array.isArray(p) || p.length < 4 || !(p[0] >= this.lastT)) return; this.pts.push(p); this.lastT = p[0]; if (this.pts.length > 4000) this.pts.splice(0, 1000); },
+      sample(rt) {
+        const P = this.pts; if (!P.length) return null;
+        const t = rt - this.lag, L = P[P.length - 1];
+        if (t <= P[0][0]) return { dist: P[0][1], lane: P[0][2], score: P[0][3], fl: P[0][4] || 0, stale: false };
+        if (t >= L[0]) {                                                                   // свежих точек нет: чуть продлеваем движение, потом стоим (призрак)
+          let v = 0; if (P.length > 1) { const Q = P[P.length - 2]; v = (L[1] - Q[1]) / Math.max(.05, L[0] - Q[0]); }
+          return { dist: L[1] + v * Math.min(.5, t - L[0]), lane: L[2], score: L[3], fl: L[4] || 0, stale: t - L[0] > 1.5 };
+        }
+        let lo = 0, hi = P.length - 1;
+        while (hi - lo > 1) { const m = (lo + hi) >> 1; if (P[m][0] <= t) lo = m; else hi = m; }
+        const A = P[lo], B = P[hi], k = (t - A[0]) / Math.max(1e-3, B[0] - A[0]);
+        return { dist: A[1] + (B[1] - A[1]) * k, lane: k < .5 ? A[2] : B[2], score: Math.round(A[3] + (B[3] - A[3]) * k), fl: B[4] || 0, stale: false };
+      },
+    };
+  }
+  const duelSend = o => { const d = duel; if (d && d.ws && d.ws.readyState === 1) { try { d.ws.send(JSON.stringify(o)); } catch (e) {} } };
+  function refreshDuelBtn() {                                                               // пришли по ссылке на дуэль: на старте остаётся только «Принять дуэль»
+    const p = !!pendingDuel;
+    setBt($('duelBtn'), p ? tr('duel.accept') : tr('btn.duel'), 'swords'); $('duelBtn').classList.toggle('hot', p); $('duelBtn').classList.toggle('ghost', !p);
+    try { renderBoosts(); } catch (e) {}                                                     // при первом вызове экономика ещё не объявлена
+    show('playBtn', !p); show('mapBtn', !p); show('lbBtn', !p && online); show('skinsStart', !p);
+  }
+  function onDuelInvite(c) {                                                                // открыли игру по ссылке на дуэль
+    if (c.self) { if (c.state === 'waiting') { openDuel(c.id, 'host', c.link); return; } $('chBanner').innerHTML = ico('swords') + tr('duel.ownOver'); show('chBanner'); return; }
+    if (c.state === 'waiting') { pendingDuel = c; refreshDuelBtn(); $('chBanner').innerHTML = ico('swords') + tr('duel.callsNow', { name: esc(c.fromName) }); show('chBanner'); return; }
+    $('chBanner').innerHTML = ico('swords') + tr(c.state === 'yours' ? 'duel.yours' : c.state === 'busy' ? 'duel.busy' : 'duel.over', { name: esc(c.fromName) }); show('chBanner');
+  }
+  // Лобби. mode: 'choose' (выбор: друг или очередь) | 'friend' (комната по ссылке, я хост) | 'queue' (случайный подбор) | 'guest' (пришёл по ссылке)
+  function renderLobby() {
+    const d = duel; if (!d) return;
+    const mode = d.mode, choose = mode === 'choose';
+    show('duFriend', choose); show('duQueue', choose); show('duInvite', mode === 'friend' && !d.opp); $('duInvite').disabled = !d.link;
+    let st, sub = '';
+    if (choose) { st = tr('lobby.chooseT'); sub = tr('lobby.chooseS'); }
+    else if (d.state === 'connecting') st = tr('lobby.connecting');
+    else if (d.opp) { st = tr(mode === 'queue' ? 'lobby.found' : 'lobby.opp', { name: esc(d.opp.name) }); sub = tr('lobby.ready'); }
+    else if (mode === 'queue') { st = tr('lobby.searchT'); sub = tr('lobby.searchS'); }
+    else if (mode === 'friend') { st = tr('lobby.waitT'); sub = tr('lobby.waitFriend'); }
+    else { st = tr('lobby.waitT'); sub = tr('lobby.waitHost'); }
+    $('duStatus').innerHTML = ico(mode === 'queue' ? 'compass' : 'swords') + st; $('duSub').textContent = sub;
+    renderLobbyTimer();
+  }
+  function renderLobbyTimer() {
+    const d = duel; if (!d || d.opp || d.mode === 'choose' || d.state === 'connecting') { $('duTimer').textContent = ''; show('duMore', false); return; }
+    const left = DUEL_WAIT - Math.floor((Date.now() - d.waitFrom) / 1000);
+    if (left > 0) { $('duTimer').textContent = tr(d.mode === 'queue' ? 'lobby.timerSearch' : 'lobby.timerWait', { time: mmss(left * 1000) }); show('duMore', false); }
+    else if (d.mode === 'queue') { $('duTimer').textContent = tr('lobby.nobody'); show('duMore'); show('duFriend'); }
+    else { $('duTimer').textContent = tr('lobby.friendLate'); show('duMore', d.mode === 'friend'); }
+  }
+  setInterval(() => { if (duel && !$('duel').classList.contains('hidden')) renderLobbyTimer(); }, 1000);
+  const newDuel = (id, side, mode) => ({ id, side, mode, ws: null, state: 'idle', opp: null, remote: null, startAt: 0, skew: 0, link: null, waitFrom: Date.now(), tries: 0, done: false, result: null, lastSend: 0, fin: null, cnt: 9, goT: 0 });
+  function openLobby() {                                                                     // кнопка «Дуэль»: выбор, как играть
+    if (duel) closeDuel(true);
+    duel = newDuel(null, null, 'choose'); show('duel'); renderLobby(); haptic('light');
+  }
+  function openDuel(id, side, link) {                                                        // пришёл по ссылке: сразу в комнату (гостем, или хост вернулся в своё лобби)
+    if (duel) closeDuel(true);
+    const d = duel = newDuel(id, side, side === 'host' ? 'friend' : 'guest'); d.state = 'connecting'; d.link = link || null;
+    show('duel'); renderLobby(); haptic('light'); duelConnect(d);
+  }
+  function dropWs(d) { const w = d.ws; if (!w) return; d.ws = null; try { w.send(JSON.stringify({ t: 'leave' })); } catch (e) {} try { w.close(); } catch (e) {} }
+  async function startFriend() {                                                             // «Позвать друга»: комната по ссылке
+    const d = duel; if (!d || d.mode === 'friend') return;
+    dropWs(d); d.mode = 'friend'; d.side = 'host'; d.state = 'connecting'; d.opp = null; d.tries = 0; d.waitFrom = Date.now(); renderLobby();
+    try { const r = await api('duel', { city: selCity, skin }); if (duel !== d) return; d.id = r.id; d.link = r.link; renderLobby(); }
+    catch (e) { if (duel !== d) return; toast(tr('duel.createFail')); d.mode = 'choose'; d.state = 'idle'; renderLobby(); return; }
+    duelConnect(d);
+  }
+  function startQueue() {                                                                    // «Найти соперника»: очередь на сервере
+    const d = duel; if (!d || d.mode === 'queue') return;
+    dropWs(d); d.mode = 'queue'; d.side = null; d.id = null; d.state = 'connecting'; d.opp = null; d.tries = 0; d.waitFrom = Date.now(); renderLobby();
+    duelConnect(d);
+  }
+  function duelConnect(d) {
+    let ws; try { ws = new WebSocket(WS_URL); } catch (e) { onDuelClosed(d); return; }
+    d.ws = ws;
+    ws.onopen = () => { if (duel !== d) { try { ws.close(); } catch (e) {} return; } ws.send(JSON.stringify({ t: 'hello', init: initData, duel: d.id, queue: d.mode === 'queue', city: selCity, skin })); };
+    ws.onmessage = ev => { if (duel !== d) return; let m; try { m = JSON.parse(ev.data); } catch (e) { return; } onDuelMsg(d, m); };
+    ws.onclose = () => { if (duel !== d || d.ws !== ws) return; d.ws = null; onDuelClosed(d); };
+    ws.onerror = () => {};
+  }
+  function onDuelMsg(d, m) {
+    if (typeof m.now === 'number') d.skew = m.now - Date.now();                             // разница часов с сервером (с точностью до задержки сети)
+    switch (m.t) {
+      case 'queue': d.tries = 0; d.state = 'queued'; d.id = null; renderLobby(); break;
+      case 'room': d.tries = 0; d.state = m.state; d.side = m.you; d.id = m.id; { const o = d.side === 'host' ? m.guest : m.host; if (o && !d.opp) haptic('medium'); d.opp = o; } renderLobby(); break;
+      case 'start': case 'resume': d.tries = 0; beginDuelRun(d, m); break;
+      case 'o': if (d.remote) d.remote.push(m.p); break;
+      case 'ofin': if (d.remote) { d.remote.fin = true; d.remote.finScore = m.score; } renderDuelOver(); break;
+      case 'oleft': if (d.remote) d.remote.live = false; if (state === 'play' || state === 'count') toast(tr('duel.oppLeft')); renderDuelOver(); break;
+      case 'oback': if (d.remote) d.remote.live = true; if (state === 'play') toast(tr('duel.oppBack')); renderDuelOver(); break;
+      case 'result': d.result = m; d.done = true; renderDuelOver(); break;
+      case 'oppfail': toast(tr(m.code === 'nofuel' ? 'duel.oppNoFuel' : 'duel.oppFail')); break;
+      case 'timeout': toast(tr('duel.timeout')); closeDuel(true); break;
+      case 'closed': if (!d.done && !d.remote) { toast(tr('duel.closed')); closeDuel(true); } break;
+      case 'err': onDuelErr(d, m); break;
+    }
+  }
+  function onDuelErr(d, m) {
+    const c = m.code;
+    if (c === 'nofuel') { if (m.eco) setEco(m.eco); closeDuel(true); openFuel(); return; }
+    if (d.remote && !d.result) { d.done = true; d.remote.live = false; toast(tr('duel.lost')); renderDuelOver(); return; }   // заезд продолжается, соперник — призрак
+    toast(tr(c === 'none' ? 'duel.none' : c === 'full' ? 'duel.full' : c === 'closed' ? 'duel.ended' : c === 'auth' ? 'err.auth' : 'err.net'));
+    closeDuel(true);
+  }
+  function onDuelClosed(d) {
+    if (duel !== d || d.done) return;
+    if (d.remote && !d.result) {                                                             // заезд идёт: пробуем переподключиться, соперник пока призрак
+      d.remote.live = false; renderDuelOver();
+      if (d.tries < 6) { d.tries++; setTimeout(() => { if (duel === d && !d.ws && !d.done) duelConnect(d); }, 700 * d.tries); }
+      else toast(tr('err.serverLost'));
+      return;
+    }
+    if (d.mode === 'choose') return;
+    if (d.tries < 3) { d.tries++; d.state = 'connecting'; renderLobby(); setTimeout(() => { if (duel === d && !d.ws) duelConnect(d); }, 1000 * d.tries); return; }
+    toast(tr('err.noServer')); closeDuel(true);
+  }
+  function beginDuelRun(d, m) {
+    const localAt = performance.now() + (m.at - (Date.now() + d.skew));                     // момент старта в наших часах performance.now()
+    if (m.you) d.side = m.you;
+    const myLane = d.side === 'host' ? 0 : 2;
+    if (m.t === 'resume') {                                                                  // связь восстановилась, заезд уже идёт на этом экране
+      if (!d.remote) d.remote = makeRemote(m.opp, 2 - myLane);
+      (m.pts || []).forEach(p => d.remote.push(p)); d.remote.live = !!(m.opp && m.opp.online);
+      if (m.ofin != null) { d.remote.fin = true; d.remote.finScore = m.ofin; }
+      if (g.runId === m.runId && (state === 'play' || state === 'count' || state === 'over')) { if (d.fin != null) duelSend({ t: 'fin', score: d.fin }); renderDuelOver(); return; }
+      toast(tr('duel.goneOn')); d.done = true; closeDuel(true); return;              // страницу перезагрузили во время дуэли: продолжить нельзя
+    }
+    d.opp = m.opp; d.remote = makeRemote(m.opp, 2 - myLane); d.startAt = localAt; d.state = 'playing'; d.cnt = 9;
+    pendingChallenge = null; pendingDuel = null; refreshDuelBtn(); show('chBanner', false);
+    clearTimeout(overTimer); show('unlockCard', false); show('duelRes', false);
+    if (pendingArrival && !pendingArrival.stale) pendingArrival = null;
+    if (m.eco) setEco(m.eco);
+    selCity = Math.max(0, Math.min(+m.city || 0, CITY_COUNT - 1));
+    reset(m.seed); g.runId = m.runId; g.city = selCity; g.token = ++runToken; g.lane = myLane; g.px = laneX(myLane); themeCity = selCity; ensureImg(selCity, 'ground');
+    state = 'count'; haptic('heavy');
+    ['start', 'over', 'lb', 'map', 'ach', 'arrive', 'fuel', 'duel'].forEach(id => show(id, false));
+  }
+  function duelFin(sc) { const d = duel; if (!d || d.fin != null || !d.remote) return; d.fin = sc; duelSend({ t: 'fin', score: sc }); renderDuelOver(); }
+  function closeDuel(silent) {
+    const d = duel; if (!d) return; duel = null;
+    if (d.ws) { try { if (!d.done && !d.remote) d.ws.send(JSON.stringify({ t: 'leave' })); } catch (e) {} try { d.ws.close(); } catch (e) {} }
+    show('duel', false); show('duelRes', false);
+    if (pendingDuel) { pendingDuel = null; show('chBanner', false); refreshDuelBtn(); }       // приглашение снято: возвращаем обычные кнопки
+    if (!silent) toast(tr('duel.cancelled'));
+  }
+  function renderDuelOver() {                                                                // строка про соперника на экране финиша
+    const d = duel, R = d && d.remote;
+    if (!R || state !== 'over') { show('duelRes', false); return; }
+    let h;
+    if (d.result) {
+      const r = d.result, mine = r[r.you], opp = r.you === 'host' ? r.guest : r.host;
+      h = r.winner === 'draw' ? tr('res.draw', { name: esc(opp.name), a: mine.score, b: opp.score })
+        : r.winner === r.you ? ico('trophy') + tr('res.win', { name: esc(opp.name), a: mine.score, b: opp.score })
+        : tr('res.lose', { name: esc(opp.name), a: opp.score, b: mine.score });
+      if (opp.dnf) h += ' <small>' + tr('res.dnf') + '</small>';
+      if (!d.resShown) { d.resShown = true; haptic(r.winner === r.you ? 'success' : 'warning'); }
+    } else if (R.fin) h = tr('res.oppFin', { name: esc(R.name), score: R.finScore });
+    else if (!R.live) h = tr('res.oppLost', { name: esc(R.name) });
+    else { const s = R.sample(g.rt); h = tr('res.oppDrive', { name: esc(R.name), score: s ? s.score : 0 }); }
+    $('duelRes').innerHTML = ico('swords') + h; show('duelRes');
+  }
+  setInterval(() => { if (duel && duel.remote && state === 'over' && !duel.result) renderDuelOver(); }, 700);
+  function drawRemote() {                                                                    // машина соперника в нашем мире: y по разнице дистанций
+    const d = duel, R = d && d.remote; if (!R || state === 'menu') return;
+    const s = R.sample(g.rt), dist = s ? s.dist : g.dist, lane = s ? s.lane : R.lane0;
+    const y = PLAYER_Y - (dist - g.dist), gapM = Math.round((dist - g.dist) / 10);
+    R.x += (laneX(lane) - R.x) * .22;
+    const alpha = !R.live ? .4 : s && s.stale ? .55 : .85;
+    if (y > -CAR_H && y < H + CAR_H) {
+      ctx.save(); ctx.globalAlpha = alpha;
+      if (s && (s.fl & 1)) { const gl = ctx.createRadialGradient(R.x, y, 10, R.x, y, 80); gl.addColorStop(0, 'rgba(255,170,60,.4)'); gl.addColorStop(1, 'rgba(255,170,60,0)'); ctx.fillStyle = gl; ctx.fillRect(R.x - 90, y - 110, 180, 220); }
+      ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.ellipse(R.x + 4, y + 6, CAR_W / 2 + 2, CAR_H / 2, 0, 0, 7); ctx.fill();
+      const im = IMG['jetour_' + SKINS[R.skin].id];
+      if (im) sprite(im, R.x, y, CAR_W); else drawCar(R.x, y, CAR_W, CAR_H, '#dfe3ea', { hero: true });
+      ctx.globalAlpha = Math.min(1, alpha + .1);
+      ctx.font = '500 11px TU,system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';                 // имя над машиной
+      const label = R.name.length > 12 ? R.name.slice(0, 11) + '…' : R.name, tw = ctx.measureText(label).width + 14, ty = y - CAR_H / 2 - 14;
+      ctx.fillStyle = 'rgba(0,0,0,.6)'; rr(R.x - tw / 2, ty - 9, tw, 18, 9); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(label, R.x, ty + .5);
+      ctx.restore();
+    } else {                                                                                 // за краем экрана: стрелка и отрыв в метрах
+      const up = y < 0, ay = up ? HUD_CY + HUD_H / 2 + 50 : H - INS_B - 24, txt = tr('hud.m', { n: (gapM > 0 ? '+' : '') + gapM });
+      ctx.save(); ctx.globalAlpha = .9; ctx.font = '500 12px TU,system-ui,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      const tw = ctx.measureText(txt).width, pw = tw + 32;
+      ctx.fillStyle = 'rgba(0,0,0,.55)'; rr(R.x - pw / 2, ay - 11, pw, 22, 11); ctx.fill();
+      ctx.fillStyle = R.live ? '#ffd76a' : '#ffffff99'; ctx.beginPath();
+      const tx = R.x - pw / 2 + 10; if (up) { ctx.moveTo(tx, ay + 4); ctx.lineTo(tx + 10, ay + 4); ctx.lineTo(tx + 5, ay - 5); } else { ctx.moveTo(tx, ay - 4); ctx.lineTo(tx + 10, ay - 4); ctx.lineTo(tx + 5, ay + 5); }
+      ctx.closePath(); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.fillText(txt, tx + 16, ay + .5); ctx.restore();
+    }
+  }
+  function drawDuelHUD() {                                                                   // вторая плашка под счётом: имя и очки соперника, отрыв
+    const d = duel, R = d && d.remote; if (!R || state === 'menu') return;
+    const s = R.sample(g.rt), sc = R.fin ? R.finScore : s ? s.score : 0;
+    const P = HUD_W, hh = 20, x = (W - P) / 2, y = HUD_CY + HUD_H / 2 + 5, cy = y + hh / 2 + .5;
+    ctx.fillStyle = '#000a'; rr(x, y, P, hh, hh / 2); ctx.fill();
+    ctx.textBaseline = 'middle'; ctx.font = '500 11px TU,system-ui,sans-serif';
+    const name = R.name.length > 10 ? R.name.slice(0, 9) + '…' : R.name;
+    ctx.fillStyle = R.live ? '#ffd76a' : '#ffffff99'; ctx.textAlign = 'left'; ctx.fillText(name, x + 10, cy);
+    ctx.fillStyle = '#fff'; ctx.textAlign = 'right'; ctx.fillText(R.fin ? tr('hud.fin', { score: sc }) : !R.live ? tr('hud.offline') : String(sc), x + P - 10, cy);
+    if (s && !R.fin && state === 'play') {
+      const gap = Math.round((s.dist - g.dist) / 10), t = gap > 2 ? tr('hud.oppAhead', { n: gap }) : gap < -2 ? tr('hud.youAhead', { n: -gap }) : tr('hud.even');
+      ctx.font = '500 10px TU,system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.lineJoin = 'round'; ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.strokeText(t, W / 2, y + hh + 9); ctx.fillStyle = '#fff'; ctx.fillText(t, W / 2, y + hh + 9);
+    }
+  }
+  function drawCountdown(now) {                                                              // 3-2-1-GO перед общим стартом
+    const d = duel; if (!d || !d.startAt) return;
+    if (state !== 'count' && !(state === 'play' && d.goT && now - d.goT < 700)) return;
+    const left = (d.startAt - now) / 1000, n = state === 'count' ? Math.max(1, Math.ceil(left)) : 0;
+    ctx.save();
+    if (state === 'count') { ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.fillRect(0, 0, W, H); }
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    const cy = H * .38, frac = state === 'count' ? left - Math.floor(left) : Math.max(0, 1 - (now - d.goT) / 700), sc = 1 + .35 * frac;
+    ctx.translate(W / 2, cy); ctx.scale(sc, sc);
+    ctx.font = (n > 3 ? '34px' : '110px') + ' BW,TU,system-ui,sans-serif'; ctx.lineWidth = n > 3 ? 6 : 10; ctx.strokeStyle = '#7a0a14';
+    const txt = n > 3 ? tr('game.ready') : n > 0 ? String(n) : tr('game.go'); ctx.strokeText(txt, 0, 0); ctx.fillStyle = n > 0 ? '#fff' : '#ffd76a'; ctx.fillText(txt, 0, 0);
+    ctx.restore();
+    if (state === 'count') {
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.font = '500 15px TU,system-ui,sans-serif'; ctx.lineWidth = 5; ctx.strokeStyle = 'rgba(80,0,10,.85)'; ctx.lineJoin = 'round';
+      const s = d.opp ? tr('duel.vs', { name: d.opp.name }) : tr('duel.vsAnon'); ctx.strokeText(s, W / 2, cy + 82); ctx.fillStyle = '#fff'; ctx.fillText(s, W / 2, cy + 82); ctx.restore();
+    }
+  }
+  $('duelBtn').onclick = () => { if (!online) return; if (pendingDuel) openDuel(pendingDuel.id, 'guest'); else openLobby(); };
+  $('duFriend').onclick = startFriend; $('duQueue').onclick = startQueue;
+  $('duInvite').onclick = () => {
+    const d = duel; if (!d || !d.link) return; d.waitFrom = Date.now(); renderLobbyTimer();
+    const url = 'https://t.me/share/url?url=' + encodeURIComponent(d.link) + '&text=' + encodeURIComponent(tr('duel.share'));
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
+  };
+  $('duMore').onclick = () => { if (duel) { duel.waitFrom = Date.now(); renderLobbyTimer(); } };
+  $('duCancel').onclick = () => closeDuel(duel && duel.mode === 'choose');
+  refreshDuelBtn();
+
+  // ---------- топливо и танга (в Telegram; баланс танга берётся из базы бота) ----------
+  let eco = null, ecoSkew = 0, toastT = 0;
+  const mmss = ms => { const t = Math.ceil(ms / 1000), m = Math.floor(t / 60); return m + ':' + String(t % 60).padStart(2, '0'); };
+  function toast(t) { const el = $('toast'); el.textContent = t; show('toast'); clearTimeout(toastT); toastT = setTimeout(() => show('toast', false), 2600); }
+  function liveFuel() {                                                                      // топливо с учётом прошедшего времени (считает сервер, это только отображение)
+    if (!eco) return null;
+    let f = eco.fuel, t = eco.fuelT; const now = Date.now() + ecoSkew;
+    if (f < eco.cap) { const k = Math.floor((now - t) / eco.regenMs); if (k > 0) { f = Math.min(eco.cap, f + k); t = f >= eco.cap ? now : t + k * eco.regenMs; } }
+    return { fuel: f, next: f >= eco.cap ? 0 : Math.max(0, t + eco.regenMs - now) };
+  }
+  function setEco(e) { if (!e) return; eco = e; ecoSkew = e.now - Date.now(); renderEco(); if (typeof renderSkins === 'function') { renderSkins(); renderBoosts(); } }
+  // ---------- траты танга ----------
+  // В Telegram включаются, когда сервер присылает eco.shop = true (иначе игра работает как раньше).
+  // Цены и курс обмена приходят с сервера (eco.prices, eco.rate, eco.xLeft); ниже — значения для демо, их утверждает клиент.
+  const DEMO = !online;                                                                      // вне Telegram: демо-кошелёк на устройстве
+  // Токеномика: заработать можно только обменом очков и не больше 20 танга в день, тратить — без ограничений.
+  // 20 танга ≈ одна бутылка: услуги по 1–2 танга, машины от 50 (+50 каждая), города от 30 (+10 каждый).
+  const DEF_PRICES = { skins: { black: 50, orange: 100, blue: 150, red: 200 }, revive: 2, boosts: { turbo: 2, shield: 2, magnet: 1, x2: 2 }, city: null };
+  const DEF_RATE = { pts: 1000, tanga: 1 }, DEMO_XCAP = 20, MAX_REVIVES = 3;
+  const BOOSTS = [{ id: 'turbo', ico: 'bolt' }, { id: 'shield', ico: 'heart' }, { id: 'magnet', ico: 'magnet' }, { id: 'x2', ico: 'can' }];
+  const shopOn = () => DEMO || !!(eco && eco.shop);
+  const price = k => (eco && eco.prices && eco.prices[k] != null ? eco.prices[k] : DEF_PRICES[k]);
+  const skinPrice = id => (price('skins') || {})[id] || 0;
+  const cityPrice = i => { const p = price('city'); return Array.isArray(p) ? p[i] : typeof p === 'number' ? p : 20 + 10 * i; };   // по умолчанию дороже с каждым городом: 30…150
+  const boostPrice = id => (price('boosts') || {})[id] || 0;
+  const reviveCost = n => price('revive') * Math.pow(2, n);                                  // 2 → 4 → 8 за один заезд
+  const xCap = () => DEMO ? DEMO_XCAP : (eco && eco.xCap) || 20;
+  const fmt = n => String(Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0');
+  function xLeft() {                                                                         // сколько танга ещё можно получить обменом сегодня
+    if (!eco) return 0;
+    if (DEMO) { const d = new Date().toDateString(); if (eco.xDay !== d) { eco.xDay = d; eco.xGot = 0; } return Math.max(0, DEMO_XCAP - (eco.xGot || 0)); }
+    return eco.xLeft != null ? eco.xLeft : 0;
+  }
+  function demoLoad() {
+    let e = null; try { e = JSON.parse(localStorage.getItem('jcr_demo')); } catch (x) {}
+    if (!e || typeof e.tanga !== 'number') e = { fuel: 5, fuelT: Date.now(), cap: 5, regenMs: 20 * 60000, price: 2, tanga: 60, account: true, plov: true, shop: true, pts: 0, skins: ['white'] };
+    e.rate = DEF_RATE; e.prices = DEF_PRICES; e.price = 2; e.now = Date.now(); return e;   // заправка +1 в демо — 2 танга
+  }
+  function demoSync() { const L = liveFuel(); eco.fuel = L.fuel; eco.fuelT = L.fuel >= eco.cap ? Date.now() : Date.now() + L.next - eco.regenMs; }
+  function demoSave() { eco.now = Date.now(); ecoSkew = 0; try { localStorage.setItem('jcr_demo', JSON.stringify(eco)); } catch (x) {} renderEco(); renderSkins(); renderBoosts(); }
+  function demoErr(code) { const er = new Error('409'); er.data = { error: code, eco }; return er; }
+  function demoApi(path, b) {                                                                // те же ответы, что ждём от сервера
+    demoSync(); const pay = n => { if (eco.tanga < n) throw demoErr('tanga'); eco.tanga -= n; };
+    if (path === 'fuel/buy') { const room = eco.cap - eco.fuel, n = b.units === 'full' ? room : 1; if (room <= 0) throw demoErr('full'); pay(n * eco.price); eco.fuel += n; demoSave(); return { n, cost: n * eco.price, eco }; }
+    if (path === 'skin/buy') { pay(skinPrice(b.skin)); eco.skins = (eco.skins || []).concat(b.skin); demoSave(); return { eco }; }
+    if (path === 'run/revive') { pay(reviveCost(g.revives || 0)); demoSave(); return { eco }; }
+    if (path === 'city/unlock') {
+      if (prog.done || b.city !== prog.city + 1) throw demoErr('city');
+      pay(cityPrice(b.city)); prog.city = b.city; prog.cans = 0; prog.pts = 0; prog.ach['city_' + b.city] = Date.now(); if (b.city >= 7 && !prog.ach.halfway) prog.ach.halfway = Date.now();
+      saveProg(); demoSave(); return { progress: prog, eco };
+    }
+    if (path === 'points/exchange') {
+      const R = eco.rate, units = Math.min(Math.floor(b.pts / R.pts), Math.floor((eco.pts || 0) / R.pts), Math.floor(xLeft() / R.tanga));
+      if (units < 1) throw demoErr(xLeft() < R.tanga ? 'limit' : 'pts');
+      eco.pts -= units * R.pts; eco.tanga += units * R.tanga; eco.xGot = (eco.xGot || 0) + units * R.tanga; demoSave(); return { eco, tanga: units * R.tanga, pts: units * R.pts };
+    }
+    throw demoErr('unknown');
+  }
+  const shop = (path, body) => DEMO ? Promise.resolve().then(() => demoApi(path, body)) : api(path, body);
+  // окно подтверждения покупки
+  let askFn = null;
+  function ask(o) {                                                                          // o: { ico, title, text, btn, cost, go }
+    $('askIco').innerHTML = o.ico || ''; $('askT').textContent = o.title; $('askS').textContent = o.text;
+    const bal = eco ? eco.tanga : 0;
+    $('askBal').innerHTML = ico('coin') + tr('shop.bal', { n: fmt(bal) }) + (bal < o.cost ? ' · <b class="need">' + tr('shop.need', { n: fmt(o.cost - bal) }) + '</b>' : '');
+    setBt($('askGo'), o.btn, 'coin'); $('askGo').disabled = !eco || eco.tanga < o.cost;
+    askFn = o.go; show('ask'); lockScreen('ask', 350);
+  }
+  $('askNo').onclick = () => { askFn = null; show('ask', false); };
+  $('ask').onclick = e => { if (e.target === $('ask')) $('askNo').onclick(); };
+  $('askGo').onclick = async () => {
+    const f = askFn; if (!f) return; $('askGo').disabled = true;
+    try { await f(); askFn = null; show('ask', false); }
+    catch (e) { if (e.data && e.data.eco) setEco(e.data.eco); haptic('error'); toast(tr(e.data && e.data.error === 'tanga' ? 'fuel.noTanga' : 'shop.fail')); $('askGo').disabled = false; }
+  };
+  function askSkin(i) {
+    const s = SKINS[i], n = skinPrice(s.id);
+    ask({ ico: '<img src="assets/jetour_' + s.id + '.png" alt="">', title: tr('skin.buyT'), text: tr('skin.buyS', { n }), btn: tr('skin.buy', { n }), cost: n,
+      go: async () => { const r = await shop('skin/buy', { skin: s.id }); setEco(r.eco); skin = i; try { localStorage.setItem('jcr_skin', i); } catch (e) {} renderSkins(); haptic('success'); toast(tr('skin.done')); } });
+  }
+  // бусты на заезд: выбираются на старте, оплачиваются при старте заезда
+  let picked = [];
+  const boostSum = () => picked.reduce((t, id) => t + boostPrice(id), 0);
+  function renderBoosts() {
+    const box = $('boosts'); if (!box) return;
+    const on = shopOn() && !!eco && !pendingDuel; show('boosts', on); if (!on) { picked = []; return; }
+    box.innerHTML = BOOSTS.map(b => '<div class="bst' + (picked.includes(b.id) ? ' on' : '') + '" data-b="' + b.id + '" role="button"><span class="bi">' + ico(b.ico) + '</span><b>' + esc(tr('b.' + b.id)) + '</b><small>' + ico('coin') + boostPrice(b.id) + '</small></div>').join('');
+    box.querySelectorAll('.bst').forEach(el => el.onclick = () => {
+      const id = el.dataset.b, has = picked.includes(id);
+      if (!has && eco.tanga < boostSum() + boostPrice(id)) { haptic('error'); toast(tr('fuel.noTanga')); return; }
+      picked = has ? picked.filter(x => x !== id) : picked.concat(id); haptic('select'); renderBoosts();
+    });
+    const n = boostSum(), L = liveFuel();
+    if (L && L.fuel > 0) setBt($('playBtn'), n ? tr('btn.goCost', { n }) : tr('btn.go'), 'arrow');
+  }
+  // обмен очков на танга
+  function renderX() {
+    const on = shopOn() && !!eco; show('xCard', on); show('demoNote', DEMO); if (!on) return;
+    const R = eco.rate || DEF_RATE, left = xLeft(), pts = eco.pts || 0;
+    const units = Math.min(Math.floor(pts / R.pts), Math.floor(left / R.tanga));
+    $('xRate').textContent = tr('x.rate', { pts: fmt(R.pts), tanga: R.tanga });
+    const cap = xCap(), got = Math.max(0, cap - left);
+    $('xInfo').innerHTML = ico('star') + tr('x.have', { n: fmt(pts) }) + '<div class="xbar"><i style="width:' + Math.min(100, got / cap * 100) + '%"></i></div><div class="xday"><span>' + tr('x.today', { got, cap }) + '</span></div>' + (left >= R.tanga ? '' : '<div class="xlim">' + tr('x.limit') + '</div>');
+    setBt($('xOne'), tr('x.btnOne', { pts: fmt(R.pts), tanga: R.tanga }), 'star'); $('xOne').disabled = units < 1;
+    setBt($('xAll'), tr('x.btnAll', { tanga: Math.max(units, 0) * R.tanga }), 'star'); show('xAll', units >= 2);
+    $('xNote').textContent = pts < R.pts ? tr('x.short', { n: fmt(R.pts - pts) }) : '';
+  }
+  async function exchange(all) {
+    const R = eco.rate || DEF_RATE, units = all ? Math.min(Math.floor((eco.pts || 0) / R.pts), Math.floor(xLeft() / R.tanga)) : 1;
+    try { const r = await shop('points/exchange', { pts: units * R.pts }); setEco(r.eco); haptic('success'); toast(tr('x.done', { n: r.tanga })); }
+    catch (e) { if (e.data && e.data.eco) setEco(e.data.eco); haptic('error'); toast(tr(e.data && e.data.error === 'limit' ? 'x.limitHit' : 'x.fail')); }
+    renderFuel();
+  }
+  $('xOne').onclick = () => exchange(false); $('xAll').onclick = () => exchange(true);
+  $('xLine').onclick = () => openFuel();
+  function renderEco() {
+    const L = liveFuel(); if (!L) return;
+    const h = ico('fuel') + L.fuel + '/' + eco.cap + (L.next > 0 ? ' <small>' + tr('eco.next', { time: mmss(L.next) }) + '</small>' : '') + sep + ico('coin') + eco.tanga;
+    ['ecoPill', 'ecoPill2'].forEach(id => { $(id).innerHTML = h; show(id); });
+    const empty = L.fuel <= 0;
+    let bsum = 0; try { bsum = boostSum(); } catch (e) {}
+    setBt($('playBtn'), empty ? tr('btn.refuel') : bsum ? tr('btn.goCost', { n: bsum }) : tr('btn.go'), empty ? 'fuel' : 'arrow');
+    setBt($('againBtn'), empty ? tr('btn.refuel') : tr('btn.againCity', { city: CITIES[Math.min(selCity, maxCity())].n }), empty ? 'fuel' : 'refresh');
+    if (!$('fuel').classList.contains('hidden')) renderFuel();
+  }
+  function renderFuel() {
+    const L = liveFuel(), room = eco.cap - L.fuel, full = room * eco.price;
+    const ik = L.fuel > 0 ? (shopOn() ? 'none' : 'on') : 'off';                                                   // значок пересоздаём только при смене состояния (иначе анимация перезапускается каждую секунду)
+    if ($('fuIco').dataset.k !== ik) { $('fuIco').dataset.k = ik; $('fuIco').innerHTML = ik === 'none' ? '<img class="tcoin" src="assets/ui/tanga.png" alt="">' : '<span class="badge big" style="--c:' + (L.fuel > 0 ? '#e41e2b' : '#8c8c8c') + ';--s:72px">' + ico(L.fuel > 0 && shopOn() ? 'coin' : 'fuel') + '</span>'; }
+    $('fuTitle').textContent = L.fuel > 0 ? (shopOn() ? tr('w.title') : tr('fuel.title')) : tr('fuel.empty');
+    $('fuSub').innerHTML = tr('fuel.per') + '<br>' + (L.next > 0 ? tr('fuel.next', { time: mmss(L.next) }) : tr('fuel.isFull'));
+    $('fuBal').innerHTML = ico('fuel') + L.fuel + '/' + eco.cap + sep + ico('coin') + tr('fuel.tanga', { n: fmt(eco.tanga) }) + (shopOn() ? sep + ico('star') + fmt(eco.pts || 0) : '');
+    renderX();
+    const one = eco.price, can1 = room > 0 && eco.tanga >= one, canF = room > 0 && eco.tanga >= full;
+    setBt($('fuOne'), tr('fuel.buyOne', { n: one }), 'fuel'); $('fuOne').disabled = !can1;
+    setBt($('fuFull'), room > 1 ? tr('fuel.buyFull', { n: full }) : tr('fuel.full'), 'fuel'); $('fuFull').disabled = !(canF && room > 1);
+    $('fuGo').disabled = L.fuel <= 0;
+    $('fuNote').textContent = !eco.account ? tr('fuel.noAccount') : room > 0 && eco.tanga < one ? tr('fuel.short', { n: one - eco.tanga }) : '';
+  }
+  function openFuel() { if (!eco) return; renderFuel(); show('fuel'); }
+  async function buyFuel(units) {
+    try {
+      const r = await shop('fuel/buy', { units }); setEco(r.eco); haptic('success'); toast(tr('fuel.done', { n: r.n, cost: r.cost }));
+    } catch (e) {
+      if (e.data && e.data.eco) setEco(e.data.eco);
+      haptic('error'); toast(tr(e.data && e.data.error === 'tanga' ? 'fuel.noTanga' : e.data && e.data.error === 'full' ? 'fuel.alreadyFull' : 'fuel.fail'));
+    }
+  }
+  $('fuOne').onclick = () => buyFuel(1); $('fuFull').onclick = () => buyFuel('full');
+  $('fuClose').onclick = () => show('fuel', false);
+  $('fuGo').onclick = () => { show('fuel', false); start(); };
+  $('ecoPill').onclick = $('ecoPill2').onclick = openFuel;
+  setInterval(() => { if (eco && (!$('start').classList.contains('hidden') || !$('over').classList.contains('hidden') || !$('fuel').classList.contains('hidden'))) renderEco(); }, 1000);
+
+  // ---------- Путешествие: прогресс, карта, достижения, прибытие ----------
+  const sep = '<i class="sp"></i>';
+  const badge = (i, size) => '<span class="badge" style="--c:' + CITIES[i].col + ';--s:' + size + 'px">' + ico(CITIES[i].ico) + '</span>';
+  function refreshProgUI() {
+    const f = prog.city, s = Math.min(selCity, maxCity());
+    selCity = s;
+    let h;
+    if (prog.done) h = ico('trophy') + tr('prog.done') + sep + esc(CITIES[s].n);
+    else if (s === f) h = ico('pin') + esc(CITIES[f].n) + sep + ico('can') + prog.cans + '/' + GOAL_C[f] + sep + ico('star') + prog.pts + '/' + GOAL_P[f];
+    else h = ico('pin') + esc(CITIES[s].n) + sep + tr('prog.free');
+    $('progPill').innerHTML = h;
+    if (typeof renderEco === 'function' && eco) renderEco(); else setBt($('againBtn'), tr('btn.againCity', { city: CITIES[s].n }), 'refresh');
+    if (state !== 'play') { themeCity = s; ensureImg(s, 'ground'); }
+  }
+  if (DEMO) setEco(demoLoad());
+  if (online) api('progress').then(p => { if (p && typeof p.city === 'number') { setEco(p.eco); prog = p; delete prog.eco; saveProg(); refreshProgUI(); } }).catch(() => {});
+
+  // ---------- карта: интерактивная и анимированная ----------
+  const MAP_W = 336, MAP_H = 232, MS = 2;
+  const OUTLINE = [[56.0, 45.0], [57.2, 45.4], [58.6, 45.6], [59.8, 45.3], [60.9, 44.3], [61.9, 43.6], [63.6, 43.0], [64.6, 42.2], [65.6, 42.8], [66.3, 42.1], [67.5, 41.9], [68.8, 41.9], [69.6, 42.6], [70.6, 42.3], [71.2, 42.0], [70.9, 41.5], [71.3, 41.2], [72.4, 41.2], [73.1, 40.9], [72.6, 40.5], [72.0, 40.2], [71.0, 40.2], [70.1, 40.1], [69.2, 39.5], [68.6, 39.5], [67.7, 39.6], [67.4, 38.9], [67.8, 38.3], [67.9, 37.4], [67.3, 37.2], [66.6, 37.4], [65.7, 37.5], [65.5, 38.4], [64.5, 38.9], [63.7, 39.2], [62.6, 39.8], [62.1, 40.5], [61.3, 41.1], [60.2, 41.5], [59.5, 42.0], [58.5, 42.2], [57.3, 41.6], [56.0, 41.3]];
+  const RIVERS = [[[67.3, 37.3], [66.0, 37.8], [65.2, 38.6], [64.0, 39.3], [62.6, 40.2], [61.8, 41.0], [60.7, 41.9], [59.9, 43.0], [59.3, 44.2]], [[72.0, 40.9], [70.8, 40.3], [69.4, 40.5], [68.7, 40.7], [67.5, 41.3], [66.4, 42.0]]];
+  const ARAL = [[59.2, 45.5], [60.3, 45.3], [60.5, 44.6], [59.7, 44.1], [58.9, 44.4], [58.7, 45.0]];
+  const NEIGH = [[tr('geo.kz'), 64.5, 44.3], [tr('geo.tm'), 58.8, 39.6], [tr('geo.af'), 65.4, 37.0], [tr('geo.tj'), 70.3, 38.9], [tr('geo.kg'), 72.6, 42.6]];
+  const mp = ll => [8 + (ll[0] - 55.6) / 18 * (MAP_W - 16), 8 + (45.8 - ll[1]) / 8.9 * (MAP_H - 16)];
+  const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const clamp01 = v => Math.max(0, Math.min(1, v));
+  const easeOut = v => 1 - Math.pow(1 - v, 3), easeInOut = v => v < .5 ? 4 * v * v * v : 1 - Math.pow(-2 * v + 2, 3) / 2;
+  const easeBack = v => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(v - 1, 3) + c1 * Math.pow(v - 1, 2); };
+  const mapCv = $('mapCv'), mctx = mapCv.getContext('2d');
+  mapCv.width = MAP_W * MS; mapCv.height = MAP_H * MS;
+  const MP = CITIES.map(c => mp(c.ll));
+  let regions = null, baseCv = null, baseKey = '', mapSel = 0, mapRaf = 0, mapT0 = 0, mapOpen = false, mapFromU = null, lastFrame = 0;
+  const view = { s: 1, cx: MAP_W / 2, cy: MAP_H / 2, ts: 1, tcx: MAP_W / 2, tcy: MAP_H / 2 };
+  const ripples = [], glowCache = new Map();
+
+  const quad = (a, b, t, c) => [(1 - t) * (1 - t) * a[0] + 2 * (1 - t) * t * c[0] + t * t * b[0], (1 - t) * (1 - t) * a[1] + 2 * (1 - t) * t * c[1] + t * t * b[1]];
+  function ctrl(a, b, i) { const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, dx = b[0] - a[0], dy = b[1] - a[1], s = (i % 2 ? 1 : -1) * .16; return [mx - dy * s, my + dx * s]; }
+  const SEG = [];                                                                       // маршрут: точки каждого участка
+  for (let i = 0; i < CITY_COUNT - 1; i++) { const cp = ctrl(MP[i], MP[i + 1], i), pts = []; for (let k = 0; k <= 26; k++) pts.push(quad(MP[i], MP[i + 1], k / 26, cp)); SEG.push(pts); }
+  function routePoint(u) {                                                              // позиция и угол на маршруте (u — «номер города» с дробью)
+    u = Math.max(0, Math.min(CITY_COUNT - 1, u)); const i = Math.min(CITY_COUNT - 2, Math.floor(u)), f = u - i, pts = SEG[i];
+    const k = Math.min(25, Math.floor(f * 26)), kf = f * 26 - k, a = pts[k], b = pts[k + 1];
+    return [a[0] + (b[0] - a[0]) * kf, a[1] + (b[1] - a[1]) * kf, Math.atan2(b[1] - a[1], b[0] - a[0])];
+  }
+
+  function buildRegions() {
+    const cw = MAP_W * MS, ch = MAP_H * MS, off = document.createElement('canvas');
+    off.width = cw; off.height = ch;
+    const o = off.getContext('2d'); o.scale(MS, MS); o.beginPath();
+    OUTLINE.forEach((p, i) => { const [x, y] = mp(p); i ? o.lineTo(x, y) : o.moveTo(x, y); });
+    o.closePath(); o.fill();
+    const a = o.getImageData(0, 0, cw, ch).data, idx = new Int8Array(cw * ch).fill(-1);
+    const sd = CITIES.map(c => { const [x, y] = mp(c.seed); return [x * MS, y * MS, c.seed[2] * c.seed[2]]; });
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      if (a[(y * cw + x) * 4 + 3] < 128) continue;
+      let best = 0, bd = 1e18;
+      for (let i = 0; i < sd.length; i++) { const dx = x - sd[i][0], dy = y - sd[i][1], d = (dx * dx + dy * dy) / sd[i][2]; if (d < bd) { bd = d; best = i; } }
+      idx[y * cw + x] = best;
+    }
+    return { idx, cw, ch };
+  }
+  const outlinePath = c => { c.beginPath(); OUTLINE.forEach((p, i) => { const [x, y] = mp(p); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.closePath(); };
+  const riverPath = (c, rv) => { c.beginPath(); rv.forEach((p, i) => { const [x, y] = mp(p); i ? c.lineTo(x, y) : c.moveTo(x, y); }); };
+  const aralPath = c => { c.beginPath(); ARAL.forEach((p, i) => { const [x, y] = mp(p); i ? c.lineTo(x, y) : c.moveTo(x, y); }); c.closePath(); };
+
+  function renderMapBase() {                                                            // статичная подложка: области, границы, реки
+    const R = regions || (regions = buildRegions()), { idx, cw, ch } = R;
+    baseCv = baseCv || document.createElement('canvas'); baseCv.width = cw; baseCv.height = ch;
+    const b = baseCv.getContext('2d');
+    const bg = b.createLinearGradient(0, 0, 0, ch); bg.addColorStop(0, '#f6eedc'); bg.addColorStop(1, '#ecdfc2'); b.fillStyle = bg; b.fillRect(0, 0, cw, ch);
+    b.strokeStyle = 'rgba(120,90,50,.12)'; b.lineWidth = 1;
+    for (let lon = 56; lon <= 73; lon += 2) { const x = mp([lon, 0])[0] * MS; b.beginPath(); b.moveTo(x, 0); b.lineTo(x, ch); b.stroke(); }
+    for (let lat = 38; lat <= 45; lat += 2) { const y = mp([0, lat])[1] * MS; b.beginPath(); b.moveTo(0, y); b.lineTo(cw, y); b.stroke(); }
+    const img = b.getImageData(0, 0, cw, ch), d = img.data;
+    const col = CITIES.map((c, i) => i < prog.city || prog.done ? hex(c.col) : i === prog.city ? [255, 215, 106] : [218, 209, 188]);
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const p = y * cw + x, i = idx[p]; if (i < 0) continue;
+      let c = col[i], k = 1;
+      if (i > prog.city && !prog.done && (((x + y) >> 3) & 1)) k = .955;
+      if ((x + 1 < cw && idx[p + 1] >= 0 && idx[p + 1] !== i) || (y + 1 < ch && idx[p + cw] >= 0 && idx[p + cw] !== i)) { c = [255, 255, 255]; k = 1; }
+      const q = p * 4; d[q] = c[0] * k; d[q + 1] = c[1] * k; d[q + 2] = c[2] * k; d[q + 3] = 255;
+    }
+    b.putImageData(img, 0, 0);
+    b.save(); b.scale(MS, MS);
+    outlinePath(b); b.lineJoin = 'round'; b.strokeStyle = '#7a6440'; b.lineWidth = 1.8; b.stroke();
+    b.strokeStyle = '#6fb6d8'; b.lineWidth = 2.2; b.lineCap = 'round'; RIVERS.forEach(rv => { riverPath(b, rv); b.stroke(); });
+    aralPath(b); b.fillStyle = '#8fcbe6'; b.fill(); b.strokeStyle = '#5a9fc2'; b.lineWidth = 1; b.stroke();
+    b.fillStyle = 'rgba(90,70,40,.5)'; b.font = '500 7px TU,system-ui,sans-serif'; b.textAlign = 'center'; b.textBaseline = 'middle';
+    NEIGH.forEach(([t, lo, la]) => { const [x, y] = mp([lo, la]); b.fillText(t, x, y); });
+    b.fillStyle = '#3f86b0'; b.font = 'italic 500 6.5px TU,system-ui,sans-serif'; const [ax, ay] = mp([59.6, 44.8]); b.fillText(tr('map.aral'), ax, ay);
+    b.restore();
+    baseKey = prog.city + ':' + prog.done;
+    glowCache.clear();
+  }
+  function regionGlow(i) {                                                              // подсветка выбранной области (контур + лёгкая заливка)
+    let g = glowCache.get(i); if (g) return g;
+    const { idx, cw, ch } = regions, cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    const x2 = cv.getContext('2d'), img = x2.createImageData(cw, ch), d = img.data;
+    for (let y = 3; y < ch - 3; y++) for (let x = 3; x < cw - 3; x++) {
+      const p = y * cw + x; if (idx[p] !== i) continue;
+      const rim = idx[p - 1] !== i || idx[p + 1] !== i || idx[p - cw] !== i || idx[p + cw] !== i || idx[p - 2] !== i || idx[p + 2] !== i || idx[p - 2 * cw] !== i || idx[p + 2 * cw] !== i || idx[p - 3] !== i || idx[p + 3] !== i || idx[p - 3 * cw] !== i || idx[p + 3 * cw] !== i;
+      const q = p * 4; if (rim) { d[q] = 255; d[q + 1] = 170; d[q + 2] = 0; d[q + 3] = 255; } else { d[q] = 255; d[q + 1] = 255; d[q + 2] = 255; d[q + 3] = 85; }
+    }
+    x2.putImageData(img, 0, 0);
+    if (glowCache.size > 4) glowCache.delete(glowCache.keys().next().value);
+    glowCache.set(i, cv); return cv;
+  }
+
+  function flyTo(i) {                                                                   // камера: приблизить к городу
+    const s = 1.75, [x, y] = MP[i];
+    view.ts = s; view.tcx = Math.max(MAP_W / (2 * s), Math.min(MAP_W - MAP_W / (2 * s), x)); view.tcy = Math.max(MAP_H / (2 * s), Math.min(MAP_H - MAP_H / (2 * s), y));
+  }
+  function overview() { view.ts = 1; view.tcx = MAP_W / 2; view.tcy = MAP_H / 2; }
+  function selectCity(i, fly) {
+    mapSel = i; haptic('select'); renderMapCard(); ripples.push({ x: MP[i][0], y: MP[i][1], t: performance.now() });
+    if (fly) flyTo(i);
+  }
+
+  function frame(now) {
+    if (!mapOpen) return;
+    mapRaf = requestAnimationFrame(frame);
+    if (baseKey !== prog.city + ':' + prog.done || !baseCv) renderMapBase();
+    const dt = Math.min(.05, (now - lastFrame) / 1000 || .016); lastFrame = now;
+    const t = (now - mapT0) / 1000, kf = 1 - Math.pow(.0009, dt);                       // плавная камера
+    view.s += (view.ts - view.s) * kf; view.cx += (view.tcx - view.cx) * kf; view.cy += (view.tcy - view.cy) * kf;
+    const intro = easeInOut(clamp01((t - .15) / 1.7)), c = mctx;
+    const fr = prog.done ? CITY_COUNT : prog.city;
+    const uEnd = prog.done ? CITY_COUNT - 1 : Math.min(prog.city + .32, CITY_COUNT - 1);
+    const u0 = mapFromU != null ? mapFromU : 0, u = u0 + (uEnd - u0) * intro;           // положение машины на маршруте
+    c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, mapCv.width, mapCv.height);
+    c.setTransform(MS * view.s, 0, 0, MS * view.s, MAP_W * MS / 2 - view.cx * MS * view.s, MAP_H * MS / 2 - view.cy * MS * view.s);
+    c.imageSmoothingQuality = 'high'; c.drawImage(baseCv, 0, 0, MAP_W, MAP_H);
+    // блик, пробегающий по стране
+    c.save(); outlinePath(c); c.clip();
+    const sx = ((t * 55) % 520) - 120, sg = c.createLinearGradient(sx, 0, sx + 70, 70); sg.addColorStop(0, 'rgba(255,255,255,0)'); sg.addColorStop(.5, 'rgba(255,255,255,.28)'); sg.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = sg; c.fillRect(0, 0, MAP_W, MAP_H);
+    c.restore();
+    // реки текут, на Арале рябь
+    c.lineCap = 'round'; c.strokeStyle = 'rgba(255,255,255,.75)'; c.lineWidth = 1.1; c.setLineDash([2, 7]); c.lineDashOffset = -t * 9;
+    RIVERS.forEach(rv => { riverPath(c, rv); c.stroke(); });
+    c.setLineDash([]);
+    { const [ax, ay] = mp([59.6, 44.8]); for (let k = 0; k < 2; k++) { const ph = (t * .5 + k * .5) % 1; c.strokeStyle = 'rgba(255,255,255,' + (.7 * (1 - ph)) + ')'; c.lineWidth = .8; c.beginPath(); c.ellipse(ax, ay, 3 + ph * 11, 1.5 + ph * 5, 0, 0, 7); c.stroke(); } }
+    // выбранная область
+    if (regions && mapSel >= 0) { c.globalAlpha = .7 + .3 * Math.sin(t * 3.2); c.drawImage(regionGlow(mapSel), 0, 0, MAP_W, MAP_H); c.globalAlpha = 1; }
+    // маршрут: пройденное красным (рисуется вслед за машиной), остальное — бегущий пунктир
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    for (let i = 0; i < CITY_COUNT - 1; i++) {
+      const pts = SEG[i];
+      if (u > i) {
+        const upto = Math.min(26, Math.round((u - i) * 26) + 1); c.beginPath(); pts.slice(0, upto + 1).forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]));
+        c.setLineDash([]); c.strokeStyle = '#fff'; c.lineWidth = 4.2; c.stroke(); c.strokeStyle = '#e41e2b'; c.lineWidth = 2.4; c.stroke();
+      }
+      if (u < i + 1) {
+        const from = Math.max(0, Math.round((u - i) * 26)); c.beginPath(); pts.slice(from).forEach((p, k) => k ? c.lineTo(p[0], p[1]) : c.moveTo(p[0], p[1]));
+        c.setLineDash([3, 4]); c.lineDashOffset = -t * 6; c.strokeStyle = 'rgba(90,70,40,.7)'; c.lineWidth = 1.6; c.stroke(); c.setLineDash([]);
+      }
+    }
+    // маркеры городов
+    CITIES.forEach((ci, i) => {
+      const [x, y] = MP[i], open = i <= fr || prog.done, cur = i === prog.city && !prog.done;
+      const pop = easeBack(clamp01(intro * (CITY_COUNT + 3) / 1.4 - i * .55)); if (pop <= 0) return;
+      if (cur) { const rr = 9 + 3.5 * Math.sin(t * 3.4); c.fillStyle = 'rgba(228,30,43,.2)'; c.beginPath(); c.arc(x, y, rr, 0, 7); c.fill(); c.strokeStyle = 'rgba(228,30,43,.5)'; c.lineWidth = 1; c.beginPath(); c.arc(x, y, rr + 4 + 2 * Math.sin(t * 3.4), 0, 7); c.stroke(); }
+      c.save(); c.translate(x, y); c.scale(pop, pop);
+      c.fillStyle = open ? '#e41e2b' : '#9b9484'; c.strokeStyle = '#fff'; c.lineWidth = 1.8; c.beginPath(); c.arc(0, 0, 6.2, 0, 7); c.fill(); c.stroke();
+      c.fillStyle = '#fff'; c.font = '500 7px TU,system-ui,sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(i + 1, 0, .3);
+      c.restore();
+      const showLbl = !ci.cl || i === mapSel || cur;
+      if (showLbl && pop > .6) {
+        const [dx, dy, al] = ci.lab; c.font = '500 8px TU,system-ui,sans-serif'; c.textAlign = al; c.lineWidth = 3; c.lineJoin = 'round'; c.textBaseline = 'middle';
+        c.strokeStyle = 'rgba(255,255,255,.92)'; c.strokeText(ci.n, x + dx, y + dy); c.fillStyle = open ? '#4a1014' : '#6b6558'; c.fillText(ci.n, x + dx, y + dy);
+      }
+    });
+    // выносной значок выбранного города
+    { const [x, y] = MP[mapSel], ci = CITIES[mapSel], by = y - 19 + 2.5 * Math.sin(t * 4), pp = easeBack(clamp01((now - (ripples.length ? ripples[ripples.length - 1].t : 0)) / 380));
+      c.save(); c.translate(x, by); c.scale(Math.max(.01, pp), Math.max(.01, pp));
+      c.strokeStyle = 'rgba(0,0,0,.25)'; c.lineWidth = 1; c.beginPath(); c.moveTo(0, 9); c.lineTo(0, 13); c.stroke();
+      c.fillStyle = ci.col; c.strokeStyle = '#fff'; c.lineWidth = 1.8; c.beginPath(); c.arc(0, 0, 9, 0, 7); c.fill(); c.stroke();
+      drawIcon(c, ci.ico, 0, 0, 11.5, '#fff'); c.restore(); }
+    // машина едет по дороге
+    { const [x, y, a] = routePoint(u + (intro >= 1 ? .02 * Math.sin(t * 1.6) : 0)), img = IMG['jetour_' + SKINS[skin].id];
+      if (img) { c.save(); c.translate(x, y); c.rotate(a + Math.PI / 2); c.shadowColor = 'rgba(0,0,0,.45)'; c.shadowBlur = 3; c.drawImage(img, -4.8, -9.8, 9.6, 9.6 * img.height / img.width); c.restore(); } }
+    // круги от нажатия
+    for (let k = ripples.length - 1; k >= 0; k--) { const r = ripples[k], p = (now - r.t) / 700; if (p < 0) continue; if (p > 1) { if (k < ripples.length - 1 || p > 3) ripples.splice(k, 1); continue; } c.strokeStyle = 'rgba(255,176,0,' + (1 - p) + ')'; c.lineWidth = 1.6; c.beginPath(); c.arc(r.x, r.y, 4 + p * 16, 0, 7); c.stroke(); }
+    if (prog.done) drawIcon(c, 'flag', MP[CITY_COUNT - 1][0] + 1, MP[CITY_COUNT - 1][1] - 12, 11, '#e41e2b');
+  }
+
+  function renderChips() {                                                   // маршрутная шкала: точки городов, пройденное залито, выбранный крупнее
+    const box = $('rDots'); box.innerHTML = '';
+    const f = prog.city, k = (prog.done ? CITY_COUNT - 1 : f) / (CITY_COUNT - 1);
+    const fill = document.createElement('i'); fill.className = 'rfill'; fill.style.width = 'calc((100% - 24px) * ' + k + ')'; box.appendChild(fill);
+    CITIES.forEach((c, i) => {
+      const d = document.createElement('div');
+      d.className = 'rdot' + (i < f || prog.done ? ' done' : i === f ? ' cur' : ' lock') + (i === mapSel ? ' sel' : '');
+      if (i === mapSel) d.textContent = i + 1;
+      d.onclick = () => selectCity(i, true);
+      box.appendChild(d);
+    });
+    $('rPrev').disabled = mapSel <= 0; $('rNext').disabled = mapSel >= CITY_COUNT - 1;
+  }
+  $('rPrev').onclick = () => { if (mapSel > 0) selectCity(mapSel - 1, true); };
+  $('rNext').onclick = () => { if (mapSel < CITY_COUNT - 1) selectCity(mapSel + 1, true); };
+  function renderMapCard() {
+    renderChips();
+    const i = mapSel, ci = CITIES[i], f = prog.city, open = i <= maxCity(); ensureImg(i, 'banner'); const banner = CITY_IMG[i] && CITY_IMG[i].banner;
+    const card = $('mCard');
+    card.style.backgroundImage = banner ? 'linear-gradient(90deg,rgba(20,4,6,.88),rgba(20,4,6,.35)),url(' + banner.src + ')' : '';
+    $('mHead').innerHTML = badge(i, 44) + '<div><div class="mname">' + (i + 1) + '. ' + esc(ci.n) + '</div><div class="mreg">' + esc(ci.reg) + '</div></div>';
+    const have = prog.ach['city_' + i];
+    $('mAch').innerHTML = (have ? ico(ci.ico) : ico('lock')) + esc(ci.ach);
+    const goals = $('mGoal'); goals.innerHTML = '';
+    const bar = (icon, label, a, b) => { const w = document.createElement('div'); w.innerHTML = '<div class="glabel"><span>' + ico(icon) + label + '</span><span>' + Math.min(a, b) + ' / ' + b + '</span></div><div class="bar"><i style="width:' + Math.min(100, a / b * 100) + '%"></i></div>'; goals.appendChild(w); };
+    if (i === f && !prog.done) { bar('can', tr('map.caps'), prog.cans, GOAL_C[i]); bar('star', tr('map.pts'), prog.pts, GOAL_P[i]); goals.insertAdjacentHTML('beforeend', '<div class="gnote">' + tr('map.note') + '</div>'); }
+    else if (i < f || prog.done) goals.innerHTML = '<div class="gok">' + ico('check') + tr('map.passed') + '</div>';
+    else goals.innerHTML = '<div class="gok lockd">' + ico('lock') + tr('map.locked', { city: esc(CITIES[f].n) }) + '</div>';
+    const cp = shopOn() && !!eco && !prog.done && i === prog.city + 1 ? cityPrice(i) : 0;
+    show('mBuy', !!cp); show('mGo', !cp); if (cp) setBt($('mBuy'), tr('city.buy', { n: cp }), 'coin');   // следующий город можно открыть за танга вместо кнопки «Закрыто»
+    $('mGo').disabled = !open; setBt($('mGo'), !open ? tr('btn.locked') : (i === f && !prog.done ? tr('btn.rideTo', { to: ci.to }) : tr('btn.rideFree', { city: ci.n })), !open ? 'lock' : 'car');
+  }
+  $('mBuy').onclick = () => {
+    const i = mapSel, n = cityPrice(i), ci = CITIES[i];
+    ask({ ico: badge(i, 72).replace('class="badge"', 'class="badge big"'), title: tr('city.buyT', { city: ci.n }), text: tr('city.buyS'), btn: tr('city.buyGo', { n }), cost: n,
+      go: async () => {
+        const r = await shop('city/unlock', { city: i });
+        if (r.progress) { prog = r.progress; delete prog.eco; saveProg(); }
+        setEco(r.eco); selCity = i; try { localStorage.setItem('jcr_sel', i); } catch (e) {} themeCity = i; refreshProgUI();
+        closeMap(); showArrival(i, false);
+      } });
+  };
+  function openMap(from) {
+    mapSel = prog.done ? Math.min(selCity, CITY_COUNT - 1) : prog.city; mapFromU = typeof from === 'number' ? from + .32 : null;
+    renderMapCard(); show('map'); overview(); view.s = 1; view.cx = MAP_W / 2; view.cy = MAP_H / 2;
+    mapOpen = true; mapT0 = performance.now(); lastFrame = mapT0; cancelAnimationFrame(mapRaf); mapRaf = requestAnimationFrame(frame);
+    ripples.push({ x: MP[mapSel][0], y: MP[mapSel][1], t: mapT0 + 1800 });
+  }
+  function closeMap() { show('map', false); mapOpen = false; cancelAnimationFrame(mapRaf); }
+
+  // касания: тап по области или городу, перетаскивание, зум
+  let mdown = null;
+  const toMap = e => { const r = mapCv.getBoundingClientRect(); return [(e.clientX - r.left) / r.width * MAP_W, (e.clientY - r.top) / r.height * MAP_H]; };
+  const toWorld = (px, py) => [(px - MAP_W / 2) / view.s + view.cx, (py - MAP_H / 2) / view.s + view.cy];
+  mapCv.addEventListener('pointerdown', e => { mapCv.setPointerCapture(e.pointerId); mdown = { x: e.clientX, y: e.clientY, cx: view.tcx, cy: view.tcy, moved: false }; e.stopPropagation(); });
+  mapCv.addEventListener('pointermove', e => {
+    if (!mdown) return; const dx = e.clientX - mdown.x, dy = e.clientY - mdown.y;
+    if (!mdown.moved && Math.hypot(dx, dy) < 7) return; mdown.moved = true;
+    if (view.ts > 1.05) {                                                                // перетаскивание, пока карта приближена
+      const r = mapCv.getBoundingClientRect(), k = MAP_W / r.width / view.ts, s = view.ts;
+      view.tcx = Math.max(MAP_W / (2 * s), Math.min(MAP_W - MAP_W / (2 * s), mdown.cx - dx * k)); view.tcy = Math.max(MAP_H / (2 * s), Math.min(MAP_H - MAP_H / (2 * s), mdown.cy - dy * k));
+      view.cx = view.tcx; view.cy = view.tcy;
+    }
+    e.stopPropagation();
+  });
+  mapCv.addEventListener('pointerup', e => {
+    if (!mdown) return; const moved = mdown.moved; mdown = null; e.stopPropagation(); if (moved) return;
+    const [px, py] = toMap(e), [wx, wy] = toWorld(px, py);
+    let best = -1, bd = Math.pow(15 / view.s, 2);                                        // сначала ближайший город
+    MP.forEach(([x, y], i) => { const d = (x - wx) * (x - wx) + (y - wy) * (y - wy); if (d < bd) { bd = d; best = i; } });
+    if (best < 0 && regions) { const xi = Math.floor(wx * MS), yi = Math.floor(wy * MS); if (xi >= 0 && yi >= 0 && xi < regions.cw && yi < regions.ch) best = regions.idx[yi * regions.cw + xi]; }   // затем область под пальцем
+    if (best >= 0) selectCity(best, true); else { ripples.push({ x: wx, y: wy, t: performance.now() }); overview(); }
+  });
+  $('mView').onclick = () => { haptic('light'); overview(); };
+  $('mapBtn').onclick = () => openMap(); $('mapBtn2').onclick = () => openMap(); $('mClose').onclick = closeMap;
+  $('mGo').onclick = () => { if (mapSel > maxCity()) return; selCity = mapSel; try { localStorage.setItem('jcr_sel', selCity); } catch (e) {} themeCity = selCity; refreshProgUI(); closeMap(); start(); };
+
+  // ---------- достижения ----------
+  function openAch() {
+    const list = $('achList'); list.innerHTML = '';
+    const got = ACH.filter(a => prog.ach[a.id]).length; $('achCount').textContent = tr('ach.count', { n: got, total: ACH.length });
+    ACH.forEach(a => {
+      const on = !!prog.ach[a.id], d = document.createElement('div'); d.className = 'ac' + (on ? ' on' : '');
+      d.innerHTML = '<span class="ai">' + ico(on ? a.ico : 'lock') + '</span><b>' + (on ? esc(a.t) : '???') + '</b><small>' + esc(a.d) + '</small>';
+      list.appendChild(d);
+    });
+    show('ach');
+  }
+  $('achBtn').onclick = openAch; $('achClose').onclick = () => show('ach', false);
+
+  // ---------- прибытие в новый город ----------
+  function showArrival(idx, finished) {
+    const ci = CITIES[idx]; ensureImg(idx, 'banner'); ensureImg(idx, 'ground'); const banner = CITY_IMG[idx] && CITY_IMG[idx].banner;
+    $('arrive').style.backgroundImage = banner ? 'linear-gradient(180deg,rgba(90,6,16,.55),rgba(60,4,10,.94)),url(' + banner.src + ')' : '';
+    $('arIco').innerHTML = finished ? '<span class="badge big" style="--c:#ffb000;--s:112px">' + ico('trophy') + '</span>' : badge(idx, 112).replace('class="badge"', 'class="badge big"');
+    $('arTitle').textContent = finished ? tr('arrive.finalT') : tr('arrive.t', { to: ci.to });
+    $('arSub').textContent = finished ? tr('arrive.finalS') : tr('arrive.s', { region: ci.reg, n: idx + 1, total: CITY_COUNT });
+    $('arAch').innerHTML = ico(finished ? 'trophy' : ci.ico) + tr('arrive.ach', { name: esc(finished ? tr('ach.journey.t') : ci.ach) });
+    setBt($('arGo'), finished ? tr('btn.continue') : tr('btn.rideTo', { to: ci.to }), 'car');
+    $('arGo').onclick = () => { show('arrive', false); selCity = finished ? CITY_COUNT - 1 : idx; try { localStorage.setItem('jcr_sel', selCity); } catch (e) {} themeCity = selCity; refreshProgUI(); start(); };
+    $('arMap').onclick = () => { show('arrive', false); openMap(finished ? undefined : idx - 1); };
+    $('arClose').onclick = () => show('arrive', false);
+    show('arrive'); lockScreen('arrive', 1000); haptic('success'); setTimeout(() => haptic('heavy'), 150); beep(660, .12, 'triangle'); setTimeout(() => beep(880, .2, 'triangle'), 120);
+  }
+  function onJourney(r, sc, cans, ui) {                                                      // результат заезда -> прогресс
+    const wasDone = r.wasDone !== undefined ? r.wasDone : prog.done;
+    prog = r.progress; saveProg();
+    const played = r.city, fb = r.unlocked != null ? r.unlocked - 1 : prog.city;
+    let line;
+    if (r.newAch.includes('journey')) line = ico('trophy') + tr('over.journeyDone');
+    else if (wasDone) line = ico('trophy') + tr('over.wasDone');
+    else if (played === fb) line = r.unlocked != null ? ico('check') + tr('over.cityDone', { city: esc(CITIES[played].n) }) : ico('pin') + esc(CITIES[played].n) + sep + ico('can') + prog.cans + '/' + GOAL_C[played] + ' <b>+' + cans + '</b>' + sep + ico('star') + prog.pts + '/' + GOAL_P[played] + ' <b>+' + sc + '</b>';
+    else line = tr('over.free', { city: esc(CITIES[fb].n) });
+    const meta = r.newAch.filter(id => !/^city_/.test(id) || (id === 'city_0' && r.unlocked == null)).map(id => ACH.find(a => a.id === id)).filter(Boolean);
+    if (ui !== false) {
+      $('progInfo').innerHTML = line;
+      if (meta.length) { $('newAch').innerHTML = meta.map(a => '<span>' + ico(a.ico) + esc(a.t) + '</span>').join(''); show('newAch'); }
+    }
+    if (r.unlocked != null) { ensureImg(r.unlocked, 'banner'); ensureImg(r.unlocked, 'ground'); }                  // заранее грузим картинки нового города
+    if (r.unlocked != null && selCity === played) selCity = r.unlocked;
+    refreshProgUI();
+    if (r.unlocked != null) { pendingArrival = { idx: r.unlocked, fin: false, stale: ui === false }; renderUnlockCard(); }
+    else if (r.newAch.includes('journey')) { pendingArrival = { idx: CITY_COUNT - 1, fin: true, stale: ui === false }; renderUnlockCard(); }
+  }
+  refreshProgUI();
+
+  // ---------- управление ----------
+  function setLane(n) {
+    if (state !== 'play' || g.chg.on) return;
+    n = Math.max(0, Math.min(LANES - 1, n));
+    if (n !== g.lane) { g.lane = n; beep(260, .05, 'triangle', .02); haptic('select'); }
+  }
+  const move = d => setLane(g.lane + d);
+  addEventListener('keydown', e => {
+    if (state === 'play' && g.chg.on) { tapCharge(); return; }
+    if (e.key === 'ArrowLeft' || e.key === 'a') move(-1);
+    if (e.key === 'ArrowRight' || e.key === 'd') move(1);
+    if ((e.key === ' ' || e.key === 'Enter') && state !== 'play' && state !== 'revive') start();
+  });
+  let sx = null, sy = null, swiped = false;
+  wrap.addEventListener('pointerdown', e => { if (e.target.tagName === 'BUTTON') return; sx = e.clientX; sy = e.clientY; swiped = false; if (state === 'play' && g.chg.on) { tapCharge(); swiped = true; } });
+  wrap.addEventListener('pointermove', e => {
+    if (sx === null) return;
+    if (swiped) return;                                       // один свайп = одна полоса, чтобы не пролетать среднюю
+    const dx = e.clientX - sx;
+    if (Math.abs(dx) > 22) { move(dx > 0 ? 1 : -1); swiped = true; }
+  });
+  addEventListener('pointerup', e => {
+    if (sx !== null && !swiped && state === 'play') {
+      const r = wrap.getBoundingClientRect();                 // тап = ехать на ту полосу, по которой нажали
+      const x = (e.clientX - r.left) / r.width * W;
+      setLane(x < (laneX(0) + laneX(1)) / 2 ? 0 : x < (laneX(1) + laneX(2)) / 2 ? 1 : 2);
+    }
+    sx = null;
+  });
+
+  let starting = false, runToken = 0, pendingArrival = null, arrTimer = 0, overTimer = 0;
+  function lockScreen(id, ms) { const el = $(id); el.classList.add('lock'); setTimeout(() => el.classList.remove('lock'), ms || 900); }   // игрок ещё тапает — кнопки не ловят случайные нажатия
+  async function start() {
+    if (starting || state === 'count') return; starting = true;
+    if (duel) closeDuel(true);                                                               // обычный заезд закрывает дуэль (лобби или итог)
+    if (pendingDuel) { pendingDuel = null; refreshDuelBtn(); show('chBanner', false); }
+    $('playBtn').disabled = $('againBtn').disabled = true;
+    try {
+      let run = null;
+      if (online) {
+        try { run = await api('run/start', Object.assign({ challenge: pendingChallenge, city: selCity }, picked.length ? { boosts: picked } : {})); }
+        catch (e) {
+          if (e.data && e.data.error === 'nofuel') { setEco(e.data.eco); openFuel(); return; }           // бак пуст: предлагаем заправиться
+          if (e.data && e.data.error === 'tanga') { setEco(e.data.eco); picked = []; renderBoosts(); toast(tr('fuel.noTanga')); return; }
+          toast(tr(e.data && e.data.error === 'busy' ? 'err.busy' : 'err.retry')); return;
+        }
+        setEco(run.eco);
+      } else if (DEMO) {                                                                     // демо: тратим топливо и танга за турбо на устройстве
+        demoSync();
+        if (eco.fuel <= 0) { demoSave(); openFuel(); return; }
+        if (eco.tanga < boostSum()) { picked = []; renderBoosts(); toast(tr('fuel.noTanga')); return; }
+        if (eco.fuel >= eco.cap) eco.fuelT = Date.now();
+        eco.fuel--; eco.tanga -= boostSum(); demoSave();
+      }
+      const bs = run && Array.isArray(run.boosts) ? run.boosts : picked.slice(); picked = []; renderBoosts();   // сервер присылает, какие бусты оплачены
+      pendingChallenge = null; show('chBanner', false);
+      if (run && typeof run.city === 'number') selCity = Math.min(run.city, CITY_COUNT - 1);
+      clearTimeout(overTimer); show('unlockCard', false);                                      // отложенные экраны прошлого заезда отменяем
+      if (pendingArrival && !pendingArrival.stale) pendingArrival = null;                    // игрок уже поехал дальше; поздний ответ сервера покажем на следующем финише
+      reset(run ? run.seed : 0); g.runId = run ? run.runId : null; g.city = selCity; g.token = ++runToken; themeCity = selCity; ensureImg(selCity, 'ground');
+      if (bs.includes('turbo')) { g.turbo = g.turboMax = BOOST_TIME; g.inv = BOOST_TIME; g.flash = 1; g.zoomOut = 1; sfx.turbo(); }   // старт с турбо
+      if (bs.includes('shield')) g.lives = MAX_LIVES + 1;                                      // +1 жизнь
+      g.magnet = bs.includes('magnet'); g.x2 = bs.includes('x2');                               // магнит для крышек, крышки ×2
+      state = 'play'; haptic('medium');
+      ['start', 'over', 'lb', 'map', 'ach', 'arrive', 'rules'].forEach(id => show(id, false));
+      beep(440, .15, 'triangle');
+    } finally { starting = false; $('playBtn').disabled = $('againBtn').disabled = false; }
+  }
+  function renderUnlockCard() {                                                             // «Открыт город …» — карточка под результатом, экран прибытия открывается по нажатию
+    const a = pendingArrival, card = $('unlockCard');
+    if (!a || state !== 'over' || $('over').classList.contains('hidden')) return;
+    const key = a.idx + ':' + a.fin; if (card.dataset.k === key && !card.classList.contains('hidden')) return;
+    const ci = CITIES[a.idx];
+    card.innerHTML = (a.fin ? '<span class="badge" style="--c:#c9291f;--s:44px">' + ico('trophy') + '</span>' : badge(a.idx, 44)) +
+      '<div><b>' + (a.fin ? tr('unlock.finT') : tr('unlock.t', { city: esc(ci.n) })) + '</b><small>' + (a.fin ? tr('unlock.finS') : tr('unlock.s')) + '</small></div>' + ico('arrow');
+    card.dataset.k = key;
+    card.onclick = () => { const x = pendingArrival; if (!x) return; pendingArrival = null; card.classList.add('hidden'); showArrival(x.idx, x.fin); };
+    show('unlockCard'); haptic('success');
+  }
+  wrap.addEventListener('click', e => { if (e.target.closest && e.target.closest('button')) haptic('light'); });   // все кнопки
+  // ---------- экран правил: перед первым заездом, потом по кнопке «Как играть» ----------
+  let rulesSeen = false; try { rulesSeen = localStorage.getItem('jcr_rules') === '1'; } catch (e) {}
+  document.querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = ico(el.dataset.ic); });
+  function openRules(thenStart) { $('rulesGo').dataset.go = thenStart ? '1' : ''; show('rules'); }
+  $('rulesGo').onclick = () => { rulesSeen = true; try { localStorage.setItem('jcr_rules', '1'); } catch (e) {} show('rules', false); if ($('rulesGo').dataset.go) start(); };
+  $('rulesBtn').onclick = () => openRules(false);
+  $('playBtn').onclick = () => rulesSeen ? start() : openRules(true);
+  // переключатель RU/UZ: показываем только вне Telegram (в боте язык приходит из ссылки)
+  if (!online) { $('langSw').classList.add('on'); document.querySelectorAll('#langSw button').forEach(b => { b.classList.toggle('on', b.dataset.l === LANG); b.onclick = () => { if (b.dataset.l === LANG) return; try { localStorage.setItem('jcr_lang', b.dataset.l); } catch (e) {} location.hash = b.dataset.l; location.reload(); }; }); }
+  $('againBtn').onclick = start;
+  $('menuBtn').onclick = () => {                                                         // финиш → главное меню
+    if (state !== 'over') return;
+    clearTimeout(overTimer); if (duel) closeDuel(true);
+    state = 'menu'; show('over', false); refreshProgUI(); renderSkins(); show('start');
+  };
+  $('bestStart').textContent = best ? tr('over.best', { n: best }) : '';
+  renderSkins();
+
+  function gameOver() {
+    if (state !== 'play') return;                                                            // не дважды
+    state = 'over'; const tk = g.token;
+    const alive = () => state === 'over' && g && g.token === tk;                              // этот финиш всё ещё на экране
+    const sc = Math.floor(g.score);
+    const isBest = sc > best;
+    if (isBest) { best = sc; try { localStorage.setItem('jcr_best', best); } catch (e) {} }
+    $('finalScore').textContent = sc;
+    $('finalInfo').innerHTML = (isBest ? ico('trophy') + tr('over.newBest') + ' ' : tr('over.best', { n: best }) + '. ') + tr('over.caps', { n: g.colas });
+    $('bestStart').textContent = tr('over.best', { n: best });
+    renderSkins();
+    show('xLine', false);
+    show('chRes', false); $('chRes').textContent = ''; $('rankInfo').textContent = ''; $('progInfo').textContent = ''; show('newAch', false); show('unlockCard', false); $('unlockCard').dataset.k = ''; show('chBtn', false); show('lbBtn2', online);
+    const colasNow = g.colas, turbosNow = g.turbos, cityNow = g.city, plovNow = g.plov || 0, revivedNow = g.revives || 0;
+    if (shopOn() && sc > 0) { $('xLine').innerHTML = ico('star') + tr('over.pts', { n: fmt(sc) }); show('xLine'); }
+    if (online && g.runId) {
+      const run = g.runId;
+      const send = (left) => api('run/finish', Object.assign({ runId: run, score: sc, colas: colasNow, turbos: turbosNow }, plovNow && eco && eco.plov ? { plov: plovNow } : {}, revivedNow ? { revives: revivedNow } : {})).then(r => {
+        const ui = alive();                                                                  // если игрок уже начал новый заезд — экран финиша не трогаем
+        if (ui) {
+          $('rankInfo').textContent = tr('over.rank', { rank: r.rank }) + (r.best > sc ? tr('over.rankBest', { n: r.best }) : '');
+          show('chBtn');
+          if (r.challenge) {
+            const c = r.challenge;
+            $('chRes').innerHTML = r.score === c.fromScore ? tr('res.draw', { name: esc(c.fromName), a: r.score, b: c.fromScore }) : c.won ? ico('trophy') + tr('res.win', { name: esc(c.fromName), a: r.score, b: c.fromScore }) : tr('res.lose', { name: esc(c.fromName), a: c.fromScore, b: r.score });
+            show('chRes'); if (c.won) haptic('success');
+          }
+        }
+        if (r.eco) setEco(r.eco);
+        if (r.progress) onJourney(r, sc, colasNow, ui);
+        if (ui) duelFin(sc);                                                                // дуэль: сервер уже проверил очки в run/finish, теперь сообщаем сопернику
+      }).catch(e => {
+        if (left > 0 && !/^\d+$/.test(e.message)) return new Promise(r => setTimeout(r, 1500)).then(() => send(left - 1));   // сеть: пробуем ещё раз
+        if (alive()) { $('rankInfo').textContent = tr('over.notSent'); duelFin(sc); }
+      });
+      send(2);
+    } else if (!online) {                                                                   // вне Telegram прогресс хранится на устройстве
+      if (DEMO && eco) { demoSync(); eco.pts = (eco.pts || 0) + sc; eco.fuel = Math.min(eco.cap, eco.fuel + plovNow); demoSave(); }   // демо: очки на счёт, плов в бак
+      const wasDone = prog.done, j = applyRun(prog, { city: cityNow, cans: colasNow, score: sc, turbos: turbosNow, won: false });
+      onJourney({ progress: prog, unlocked: j.unlocked, newAch: j.newAch, city: cityNow, wasDone }, sc, colasNow, true);
+    }
+    setTimeout(() => haptic(isBest ? 'success' : 'warning'), 450);
+    clearTimeout(overTimer);
+    overTimer = setTimeout(() => { if (alive()) { show('over'); lockScreen('over', 900); renderUnlockCard(); renderDuelOver(); } }, 500);   // кнопки неактивны ~1 с: игрок ещё тапает
+  }
+
+  // ---------- спавн ----------
+  const CAR_COLORS = ['#2f6df6', '#f2c230', '#2fa86b', '#8a8f98', '#9b4dd6'];
+  function spawn() {
+    const R = g.rng;
+    const free = Math.floor(R() * LANES);   // всегда свободная полоса
+    const y = -80;
+    for (let l = 0; l < LANES; l++) {
+      if (l === free) continue;
+      if (R() < .55) {
+        const r = R();
+        const type = r < .45 ? 'cone' : r < .8 ? 'car' : 'hole';
+        g.ents.push({ type, lane: l, x: laneX(l), y,
+          w: type === 'car' ? 44 : 30, h: type === 'car' ? 96 : 30,
+          color: CAR_COLORS[(R() * CAR_COLORS.length) | 0], vy: type === 'car' ? 90 : 0,
+          sk: TRAFFIC[(R() * TRAFFIC.length) | 0] });
+      }
+    }
+    // линия банок в свободной (или соседней) полосе
+    const n = R() < .4 ? 0 : 3 + (R() < .3 ? 1 : 0);   // не в каждом ряду
+    for (let i = 0; i < n; i++)
+      g.ents.push({ type: 'cola', big: i === 2 && R() < .5, lane: free, x: laneX(free), y: y - 40 - i * 60, w: 26, h: 42, ph: Math.random() * 6 });
+    g.nextSpawn = 330 + R() * 120 - Math.min(120, g.dist / 100);
+    if (plovOn() && g.dist >= g.nextPlov) {                                                  // плов: +1 топливо, в свободной полосе
+      g.ents.push({ type: 'plov', lane: free, x: laneX(free), y: y - 300, w: 34, h: 34 });
+      g.nextPlov = g.dist + 2600 + g.prng() * 2600;
+    }
+  }
+
+  // ---------- обновление ----------
+  function burst(x, y, color, n = 10) {
+    for (let i = 0; i < n; i++)
+      g.parts.push({ x, y, vx: (Math.random() - .5) * 300, vy: (Math.random() - .8) * 260, life: .6 + Math.random() * .3, c: color, r: 2 + Math.random() * 3 });
+  }
+
+  // Набрал шкалу банок -> время замедляется, надо быстро тапать, заряд растёт -> турбо
+  function startCharge() {
+    g.boost = 0; g.chg = { on: true, v: 0, t: CHG_TIME, pulse: 0 };
+    g.inv = Math.max(g.inv, CHG_TIME + .5);
+    sfx.charge(); haptic('heavy');
+  }
+  function tapCharge() {
+    const c = g.chg; if (!c.on) return;
+    c.v = Math.min(1, c.v + 1 / CHG_TAPS); c.pulse = 1; g.shake = Math.max(g.shake, .07);
+    beep(380 + c.v * 700, .06, 'square', .04);
+    haptic(c.v > .7 ? 'heavy' : 'rigid');
+    burst(g.px, PLAYER_Y, c.v > .6 ? '#ffb347' : '#fff', 6);
+    if (c.v >= 1) igniteTurbo(1);
+  }
+  function igniteTurbo(k) {                                   // k = 1 полный заряд; меньше — короткое турбо
+    g.chg.on = false;
+    const dur = BOOST_TIME * Math.max(.3, k);
+    g.turbo = dur; g.turboMax = dur; g.inv = dur; g.turbos++;
+    g.flash = 1; g.zoomOut = 1; g.shake = .3;
+    sfx.turbo(); haptic('success'); setTimeout(() => haptic('heavy'), 120);
+  }
+
+  function update(dt) {
+    const rdt = dt;                                           // реальное время (для зарядки), игровое замедляется
+    g.rt += rdt;
+    g.flash = Math.max(0, g.flash - rdt * 3); g.zoomOut = Math.max(0, g.zoomOut - rdt * 2.2);
+    if (g.chg.on) {
+      const c = g.chg; c.t -= rdt; c.v = Math.max(0, c.v - CHG_DECAY * rdt); c.pulse = Math.max(0, c.pulse - rdt * 6);
+      g.inv = Math.max(g.inv, .5);
+      if (c.t <= 0) igniteTurbo(c.v);
+      dt *= .15;
+    }
+    g.t += dt;
+    const turbo = g.turbo > 0;
+    const target = Math.min(470, 240 + g.dist / 70);
+    g.speed += (target + (turbo ? 130 : 0) - g.speed) * Math.min(1, dt * 1.8);
+    if (!turbo) g.boost = Math.max(0, g.boost - dt * 0.25);   // шкала медленно сдувается
+    const v = g.speed * dt;
+    g.dist += v; g.score += v / 12;
+    g.roadOff += v;
+
+    const tx = laneX(g.lane);
+    const old = g.px; g.px += (tx - g.px) * Math.min(1, dt * 14);
+    g.tilt += (((g.px - old) / dt) / 600 - g.tilt) * Math.min(1, dt * 12);
+    if (g.inv > 0) g.inv -= dt;
+    if (g.shake > 0) g.shake -= dt;
+    if (g.turbo > 0) {
+      g.turbo -= dt; g.hapT = (g.hapT || 0) - dt;
+      if (g.hapT <= 0) { haptic('soft'); g.hapT = .28; }          // лёгкая вибрация пока работает турбо
+      if (g.turbo <= 0) { g.turbo = 0; haptic('warning'); }
+    }
+
+    g.nextSpawn -= v;
+    if (g.nextSpawn <= 0) spawn();
+
+    const pb = { x: g.px - CAR_W / 2 + 5, y: PLAYER_Y - CAR_H / 2 + 6, w: CAR_W - 10, h: CAR_H - 12 };
+    for (const e of g.ents) {
+      e.y += v - (e.vy || 0) * dt * (turbo ? 0 : 1) * 0 + 0; // позиция относительно дороги
+      if (e.vy) e.y -= e.vy * dt;                             // встречные едут медленнее игрока — но в ту же сторону
+      if (e.dead) continue;
+      if (g.magnet && e.type === 'cola' && e.y > PLAYER_Y - 240 && e.y < PLAYER_Y + 30) e.x += (g.px - e.x) * Math.min(1, dt * 7);   // магнит тянет крышки
+      const hit = Math.abs(e.x - g.px) < (e.w + CAR_W) / 2 - 8 && Math.abs(e.y - PLAYER_Y) < (e.h + CAR_H) / 2 - 14;
+      if (!hit) continue;
+      if (e.type === 'plov') {
+        e.dead = true; g.plov++; burst(e.x, e.y, '#ffcf5a', 14); sfx.cola(); haptic('success'); toast(tr('game.plov')); continue;
+      }
+      if (e.type === 'cola') {
+        e.dead = true; g.colas += g.x2 ? 2 : 1; g.score += e.big ? 120 : 50; burst(e.x, e.y, '#fff', 8); sfx.cola(); haptic(e.big ? 'medium' : 'light');
+        if (!turbo && !g.chg.on) { g.boost += e.big ? 3 : 1; if (g.boost >= BOOST_NEED) startCharge(); }
+      } else if (e.type === 'hole' && !turbo) {
+        if (g.inv <= 0) damage(e);
+      } else if (turbo) {
+        if (e.type !== 'hole') { e.dead = true; g.score += 30; burst(e.x, e.y, e.type === 'cone' ? '#ffffff' : e.color, 16); sfx.smash(); haptic('rigid'); g.shake = .15; }
+      } else if (g.inv <= 0) { e.dead = true; burst(e.x, e.y, '#ff7a1a', 14); damage(e); }
+    }
+    g.ents = g.ents.filter(e => !e.dead && e.y < H + 120);
+
+    for (const p of g.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.life -= dt; }
+    g.parts = g.parts.filter(p => p.life > 0);
+
+    // выхлоп / огонь турбо
+    if (turbo || Math.random() < .3) g.parts.push({ x: g.px + (Math.random() - .5) * 20, y: PLAYER_Y + CAR_H / 2 - 4, vx: (Math.random() - .5) * 40, vy: 120 + Math.random() * 120, life: .25, c: turbo ? '#ffb347' : '#aab', r: turbo ? 4 : 2 });
+    // дуэль: своя позиция сопернику 10 раз в секунду
+    if (duel && duel.remote && !duel.done && state === 'play') {
+      const nowMs = performance.now();
+      if (nowMs - duel.lastSend >= 100) { duel.lastSend = nowMs; duelSend({ t: 'p', p: [Math.round(g.rt * 100) / 100, Math.round(g.dist), g.lane, Math.floor(g.score), (g.turbo > 0 ? 1 : 0) | (g.chg.on ? 2 : 0) | (g.inv > 0 && g.turbo <= 0 ? 4 : 0)] }); }
+    }
+  }
+
+  // Плов даёт +1 топливо. Топливо считает сервер: в Telegram плов появляется, только если сервер прислал eco.plov = true,
+  // и засчитывается полем plov в run/finish. Вне Telegram (превью) плов виден всегда.
+  function plovOn() { return !online || !!(eco && eco.plov); }
+  function damage() {
+    g.lives--; g.inv = 1.4; g.shake = .35; g.boost = 0; sfx.hit();
+    haptic(g.lives <= 0 ? 'heavy' : 'error');
+    if (g.lives <= 0) { if (canRevive()) offerRevive(); else gameOver(); }
+  }
+  // Второй шанс за танга: до 3 раз за заезд, каждый следующий вдвое дороже (2 → 4 → 8), не в дуэли. Сервер списывает танга в run/revive.
+  const REVIVE_MS = 7000; let rvT = 0;
+  function canRevive() { const n = g.revives || 0; return shopOn() && !duel && n < MAX_REVIVES && state === 'play' && !!eco && eco.tanga >= reviveCost(n) && (DEMO || !!g.runId); }
+  function offerRevive() {
+    state = 'revive'; const tk = g.token, cost = reviveCost(g.revives || 0);
+    $('rvIco').innerHTML = '<span class="badge big" style="--c:#e41e2b;--s:64px">' + ico('refresh') + '</span>';
+    $('rvBal').innerHTML = ico('coin') + tr('shop.bal', { n: fmt(eco.tanga) });
+    setBt($('rvGo'), tr('revive.go', { n: cost }), 'refresh'); $('rvGo').disabled = false;
+    const bar = $('rvBar'); bar.classList.remove('run'); void bar.offsetWidth; bar.style.setProperty('--rvt', REVIVE_MS + 'ms'); bar.classList.add('run');
+    show('revive'); lockScreen('revive', 500);
+    clearTimeout(rvT); rvT = setTimeout(() => { if (state === 'revive' && g.token === tk) endRevive(); }, REVIVE_MS);
+  }
+  function endRevive() { clearTimeout(rvT); show('revive', false); if (state !== 'revive') return; state = 'play'; gameOver(); }
+  $('rvNo').onclick = endRevive;
+  $('rvGo').onclick = async () => {
+    if (state !== 'revive') return; clearTimeout(rvT); $('rvGo').disabled = true; $('rvBar').style.animationPlayState = 'paused';
+    try {
+      const r = await shop('run/revive', { runId: g.runId, n: (g.revives || 0) + 1 }); setEco(r.eco); g.revives = (g.revives || 0) + 1;
+      show('revive', false); $('rvBar').style.animationPlayState = '';
+      g.lives = 1; g.inv = 2.5; g.shake = 0; g.boost = 0;
+      g.ents = g.ents.filter(e => e.y < PLAYER_Y - 300 || e.y > PLAYER_Y + 140);          // убираем помехи рядом с машиной
+      state = 'play'; haptic('success'); sfx.turbo(); toast(tr('revive.done'));
+    } catch (e) {
+      if (e.data && e.data.eco) setEco(e.data.eco); haptic('error'); toast(tr(e.data && e.data.error === 'tanga' ? 'fuel.noTanga' : 'shop.fail')); endRevive();
+    }
+  };
+
+  // ---------- отрисовка ----------
+  function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect(x, y, w, h, r); }
+
+  function drawCar(x, y, w, h, body, opts = {}) {
+    ctx.save(); ctx.translate(x, y); if (opts.rot) ctx.rotate(opts.rot);
+    ctx.fillStyle = '#0006'; rr(-w / 2 + 3, -h / 2 + 5, w, h, 10); ctx.fill();               // тень
+    ctx.fillStyle = '#111'; [[-1, -.28], [1, -.28], [-1, .3], [1, .3]].forEach(([sx, sy]) => { rr(sx * (w / 2) - 4, sy * h - 8, 8, 16, 3); ctx.fill(); }); // колёса
+    ctx.fillStyle = body; rr(-w / 2, -h / 2, w, h, 11); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; rr(-w / 2 + 3, -h / 2 + 3, w / 2 - 3, h - 6, 8); ctx.fill();
+    const flip = opts.flip ? -1 : 1;
+    ctx.fillStyle = '#1b2430'; rr(-w / 2 + 5, -h * .22 * flip - (flip < 0 ? 12 : 0) - 0, w - 10, 16, 5); ctx.fill();   // лобовое
+    ctx.fillStyle = '#25303f'; rr(-w / 2 + 6, -h * .02, w - 12, h * .3, 6); ctx.fill();                // крыша/багажник
+    ctx.fillStyle = '#1b2430'; rr(-w / 2 + 6, h * .32, w - 12, 10, 4); ctx.fill();                     // заднее стекло
+    if (opts.hero) {
+      ctx.fillStyle = '#ff7a1a'; ctx.fillRect(-2, -h / 2 + 2, 4, h - 4);                               // оранжевая полоса
+      ctx.fillStyle = '#fff6c8'; rr(-w / 2 + 3, -h / 2 + 1, 9, 5, 2); ctx.fill(); rr(w / 2 - 12, -h / 2 + 1, 9, 5, 2); ctx.fill(); // фары
+      ctx.fillStyle = '#e41e2b'; rr(-w / 2 + 3, h / 2 - 5, 9, 4, 2); ctx.fill(); rr(w / 2 - 12, h / 2 - 5, 9, 4, 2); ctx.fill();
+    } else {
+      ctx.fillStyle = '#e41e2b'; ctx.fillRect(-w / 2 + 4, -h / 2 + 2, 8, 3); ctx.fillRect(w / 2 - 12, -h / 2 + 2, 8, 3);
+      ctx.fillStyle = '#fff6c8'; ctx.fillRect(-w / 2 + 4, h / 2 - 5, 8, 3); ctx.fillRect(w / 2 - 12, h / 2 - 5, 8, 3);
+    }
+    ctx.restore();
+  }
+
+  function drawCan(x, y, t, big) {
+    const im = big ? IMG.bottle : IMG.can;
+    if (im) {
+      ctx.save(); ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.ellipse(x + 4, y + 8, 14, 18, 0, 0, 7); ctx.fill(); ctx.restore();
+      const round = im.width / im.height > .6, hh = big ? 56 : round ? 28 : 46, w = hh * im.width / im.height;   // круглая крышка мельче банки
+      ctx.save(); ctx.translate(x, y + Math.sin(t * 5) * 2); ctx.rotate(Math.sin(t * 3) * .12);
+      ctx.drawImage(im, -w / 2, -hh / 2, w, hh); ctx.restore(); return;
+    }
+    ctx.save(); ctx.translate(x, y + Math.sin(t * 5) * 2); ctx.rotate(Math.sin(t * 3) * .12);
+    ctx.fillStyle = '#0004'; ctx.beginPath(); ctx.ellipse(3, 16, 11, 4, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#d6dae0'; rr(-10, -18, 20, 5, 2); ctx.fill(); rr(-10, 13, 20, 5, 2); ctx.fill();
+    const gr = ctx.createLinearGradient(-10, 0, 10, 0); gr.addColorStop(0, '#b3121d'); gr.addColorStop(.35, '#ff3a47'); gr.addColorStop(1, '#a30f19');
+    ctx.fillStyle = gr; rr(-10, -14, 20, 28, 3); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(-9, 5); ctx.bezierCurveTo(-4, -4, 2, 12, 9, 0); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawCone(x, y) {
+    if (IMG.cone) { sprite(IMG.cone, x, y, 34); return; }
+    ctx.fillStyle = '#0004'; ctx.beginPath(); ctx.ellipse(x + 3, y + 4, 14, 14, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.arc(x, y, 13, 0, 7); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 8, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ff7a1a'; ctx.beginPath(); ctx.arc(x, y, 4, 0, 7); ctx.fill();
+  }
+
+  function drawPlov(x, y, tt) {
+    const im = IMG.plov; if (!im) return;
+    ctx.save(); ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.ellipse(x + 3, y + 5, 19, 15, 0, 0, 7); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.translate(x, y + Math.sin(tt * 4) * 2); ctx.rotate(Math.sin(tt * 2) * .15);
+    const w = 40, h = w * im.height / im.width; ctx.drawImage(im, -w / 2, -h / 2, w, h); ctx.restore();
+  }
+  function drawHole(x, y) {
+    if (IMG.hole) { sprite(IMG.hole, x, y, 48); return; }
+    ctx.fillStyle = '#0a0a0c'; ctx.beginPath(); ctx.ellipse(x, y, 20, 14, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = '#3a3d44'; ctx.lineWidth = 3; ctx.stroke();
+  }
+
+  function drawTree(x, y, k) {
+    ctx.fillStyle = '#0003'; ctx.beginPath(); ctx.ellipse(x + 4, y + 5, 15, 12, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = k ? '#2d7a3a' : '#3b9648'; ctx.beginPath(); ctx.arc(x, y, k ? 13 : 17, 0, 7); ctx.fill();
+    ctx.fillStyle = '#ffffff22'; ctx.beginPath(); ctx.arc(x - 4, y - 4, 6, 0, 7); ctx.fill();
+  }
+
+  function draw() {
+    ctx.save();
+    if (g.shake > 0) ctx.translate((Math.random() - .5) * 8, (Math.random() - .5) * 8);
+    const z = 1 + .2 * (g.chg.on ? g.chg.v : 0) + .05 * g.chg.pulse + .3 * g.zoomOut;     // камера «зумит» на машину
+    if (z !== 1) { ctx.translate(g.px, PLAYER_Y); ctx.scale(z, z); ctx.translate(-g.px, -PLAYER_Y); }
+    // дорога (текстура или запасной вариант кодом)
+    drawSide('grass', g.roadOff);
+    const rd = IMG.road;
+    if (rd) {
+      const ph = rd.height * ROAD_W / rd.width, off = g.roadOff % ph;
+      for (let y = off - ph; y < H; y += ph - 1) ctx.drawImage(rd, ROAD_X, y, ROAD_W, ph);
+    } else {
+      ctx.fillStyle = '#2a2d33'; ctx.fillRect(ROAD_X, 0, ROAD_W, H);
+      ctx.fillStyle = '#ffffffcc';
+      for (let l = 1; l < LANES; l++) for (let y = -80 + g.roadOff % 80; y < H; y += 80) ctx.fillRect(W / 2 + (l - 1.5) * LANE_W - 2, y, 4, 40);
+    }
+    [[ROAD_X, -1], [ROAD_X + ROAD_W, 1]].forEach(([x, d]) => {                  // мягкая тень от дороги
+      const sh = ctx.createLinearGradient(x, 0, x + d * 12, 0); sh.addColorStop(0, 'rgba(0,0,0,.3)'); sh.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = sh; ctx.fillRect(d > 0 ? x : x - 12, 0, 12, H);
+    });
+    drawSide('trees', g.roadOff);
+
+    // объекты
+    for (const e of g.ents) {
+      if (e.type === 'cola') drawCan(e.x, e.y, g.t + e.ph, e.big);
+      else if (e.type === 'cone') drawCone(e.x, e.y);
+      else if (e.type === 'hole') drawHole(e.x, e.y);
+      else if (e.type === 'plov') drawPlov(e.x, e.y, g.t);
+      else if (IMG['car_' + e.sk]) sprite(IMG['car_' + e.sk], e.x, e.y, e.w);
+      else drawCar(e.x, e.y, e.w, e.h, e.color, { flip: true });
+    }
+    drawRemote();                                                                            // соперник в дуэли (под игроком)
+
+    // игрок
+    const blink = g.inv > 0 && g.turbo <= 0 && Math.floor(g.inv * 14) % 2 === 0;
+    if (!blink) {
+      const hero = IMG['jetour_' + SKINS[skin].id];
+      if (g.turbo > 0) {
+        const gl = ctx.createRadialGradient(g.px, PLAYER_Y, 10, g.px, PLAYER_Y, 90);
+        gl.addColorStop(0, 'rgba(255,170,60,.45)'); gl.addColorStop(1, 'rgba(255,170,60,0)');
+        ctx.fillStyle = gl; ctx.fillRect(g.px - 100, PLAYER_Y - 120, 200, 240);
+      }
+      ctx.save(); ctx.fillStyle = '#0006'; ctx.beginPath(); ctx.ellipse(g.px + 4, PLAYER_Y + 6, CAR_W / 2 + 2, CAR_H / 2, 0, 0, 7); ctx.fill(); ctx.restore();
+      if (hero) sprite(hero, g.px, PLAYER_Y, CAR_W, g.tilt);
+      else drawCar(g.px, PLAYER_Y, CAR_W, CAR_H, '#f4f6f8', { hero: true, rot: g.tilt });
+    }
+    // частицы
+    for (const p of g.parts) { ctx.globalAlpha = Math.max(0, p.life * 2); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); }
+    ctx.globalAlpha = 1;
+    // лучи вокруг машины при зарядке
+    if (g.chg.on) {
+      const c = g.chg;
+      ctx.save(); ctx.translate(g.px, PLAYER_Y); ctx.lineWidth = 2; ctx.lineCap = 'round';
+      ctx.strokeStyle = c.v > .6 ? 'rgba(255,190,90,.85)' : 'rgba(255,255,255,.55)';
+      for (let i = 0; i < 28; i++) {
+        const a = i * .2244 + Math.random() * .15, r0 = 52 + Math.random() * 18, r1 = r0 + 24 + c.v * 150 * Math.random();
+        ctx.beginPath(); ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0); ctx.lineTo(Math.cos(a) * r1, Math.sin(a) * r1); ctx.stroke();
+      }
+      ctx.restore();
+    }
+    // скорость при турбо
+    if (g.turbo > 0) { ctx.strokeStyle = '#ffffff55'; ctx.lineWidth = 2; for (let i = 0; i < 8; i++) { const x = 10 + ((i * 137 + g.t * 900) % (W - 20)); const y = (g.t * 1400 + i * 97) % H; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 40); ctx.stroke(); } }
+    ctx.restore();
+    const tn = CITIES[themeCity].th.tint; if (tn) { ctx.fillStyle = tn; ctx.fillRect(0, 0, W, H); }
+
+    if (g.chg.on) drawCharge();
+    if (g.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (g.flash * .75) + ')'; ctx.fillRect(0, 0, W, H); }
+    drawHUD(); drawDuelHUD(); drawToast(); drawCountdown(performance.now());
+  }
+
+  function drawToast() {                                  // название города в начале заезда
+    if (state !== 'play' || g.t > 2.6) return;
+    const a = Math.min(1, (2.6 - g.t) / .9) * Math.min(1, g.t / .25), ci = CITIES[g.city];
+    ctx.save(); ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+    const y = HUD_CY + HUD_H / 2 + 36;
+    ctx.font = '24px BW,TU,system-ui,sans-serif'; const tw = ctx.measureText(ci.n).width, tx = W / 2 + 16;
+    ctx.lineWidth = 6; ctx.strokeStyle = 'rgba(80,0,10,.85)'; ctx.strokeText(ci.n, tx, y); ctx.fillStyle = '#fff'; ctx.fillText(ci.n, tx, y);
+    ctx.shadowColor = 'rgba(80,0,10,.9)'; ctx.shadowBlur = 6; drawIcon(ctx, ci.ico, tx - tw / 2 - 18, y, 24, '#fff'); ctx.shadowBlur = 0;
+    ctx.font = '500 11px TU,system-ui,sans-serif'; ctx.lineWidth = 4; ctx.strokeText(ci.reg, W / 2, y + 20); ctx.fillText(ci.reg, W / 2, y + 20);
+    ctx.restore();
+  }
+
+  function drawCharge() {
+    const c = g.chg, cx = W / 2, ty = Math.round(H * .3);
+    const vg = ctx.createRadialGradient(cx, PLAYER_Y, 80, cx, PLAYER_Y, H);
+    vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(50,0,0,.5)');
+    ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+    ctx.save(); ctx.translate(cx, ty);
+    const sc = 1 + .14 * c.pulse + Math.sin(performance.now() / 70) * .03;
+    ctx.scale(sc, sc);
+    ctx.font = '46px BW,TU,system-ui,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round'; ctx.lineWidth = 8; ctx.strokeStyle = '#7a0a14'; ctx.strokeText(tr('game.tap'), 0, 0);
+    ctx.fillStyle = '#fff'; ctx.fillText(tr('game.tap'), 0, 0);
+    ctx.restore();
+    const bw = 230, bh = 16, bx = cx - bw / 2, by = ty + 38;
+    ctx.fillStyle = 'rgba(0,0,0,.55)'; rr(bx - 3, by - 3, bw + 6, bh + 6, 11); ctx.fill();
+    const lg = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+    lg.addColorStop(0, '#ff3a47'); lg.addColorStop(.7, '#ffb347'); lg.addColorStop(1, '#ffffff');
+    ctx.fillStyle = lg; rr(bx, by, Math.max(bh, bw * c.v), bh, 8); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.65)'; ctx.fillRect(bx, by + bh + 9, bw * Math.max(0, c.t / CHG_TIME), 3);   // сколько осталось времени
+  }
+
+  function drawHUD() {
+    if (state === 'menu') return;
+    const P = HUD_W, hh = HUD_H, x = (W - P) / 2, y = HUD_CY - hh / 2, cy = HUD_CY;
+    ctx.fillStyle = '#000a'; rr(x, y, P, hh, hh / 2); ctx.fill();            // скруглённая плашка в стиле кнопок Telegram
+    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle';
+    ctx.font = '500 14px TU,system-ui,sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(Math.floor(g.score), x + 12, cy + .5);
+    const hs = '♥'.repeat(Math.max(0, g.lives)) + '♡'.repeat(Math.max(0, MAX_LIVES - Math.max(0, g.lives)));
+    ctx.font = '11px TU,system-ui,sans-serif'; ctx.textAlign = 'right';
+    ctx.fillText(hs, x + P - 12, cy + .5);
+    const hw = ctx.measureText(hs).width;
+    // шкала турбо: баночка + полоса, без текста
+    let bx = x + 12 + 38 + 4;
+    const can = IMG.can;
+    if (can) { const ih = can.width / can.height > .6 ? 12 : 13, iw = ih * can.width / can.height; ctx.drawImage(can, bx, cy - ih / 2, iw, ih); bx += iw + 4; }
+    const bw = x + P - 12 - hw - 8 - bx, bh = 5, by = cy - bh / 2;
+    if (bw < 10) return;
+    ctx.fillStyle = '#ffffff30'; rr(bx, by, bw, bh, 2.5); ctx.fill();
+    const f = g.chg.on ? g.chg.v : g.turbo > 0 ? g.turbo / g.turboMax : Math.min(1, g.boost / BOOST_NEED);
+    if (f > 0) {
+      ctx.save();
+      if (g.turbo > 0 || g.chg.on) { ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 8; }
+      ctx.fillStyle = g.turbo > 0 || g.chg.on ? '#ffb347' : '#ff3a47'; rr(bx, by, Math.max(bh, bw * f), bh, 2.5); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  // ---------- цикл ----------
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    if (state === 'play') update(dt);
+    else if (state === 'over') { g.parts.forEach(p => { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.life -= dt; }); g.parts = g.parts.filter(p => p.life > 0); g.roadOff += 60 * dt; g.rt += dt; }
+    else if (state === 'revive') {}                                                          // ждём решения «Второй шанс»
+    else if (state === 'count') {                                                            // дуэль: ждём общий момент старта
+      g.roadOff += 120 * dt; const d = duel;
+      if (!d) state = 'menu';
+      else { const n = Math.ceil((d.startAt - now) / 1000); if (n !== d.cnt && n >= 0 && n <= 3) { d.cnt = n; beep(n > 0 ? 520 : 880, .12, 'triangle'); haptic(n > 0 ? 'rigid' : 'success'); } if (now >= d.startAt) { state = 'play'; g.rt = 0; d.goT = now; } }
+    }
+    else { g.roadOff += 160 * dt; g.t += dt; }
+    draw();
+    requestAnimationFrame(loop);
+  }
+  decorate();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

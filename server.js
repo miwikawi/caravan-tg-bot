@@ -12,8 +12,10 @@ const TYPES = { ".html": "text/html; charset=utf-8", ".webp": "image/webp", ".jp
 
 http.createServer((req, res) => {
   let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
-  if (p === "/" || p === "") p = "/index.html";
+  if (p === "/game") { res.writeHead(301, { Location: "/game/" + (new URL(req.url, "http://x").search) }); return res.end(); }
+  if (p === "" || p.endsWith("/")) p += "index.html";
   if (p === "/health") { res.writeHead(200); return res.end("ok"); }
+  if (p === "/tg/demos" && req.method === "POST") return demosHook(req, res);
   if (p === "/status") { res.writeHead(200, { "Content-Type": "application/json" }); return res.end(JSON.stringify(STATE, null, 2)); }
   const file = path.normalize(path.join(ROOT, p));
   if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end(); }
@@ -79,4 +81,25 @@ async function startBot() {
       }
     } catch (e) { console.log("poll error", e.message); STATE.lastError = "poll: " + e.message; await new Promise(r => setTimeout(r, 3000)); }
   }
+}
+
+// ---------- второй бот «Coca-Cola Demos» (@ccd_demos_bot): вебхук, токен на сервере не нужен ----------
+// Telegram присылает апдейт сюда, ответ уходит прямо в ответе на вебхук (method в JSON).
+const DEMOS_SECRET = "ccd-demos-7f3a91c2";
+const DEMOS_TEXT = "Coca-Cola Demos\n\nДемо мини-приложений для клиента. Нажмите на кнопку, чтобы открыть.";
+const DEMOS_KB = () => ({ inline_keyboard: [
+  [{ text: "Караван · концепт", web_app: { url: BASE + "/?c=tiles" } }],
+  [{ text: "Мини-игра · концепт", web_app: { url: BASE + "/game/?demo=1" } }],
+] });
+function demosHook(req, res) {
+  if (req.headers["x-telegram-bot-api-secret-token"] !== DEMOS_SECRET) { res.writeHead(403); return res.end(); }
+  let body = "";
+  req.on("data", c => { body += c; if (body.length > 1e6) req.destroy(); });
+  req.on("end", () => {
+    let u = {}; try { u = JSON.parse(body); } catch (e) {}
+    const m = u.message; STATE.demosUpdates = (STATE.demosUpdates || 0) + 1;
+    res.writeHead(200, { "Content-Type": "application/json" });
+    if (!m || !m.chat) return res.end("{}");
+    res.end(JSON.stringify({ method: "sendPhoto", chat_id: m.chat.id, photo: BASE + "/img/demos-cover.jpg", caption: DEMOS_TEXT, reply_markup: DEMOS_KB() }));
+  });
 }
