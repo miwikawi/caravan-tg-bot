@@ -583,8 +583,13 @@ img{display:block;max-width:100%}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01s!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:.01s!important}}
 
 html,body{height:100%}
-html.tgdoc{height:calc(100% + 1px)}
-html{overscroll-behavior-y:none}
+/* Telegram: the page itself scrolls (not an inner box), so Telegram tells scrolling from swipe-to-collapse */
+html.tgdoc,html.tgdoc body{height:auto;min-height:100%}
+html.tgdoc body{background:var(--g1)}
+html.tgdoc .app{position:relative;top:auto;bottom:auto;left:auto;right:auto;display:block;overflow:visible;overflow-x:clip;min-height:var(--tg-viewport-stable-height,100vh)}
+html.tgdoc .scroll{overflow:visible;scroll-behavior:auto;min-height:var(--tg-viewport-stable-height,100vh)}
+html.tgdoc .scr,html.tgdoc .gall{min-height:var(--tg-viewport-stable-height,100vh)}
+html.tgdoc .wel,html.tgdoc .intro,html.tgdoc .sheet,html.tgdoc .toast{position:fixed}
 body{background:#a61019;overscroll-behavior:none}
 .app{position:fixed;top:0;bottom:0;left:0;right:0;max-width:480px;margin:0 auto;background:var(--g1);color:var(--ink);display:flex;flex-direction:column;overflow:hidden}
 .app .intro .skip{top:14px}
@@ -1031,7 +1036,7 @@ const stLabel=m=>!m?"на модерации":m.status==="q"?"на модера�
 const VIEWS={consent,home:()=>st.concept==="tiles"?tiles():landing(),route:routeScreen,city,partybus,vote,ai};
 function render(top=true){
   if(st.screen==="bot"||st.screen==="intro"){ syncFlow(); return; }
-  view.innerHTML=VIEWS[st.screen](); scrollEl.classList.toggle("redbg",st.screen==="consent"||(st.screen==="home"&&st.concept==="tiles")); if(top) scrollEl.scrollTop=0; tickCD();
+  view.innerHTML=VIEWS[st.screen](); scrollEl.classList.toggle("redbg",st.screen==="consent"||(st.screen==="home"&&st.concept==="tiles")); if(top){ scrollEl.scrollTop=0; if(document.documentElement.classList.contains("tgdoc")) window.scrollTo(0,0); } tickCD();
   if($("#truckMk")&&st._map) animateTruck(st._map); else cancelAnimationFrame(raf);
   syncFlow();
 }
@@ -1282,10 +1287,8 @@ mini.addEventListener("click",e=>{
 },true);
 if(tg){
   try{ tg.ready(); tg.expand(); tg.setHeaderColor&&tg.setHeaderColor("#e41e2b"); tg.setBackgroundColor&&tg.setBackgroundColor("#f2f2f2"); }catch(e){}
-  /* iOS Telegram: no disableVerticalSwipes (it blocks inner scrolling in new clients).
-     Keep the document 1px scrollable and off the very top, so a swipe inside the app scrolls instead of collapsing the sheet */
-  try{ document.documentElement.classList.add("tgdoc"); const keep=()=>{ if(window.scrollY<1) window.scrollTo(0,1); };
-    keep(); window.addEventListener("load",keep); document.addEventListener("touchstart",keep,{passive:true}); }catch(e){}
+  /* Telegram: page-level scrolling (see html.tgdoc CSS). Swipe down collapses the app only when the page is at its very top. */
+  document.documentElement.classList.add("tgdoc");
   tg.BackButton&&tg.BackButton.onClick(goBack);
 }
 const qc=new URLSearchParams(location.search).get("c");
