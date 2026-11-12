@@ -1253,7 +1253,6 @@ function choose(){
   </div>`;
 }
 VIEWS.choose=choose;
-const _home=VIEWS.home; VIEWS.home=()=>_home().replace(/<\/div>\s*$/,`<button class="swc" data-go="choose">Сменить концепт</button></div>`);
 const _render=render;
 render=function(top=true){ _render(top); if(EMBED){ try{ parent.postMessage({type:"screen",screen:st.screen},"*"); }catch(e){} } if(st.screen==="choose") scrollEl.classList.add("redbg"); syncBack(); syncMine(); };
 function go(screen){ if(screen!=="consent"&&screen!=="choose"){ st.accepted=true; if(!st.welcomed){ st.welcomed=true; st.bal=Math.max(st.bal,40); } } st.screen=screen; render(); }
