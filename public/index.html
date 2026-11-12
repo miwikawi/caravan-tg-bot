@@ -620,8 +620,12 @@ body{background:#a61019;overscroll-behavior:none}
 .t-ai .fan img:nth-child(3){left:19%;top:0;transform:rotate(-1deg);z-index:2}
 .strip{display:block;width:100%;height:auto;border-radius:4px}
 .pscn{display:grid;gap:10px}
-.pscn button{border:0;padding:0;background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--sh-card);display:grid;grid-template-columns:118px 1fr 22px;gap:12px;align-items:center;text-align:left;color:var(--ink)}
-.pscn img{width:118px;height:104px;object-fit:cover}
+.pscn button{border:0;padding:0;background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--sh-card);display:grid;grid-template-columns:132px 1fr 22px;gap:12px;align-items:center;text-align:left;color:var(--ink)}
+.pscn .pfan{position:relative;width:132px;height:124px;background:linear-gradient(160deg,#f6d9db,#fbeeee);overflow:hidden}
+.pscn .pfan img{position:absolute;top:16px;width:58px;aspect-ratio:4/5;object-fit:cover;border-radius:2px;box-shadow:0 6px 14px rgba(60,0,6,.28)}
+.pscn .pfan img:nth-child(1){left:10px;transform:rotate(-10deg);top:22px}
+.pscn .pfan img:nth-child(2){right:10px;transform:rotate(9deg);top:22px}
+.pscn .pfan img:nth-child(3){left:37px;top:10px;width:60px;z-index:2}
 .pscn b{display:block;font-family:var(--display);font-weight:400;font-size:24px;line-height:1;color:var(--red)}
 .pscn small{font-size:12.5px;color:var(--muted)}
 .pscn svg{color:var(--red)}
@@ -1187,7 +1191,7 @@ function ai(){
   return `<div class="scr">
     <div class="toprow"><button class="back" data-go="home">‹ Назад</button>${balHTML()}</div>
     <div class="toprow"><h2 class="h1">AI-открытка</h2>${langSw()}</div><p class="sub">Выберите свой Новый год: сцену, открытку и фото.</p>
-    <div class="pscn">${PS.map((x,i)=>`<button data-ps="${i}"><img src="img/${x.img}.webp" alt=""><span><b>${x.n}</b><small>3 открытки · ${x.cards.map(c=>c.n).filter((v,j,a)=>a.indexOf(v)===j).sort().join(" или ")} чел.</small></span>${chev}</button>`).join("")}</div>
+    <div class="pscn">${PS.map((x,i)=>`<button data-ps="${i}"><span class="pfan">${[1,2,0].map(j=>`<img src="img/pc-${x.cards[j].k}-${st.lang}.webp" alt="">`).join("")}</span><span><b>${x.n}</b><small>3 открытки · ${x.cards.map(c=>c.n).filter((v,j,a)=>a.indexOf(v)===j).sort().join(" или ")} чел.</small></span>${chev}</button>`).join("")}</div>
     <img class="strip" src="img/strip.webp" alt="">
   </div>`;
 }
