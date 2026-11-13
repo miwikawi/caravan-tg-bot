@@ -230,6 +230,7 @@ img{display:block;max-width:100%}
 .bx-stripe .lab{position:absolute;left:10px;right:10px;bottom:10px;background:var(--red);border-radius:12px;padding:10px 12px;z-index:3;color:#fff;display:grid;gap:2px}
 .bx-stripe .lab b{font-size:17px;font-weight:500;line-height:1.1}.bx-stripe .lab small{font-size:12px;opacity:.9}
 .bx-stripe .bow{left:74%;top:16%}
+.tile .bow-o{filter:drop-shadow(0 3px 4px rgba(80,0,8,.45))}
 .t-ai{background:#fff;color:var(--ink)}
 .t-ai .shots{position:absolute;right:14px;top:16px;bottom:16px;width:52%;z-index:2}
 .t-ai .shots img{position:absolute;width:74%;aspect-ratio:1;object-fit:cover;border:5px solid #fff;box-shadow:0 8px 18px rgba(60,0,6,.3)}
@@ -812,7 +813,7 @@ function consent(){
     </div></div>`;
 }
 
-const bow=(c="#fff")=>`<svg class="bow" viewBox="0 0 60 30" aria-hidden="true"><path d="M30 16C22 2 6 0 6 10s16 8 24 6z" fill="${c}"/><path d="M30 16C38 2 54 0 54 10s-16 8-24 6z" fill="${c}"/><path d="M28 16l-10 14M32 16l10 14" stroke="${c}" stroke-width="4"/><circle cx="30" cy="15" r="5" fill="${c}"/></svg>`;
+const bow=(c="#fff",o="")=>{const st=o?` stroke="${o}" stroke-width="3" paint-order="stroke" stroke-linejoin="round"`:"";return `<svg class="bow${o?" bow-o":""}" viewBox="-3 -3 66 36" aria-hidden="true">${o?`<path d="M28 16l-10 14M32 16l10 14" stroke="${o}" stroke-width="8" stroke-linecap="round"/>`:""}<path d="M30 16C22 2 6 0 6 10s16 8 24 6z" fill="${c}"${st}/><path d="M30 16C38 2 54 0 54 10s-16 8-24 6z" fill="${c}"${st}/><path d="M28 16l-10 14M32 16l10 14" stroke="${c}" stroke-width="4"${o?' stroke-linecap="round"':""}/><circle cx="30" cy="15" r="5" fill="${c}"${st}/></svg>`;};
 function nextInfo(){
   const nx=ORDER.map(c=>({c,s:cityState(c)}));
   const live=nx.find(o=>o.s.k==="live"); if(live) return `${live.c.ru}: трак в пути`;
@@ -827,8 +828,8 @@ function tiles(){
     <div class="metro">
       <button class="tile t-ai" data-tile="ai"><span class="fan"><img src="img/pc-dast_magic-${st.lang}.webp" alt=""><img src="img/pc-bath_fly-${st.lang}.webp" alt=""><img src="img/pc-disco_ny-${st.lang}.webp" alt=""></span>
         <span class="tl"><span style="display:grid;gap:6px"><b>Волшебная<br>открытка</b><small>Ваше фото в новогодней сцене и Coca-Cola в подарок</small></span><span class="go">Создать · 20 ${coin}</span></span></button>
-      <button class="tile t-route bx-stripe" data-tile="route">${bow()}<span class="lab"><b>Маршрут</b><small>${nextInfo()}</small></span></button>
-      <button class="tile t-trk bx-red" data-tile="tashkent" style="--rx:78%;--ry:22%"><span class="rib"></span>${bow()}<img class="tcut" src="img/truck-bayram-side.webp" alt=""><span class="tl"><b>Ташкент</b><small>где трак сейчас</small></span></button>
+      <button class="tile t-route bx-stripe" data-tile="route">${bow("#e41e2b","#fff")}<span class="lab"><b>Маршрут</b><small>${nextInfo()}</small></span></button>
+      <button class="tile t-trk bx-red" data-tile="tashkent" style="--rx:78%;--ry:22%"><span class="rib"></span>${bow("#e41e2b","#fff")}<img class="tcut" src="img/truck-bayram-side.webp" alt=""><span class="tl"><b>Ташкент</b><small>где трак сейчас</small></span></button>
       <button class="tile t-bay" data-tile="bayram"><img class="kvb" src="img/kv-scene.webp" alt=""><span class="bts"><img src="img/bt-fanta.webp" alt=""><img src="img/bt-coke.webp" alt=""><img src="img/bt-sprite.webp" alt=""></span><span class="tl"><span style="display:grid;gap:8px"><span class="tag">Промо</span><img src="img/lockup-ru.webp" alt="Сезон праздников с Coca-Cola"></span><span class="cta">Bayram Promo ›</span></span></button>
     </div>
     <p class="more"><b>И ещё много интересного</b>скоро в караване</p>
@@ -1282,13 +1283,13 @@ function startConcept(c){
 }
 function syncBack(){
   if(!tg||!tg.BackButton) return;
-  if(st.screen==="choose"||st.screen==="intro") tg.BackButton.hide(); else tg.BackButton.show();
+  if(["choose","intro","home","consent"].includes(st.screen)) tg.BackButton.hide(); else tg.BackButton.show();
 }
 function goBack(){
   if($("#sheet").classList.contains("on")) return closeSheet();
   if(st.screen==="ai"&&st.ai==="pick"){ st.ai="scene"; return render(); }
   if(st.screen==="ai"&&st.ai==="done"){ st.ai="scene"; return render(); }
-  if(st.screen==="home"||st.screen==="consent") return go("choose");
+  if(st.screen==="home"||st.screen==="consent"){ if(tg&&tg.close) tg.close(); return; }
   if(st.screen==="city"&&st.concept==="tiles"&&st._fromRoute){ return go("route"); }
   go("home");
 }
@@ -1305,7 +1306,7 @@ if(tg){
 }
 const qc=new URLSearchParams(location.search).get("c");
 st.nowK="tash";
-if(qc==="tiles"||qc==="land") startConcept(qc); else { st.screen="choose"; render(); }
+startConcept("tiles"); /* only concept 1 (tiles) is live; the chooser is retired */
 
 if(EMBED){
   window.addEventListener("message",e=>{ const m=e.data||{};
