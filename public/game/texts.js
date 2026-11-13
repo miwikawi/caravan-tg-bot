@@ -89,7 +89,7 @@ window.JCR_TEXTS = {
     // траты танга
     'b.turbo': 'Турбо', 'b.shield': '+1 жизнь', 'b.magnet': 'Магнит', 'b.x2': '×2 крышки', 'btn.goCost': 'Поехали · {n} танга',
     'rules.6t': 'Танга', 'rules.6d': 'Очки → танга, до 20 в день',
-    'skin.buyT': 'Новая машина', 'skin.white': 'Белая', 'skin.red': 'Красная', 'skin.caravan': 'Караван', 'skin.new': 'Новое', 'prog.next': 'дальше: {city}', 'prog.caps': 'крышки', 'prog.pts': 'очки', 'skin.caravanT': 'Караван Coca-Cola', 'skin.buyS': 'Останется у вас навсегда', 'skin.buy': 'Купить · {n} танга', 'skin.done': 'Машина ваша!',
+    'skin.buyT': 'Новая машина', 'skin.white': 'Белая', 'skin.red': 'Красная', 'skin.caravan': 'Караван', 'skin.new': 'Новое', 'game.combo': 'Комбо ×{n}!', 'prog.next': 'дальше: {city}', 'prog.caps': 'крышки', 'prog.pts': 'очки', 'skin.caravanT': 'Караван Coca-Cola', 'skin.buyS': 'Останется у вас навсегда', 'skin.buy': 'Купить · {n} танга', 'skin.done': 'Машина ваша!',
     'revive.t': 'Второй шанс', 'revive.s': 'Продолжите с 1 жизнью, очки сохранятся', 'revive.go': 'Продолжить · {n} танга', 'revive.no': 'Завершить заезд', 'revive.done': 'Поехали дальше!',
     'city.buy': 'Открыть за {n} танга', 'city.buyT': 'Открыть {city}?', 'city.buyS': 'Город откроется сразу', 'city.buyGo': 'Открыть · {n} танга',
     'shop.bal': 'У вас {n} танга', 'shop.need': 'не хватает {n}', 'shop.fail': 'Не получилось. Попробуйте ещё раз',
@@ -187,7 +187,7 @@ window.JCR_TEXTS = {
     // tanga sarflash
     'b.turbo': 'Turbo', 'b.shield': '+1 jon', 'b.magnet': 'Magnit', 'b.x2': '×2 qopqoq', 'btn.goCost': 'Ketdik · {n} tanga',
     'rules.6t': 'Tanga', 'rules.6d': 'Ochko → tanga, kuniga 20 tagacha',
-    'skin.buyT': 'Yangi mashina', 'skin.white': 'Oq', 'skin.red': 'Qizil', 'skin.caravan': 'Karvon', 'skin.new': 'Yangi', 'prog.next': 'keyingi: {city}', 'prog.caps': 'qopqoqlar', 'prog.pts': 'ochkolar', 'skin.caravanT': 'Coca-Cola karvoni', 'skin.buyS': 'Sizda abadiy qoladi', 'skin.buy': 'Sotib olish · {n} tanga', 'skin.done': 'Mashina sizniki!',
+    'skin.buyT': 'Yangi mashina', 'skin.white': 'Oq', 'skin.red': 'Qizil', 'skin.caravan': 'Karvon', 'skin.new': 'Yangi', 'game.combo': 'Kombo ×{n}!', 'prog.next': 'keyingi: {city}', 'prog.caps': 'qopqoqlar', 'prog.pts': 'ochkolar', 'skin.caravanT': 'Coca-Cola karvoni', 'skin.buyS': 'Sizda abadiy qoladi', 'skin.buy': 'Sotib olish · {n} tanga', 'skin.done': 'Mashina sizniki!',
     'revive.t': 'Ikkinchi imkoniyat', 'revive.s': '1 ta jon bilan davom eting, ochko saqlanadi', 'revive.go': 'Davom etish · {n} tanga', 'revive.no': 'Poygani yakunlash', 'revive.done': 'Davom etamiz!',
     'city.buy': '{n} tangaga ochish', 'city.buyT': '{city} ochilsinmi?', 'city.buyS': 'Shahar darhol ochiladi', 'city.buyGo': 'Ochish · {n} tanga',
     'shop.bal': 'Sizda {n} tanga', 'shop.need': '{n} yetmaydi', 'shop.fail': 'Bo‘lmadi. Yana urinib ko‘ring',

@@ -125,6 +125,20 @@
   .skins.big .skin.cv{overflow:visible}
   .skins.big .skin .ok{position:absolute;right:5px;top:5px;display:flex;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;align-items:center;justify-content:center}
   .skins.big .skin .ok .ic{width:13px;height:13px;margin:0}
+  .hero .rays{position:absolute!important;left:50%;bottom:4%;width:150%;aspect-ratio:1;transform:translate(-50%,40%);z-index:0!important;pointer-events:none;opacity:.32;
+    background:repeating-conic-gradient(from 0deg,rgba(255,236,190,.9) 0 7deg,transparent 7deg 22deg);-webkit-mask:radial-gradient(closest-side,#000 20%,transparent 72%);mask:radial-gradient(closest-side,#000 20%,transparent 72%);animation:spin 40s linear infinite,fadeIn 1.2s .6s both}
+  @keyframes spin{to{transform:translate(-50%,40%) rotate(360deg)}}
+  @keyframes fadeIn{from{opacity:0}}
+  @keyframes dropIn{0%{transform:translateY(-60px) scale(.8);opacity:0}70%{transform:translateY(6px) scale(1.03);opacity:1}100%{transform:none}}
+  @keyframes popIn{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:scale(1)}}
+  @keyframes driveIn{0%{transform:translateX(-120%) rotate(-3deg);opacity:0}65%{transform:translateX(6%) rotate(1deg);opacity:1}82%{transform:translateX(-2%)}100%{transform:none}}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes shine{0%,70%{background-position:-150% 0}100%{background-position:250% 0}}
+  #start:not(.hidden) .hero .logo{animation:dropIn .9s cubic-bezier(.2,.9,.3,1.2) both}
+  #start:not(.hidden) .hero h1{animation:popIn .8s .35s cubic-bezier(.2,1.3,.4,1) both}
+  #start:not(.hidden) .hero .car{animation:driveIn 1.4s .7s cubic-bezier(.25,.9,.3,1) both,bob 3.2s 2.2s ease-in-out infinite}
+  .hero h1 span{text-shadow:none;filter:drop-shadow(0 3px 0 rgba(120,4,14,.55));background:linear-gradient(100deg,#ffd27a 40%,#fff6d6 50%,#ffd27a 60%) 0 0/200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 4s 2s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){#start .hero *{animation:none!important}}
   .hero .logo{flex:none;width:124px;height:auto;filter:drop-shadow(0 3px 8px rgba(80,0,8,.35))}
   .hero h1{flex:none;margin-top:2px;font-size:42px;color:#fff;text-shadow:0 3px 0 rgba(120,4,14,.55),0 8px 22px rgba(60,0,8,.4)}
   .hero h1 span{color:#ffd27a}
@@ -347,7 +361,7 @@
   .pill b.need{color:var(--red);font-weight:500;margin-left:4px}
 </style>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="texts.js?v=1311"></script>
+<script src="texts.js?v=1311c"></script>
 </head>
 <body>
 <div id="wrap">
@@ -360,6 +374,7 @@
       <div class="hud hidden" id="ecoPill" role="button"></div>
       <img class="logo" src="assets/ui/logo.png" alt="Coca-Cola">
       <h1 class="tt">Cola <span>Rush</span></h1>
+      <div class="rays" aria-hidden="true"></div>
       <img class="car" src="assets/ui/hero.png" alt="">
     </div>
     <div class="sheet">
@@ -573,7 +588,7 @@
   SKINS.forEach(s => load('jetour_' + s.id, 'jetour_' + s.id + '.png'));
   TRAFFIC.forEach(c => load('car_' + c, 'car_' + c + '.png'));
   load('road', 'road.jpg');
-  load('can', 'can.png'); load('bottle', 'bottle.png'); load('cone', 'cone.png'); load('hole', 'hole.png'); load('plov', 'plov.png');
+  load('can', 'can.png'); load('bottle', 'bottle.png'); load('bottle_fa', 'bottle_fa.png'); load('bottle_sp', 'bottle_sp.png'); load('cone', 'cone.png'); load('hole', 'hole.png'); load('plov', 'plov.png');
   function sprite(im, x, y, w, rot = 0) {
     const h = im.height * w / im.width;
     ctx.save(); ctx.translate(x, y); if (rot) ctx.rotate(rot);
@@ -856,13 +871,13 @@
   let state = 'menu';
   let best = 0, skin = 0;
   try { best = +localStorage.getItem('jcr_best') || 0; skin = +localStorage.getItem('jcr_skin') || 0; } catch (e) {}
-  if (!SKINS[skin] || SKINS[skin].need > best) skin = 0;
+  if (!SKINS[skin]) skin = 0;
   function skinOwned(s) {                                                                  // магазин: белая бесплатно, остальные куплены; без магазина — за рекорд
     if (shopOn()) return s.need === 0 || ((eco && eco.skins) || []).includes(s.id);
     return s.need <= best;
   }
   function renderSkins() {
-    if (!SKINS[skin] || !skinOwned(SKINS[skin])) skin = 0;
+    if (!SKINS[skin] || ((eco || !shopOn()) && !skinOwned(SKINS[skin]))) skin = 0;
     ['skinsStart', 'skinsOver'].forEach(id => {
       const box = $(id); box.innerHTML = '';
       SKINS.forEach((s, i) => {
@@ -1227,7 +1242,8 @@
   }
   function demoLoad() {
     let e = null; try { e = JSON.parse(localStorage.getItem('jcr_demo')); } catch (x) {}
-    if (!e || typeof e.tanga !== 'number') e = { fuel: 5, fuelT: Date.now(), cap: 5, regenMs: 20 * 60000, price: 2, tanga: 60, account: true, plov: true, shop: true, pts: 0, skins: ['white'] };
+    if (!e || typeof e.tanga !== 'number') e = { fuel: 5, fuelT: Date.now(), cap: 5, regenMs: 20 * 60000, price: 2, tanga: 300, account: true, plov: true, shop: true, pts: 0, skins: ['white'], v2: 1 };
+    if (!e.v2) { e.tanga = Math.max(e.tanga, 300); e.v2 = 1; try { localStorage.setItem('jcr_demo', JSON.stringify(e)); } catch (x) {} }   // демо: хватает на Караван
     e.rate = DEF_RATE; e.prices = DEF_PRICES; e.price = 2; e.now = Date.now(); return e;   // заправка +1 в демо — 2 танга
   }
   function demoSync() { const L = liveFuel(); eco.fuel = L.fuel; eco.fuelT = L.fuel >= eco.cap ? Date.now() : Date.now() + L.next - eco.regenMs; }
@@ -1834,7 +1850,7 @@
     // линия банок в свободной (или соседней) полосе
     const n = R() < .4 ? 0 : 3 + (R() < .3 ? 1 : 0);   // не в каждом ряду
     for (let i = 0; i < n; i++)
-      g.ents.push({ type: 'cola', big: i === 2 && R() < .5, lane: free, x: laneX(free), y: y - 40 - i * 60, w: 26, h: 42, ph: Math.random() * 6 });
+      g.ents.push({ type: 'cola', big: i === 2 && R() < .5, brand: ['bottle', 'bottle_fa', 'bottle_sp'][Math.floor(Math.random() * 3)], lane: free, x: laneX(free), y: y - 40 - i * 60, w: 26, h: 42, ph: Math.random() * 6 });
     g.nextSpawn = 330 + R() * 120 - Math.min(120, g.dist / 100);
     if (plovOn() && g.dist >= g.nextPlov) {                                                  // плов: +1 топливо, в свободной полосе
       g.ents.push({ type: 'plov', lane: free, x: laneX(free), y: y - 300, w: 34, h: 34 });
@@ -1915,7 +1931,12 @@
         e.dead = true; g.plov++; burst(e.x, e.y, '#ffcf5a', 14); sfx.cola(); haptic('success'); toast(tr('game.plov')); continue;
       }
       if (e.type === 'cola') {
-        e.dead = true; g.colas += g.x2 ? 2 : 1; g.score += e.big ? 120 : 50; burst(e.x, e.y, '#fff', 8); sfx.cola(); haptic(e.big ? 'medium' : 'light');
+        e.dead = true; g.colas += g.x2 ? 2 : 1;
+        g.combo = g.t - (g.lastPick || -9) < 1.4 ? (g.combo || 0) + 1 : 1; g.lastPick = g.t;
+        const bonus = g.combo >= 3 ? 10 * g.combo : 0, pts = (e.big ? 120 : 50) + bonus; g.score += pts;
+        (g.pops || (g.pops = [])).push({ x: e.x + (Math.random() - .5) * 26, y: e.y - 10, txt: '+' + pts, life: 1, col: e.big ? '#ffd27a' : '#fff', big: e.big || bonus > 0 });
+        if (g.combo >= 3) { g.banner = { txt: tr('game.combo', { n: g.combo }), life: 1.1 }; burst(e.x, e.y, '#ffd27a', 14); }
+        burst(e.x, e.y, e.big ? (e.brand === 'bottle_fa' ? '#ff9d1c' : e.brand === 'bottle_sp' ? '#3bd16f' : '#ff3a47') : '#fff', e.big ? 14 : 8); sfx.cola(); haptic(e.big ? 'medium' : 'light');
         if (!turbo && !g.chg.on) { g.boost += e.big ? 3 : 1; if (g.boost >= BOOST_NEED) startCharge(); }
       } else if (e.type === 'hole' && !turbo) {
         if (g.inv <= 0) damage(e);
@@ -1927,6 +1948,8 @@
 
     for (const p of g.parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 600 * dt; p.life -= dt; }
     g.parts = g.parts.filter(p => p.life > 0);
+    if (g.pops) { for (const p of g.pops) { p.y -= 70 * dt; p.life -= dt; } g.pops = g.pops.filter(p => p.life > 0); }
+    if (g.banner) { g.banner.life -= dt; if (g.banner.life <= 0) g.banner = null; }
 
     // выхлоп / огонь турбо
     if (turbo || Math.random() < .3) g.parts.push({ x: g.px + (Math.random() - .5) * 20, y: PLAYER_Y + CAR_H / 2 - 4, vx: (Math.random() - .5) * 40, vy: 120 + Math.random() * 120, life: .25, c: turbo ? '#ffb347' : '#aab', r: turbo ? 4 : 2 });
@@ -1996,8 +2019,8 @@
     ctx.restore();
   }
 
-  function drawCan(x, y, t, big) {
-    const im = big ? IMG.bottle : IMG.can;
+  function drawCan(x, y, t, big, brand) {
+    const im = big ? (IMG[brand] || IMG.bottle) : IMG.can;
     if (im) {
       ctx.save(); ctx.fillStyle = '#0005'; ctx.beginPath(); ctx.ellipse(x + 4, y + 8, 14, 18, 0, 0, 7); ctx.fill(); ctx.restore();
       const round = im.width / im.height > .6, hh = big ? 56 : round ? 28 : 46, w = hh * im.width / im.height;   // круглая крышка мельче банки
@@ -2064,7 +2087,7 @@
 
     // объекты
     for (const e of g.ents) {
-      if (e.type === 'cola') drawCan(e.x, e.y, g.t + e.ph, e.big);
+      if (e.type === 'cola') drawCan(e.x, e.y, g.t + e.ph, e.big, e.brand);
       else if (e.type === 'cone') drawCone(e.x, e.y);
       else if (e.type === 'hole') drawHole(e.x, e.y);
       else if (e.type === 'plov') drawPlov(e.x, e.y, g.t);
@@ -2090,6 +2113,16 @@
     // частицы
     for (const p of g.parts) { ctx.globalAlpha = Math.max(0, p.life * 2); ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 7); ctx.fill(); }
     ctx.globalAlpha = 1;
+    if (g.pops && g.pops.length) {                                                          // всплывающие очки
+      ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      for (const p of g.pops) { const k = Math.min(1, p.life * 2), sc = 1 + (1 - p.life) * .25; ctx.globalAlpha = k; ctx.font = (p.big ? '26px' : '20px') + ' BW,TU,system-ui,sans-serif'; ctx.lineWidth = 5; ctx.strokeStyle = '#7a0a14'; ctx.save(); ctx.translate(p.x, p.y); ctx.scale(sc, sc); ctx.strokeText(p.txt, 0, 0); ctx.fillStyle = p.col; ctx.fillText(p.txt, 0, 0); ctx.restore(); }
+      ctx.restore();
+    }
+    if (g.banner) {                                                                         // комбо
+      const b = g.banner, a = Math.min(1, b.life * 3), sc = 1 + Math.max(0, b.life - .9) * 2.5;
+      ctx.save(); ctx.globalAlpha = a; ctx.translate(W / 2, H * .3); ctx.scale(sc, sc); ctx.rotate(-.05); ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+      ctx.font = '40px BW,TU,system-ui,sans-serif'; ctx.lineWidth = 9; ctx.strokeStyle = '#7a0a14'; ctx.strokeText(b.txt, 0, 0); ctx.fillStyle = '#ffd27a'; ctx.fillText(b.txt, 0, 0); ctx.restore();
+    }
     // лучи вокруг машины при зарядке
     if (g.chg.on) {
       const c = g.chg;
