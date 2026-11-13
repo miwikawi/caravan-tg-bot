@@ -723,7 +723,7 @@
     const slot = CITY_IMG[i] = CITY_IMG[i] || {}; if (slot[kind] || slot['_' + kind]) return; slot['_' + kind] = 1;
     const im = new Image();
     im.onload = () => { slot[kind] = im; if (kind === 'ground') delete SIDE_CACHE[i]; if (typeof renderMapCard === 'function' && mapOpen) renderMapCard(); };
-    im.src = 'assets/cities/' + id + '/' + kind + '.jpg';
+    im.src = 'assets/cities/' + id + '/' + kind + '.jpg?v=2';
   }
   fetch('assets/cities/manifest.json', { cache: 'no-cache' }).then(r => r.ok ? r.json() : {}).then(m => { CITY_MAN = m; ensureImg(themeCity, 'ground'); }).catch(() => {});
   const OCHRE = ['#d6b56f', '#a8844a'], GREYH = ['#b9b3a8', '#8c867c'];
@@ -2138,10 +2138,61 @@
     if (g.turbo > 0) { ctx.strokeStyle = '#ffffff55'; ctx.lineWidth = 2; for (let i = 0; i < 8; i++) { const x = 10 + ((i * 137 + g.t * 900) % (W - 20)); const y = (g.t * 1400 + i * 97) % H; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 40); ctx.stroke(); } }
     ctx.restore();
     const tn = CITIES[themeCity].th.tint; if (tn) { ctx.fillStyle = tn; ctx.fillRect(0, 0, W, H); }
+    drawAtmo();
 
     if (g.chg.on) drawCharge();
     if (g.flash > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (g.flash * .75) + ')'; ctx.fillRect(0, 0, W, H); }
     drawHUD(); drawDuelHUD(); drawToast(); drawCountdown(performance.now());
+  }
+
+  // ---------- атмосфера города: свет и частицы (у каждого города своя) ----------
+  const ATMO = [
+    { lt: null, p: 'snow', n: 34 },                                  // Ташкент
+    { lt: [255, 168, 60, .30], p: 'leaf', n: 22, c: ['#f2a93b', '#e07b22', '#ffd36b'] },   // Нурафшон — золотое утро
+    { lt: [255, 250, 235, .20], p: 'cotton', n: 18 },                // Гулистан
+    { lt: [120, 170, 255, .22], p: 'snow', n: 55 },                  // Джизак — метель в горах
+    { lt: [40, 205, 215, .20], p: 'spark', n: 26, c: ['#9ff6ff', '#ffe28a'] },   // Самарканд
+    { lt: [255, 195, 60, .24], p: 'spark', n: 30, c: ['#ffd76a', '#fff3c4'] },   // Навои — золото
+    { lt: [255, 125, 45, .24], p: 'sand', n: 40, c: ['#e8c48a', '#d6a35e'] },    // Бухара
+    { lt: [255, 165, 80, .20], p: 'sand', n: 34, c: ['#efd3a0', '#d9b076'] },    // Ургенч
+    { lt: [120, 220, 255, .24], p: 'snow', n: 40 },                  // Нукус — ледяной
+    { lt: [255, 222, 90, .22], p: 'leaf', n: 20, c: ['#e8cf5a', '#c9a93a'] },    // Карши — пшеница
+    { lt: [255, 110, 40, .26], p: 'sand', n: 44, c: ['#f0b070', '#d98a4a'] },    // Термез
+    { lt: [255, 120, 185, .22], p: 'petal', n: 28, c: ['#ffc2dc', '#ff8fbd', '#fff0f6'] },  // Фергана
+    { lt: [140, 225, 120, .16], p: 'leaf', n: 20, c: ['#8fd16a', '#5aa83e'] },   // Андижан
+    { lt: [225, 50, 80, .22], p: 'petal', n: 26, c: ['#ff5a6e', '#d6303c', '#ffb1b9'] },   // Наманган — гранаты
+  ];
+  let amb = null, ambCity = -1;
+  function drawAtmo() {
+    const A = ATMO[themeCity] || ATMO[0];
+    if (A.lt) {
+      const [r, gg, b, a] = A.lt, gr = ctx.createLinearGradient(0, 0, 0, H);
+      gr.addColorStop(0, 'rgba(' + r + ',' + gg + ',' + b + ',' + a + ')'); gr.addColorStop(.55, 'rgba(' + r + ',' + gg + ',' + b + ',' + (a * .25) + ')'); gr.addColorStop(1, 'rgba(' + r + ',' + gg + ',' + b + ',' + (a * .6) + ')');
+      ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+    }
+    if (ambCity !== themeCity || !amb) {
+      ambCity = themeCity; amb = [];
+      for (let i = 0; i < A.n; i++) amb.push({ x: Math.random() * W, y: Math.random() * H, s: .5 + Math.random(), ph: Math.random() * 6.28, rot: Math.random() * 6.28, c: A.c ? A.c[i % A.c.length] : '#fff' });
+    }
+    const dt = Math.min(.05, (performance.now() - (drawAtmo.t || performance.now())) / 1000); drawAtmo.t = performance.now();
+    const run = state === 'play' ? (g.speed || 240) / 240 : .4;
+    ctx.save();
+    for (const q of amb) {
+      const k = A.p;
+      if (k === 'sand') { q.x += (90 + 70 * q.s) * dt; q.y += (30 + 60 * run) * dt * q.s; }
+      else if (k === 'spark') { q.y += (20 + 90 * run) * dt * q.s; q.x += Math.sin(q.ph + q.y * .02) * 10 * dt; }
+      else if (k === 'cotton') { q.y += (25 + 80 * run) * dt * q.s; q.x += Math.sin(q.ph + q.y * .01) * 18 * dt; }
+      else { q.y += (45 + 140 * run) * dt * q.s; q.x += Math.sin(q.ph + q.y * .015) * (k === 'snow' ? 14 : 28) * dt; q.rot += dt * (k === 'snow' ? 0 : 2.5) * q.s; }
+      if (q.y > H + 10) { q.y = -10; q.x = Math.random() * W; } if (q.x > W + 10) { q.x = -10; q.y = Math.random() * H; } if (q.x < -12) q.x = W + 8;
+      ctx.save(); ctx.translate(q.x, q.y);
+      if (k === 'snow') { ctx.globalAlpha = .55 + .35 * q.s; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 1.2 + q.s * 2, 0, 7); ctx.fill(); }
+      else if (k === 'cotton') { ctx.globalAlpha = .85; ctx.fillStyle = '#fff'; for (let j = 0; j < 4; j++) { ctx.beginPath(); ctx.arc(Math.cos(j * 1.6) * 3 * q.s, Math.sin(j * 1.6) * 3 * q.s, 2.6 * q.s + 1.2, 0, 7); ctx.fill(); } }
+      else if (k === 'spark') { const tw = .4 + .6 * Math.abs(Math.sin(g.t * 3 + q.ph)), r0 = (2 + q.s * 3) * tw; ctx.globalAlpha = .9 * tw; ctx.fillStyle = q.c; ctx.beginPath(); ctx.moveTo(0, -r0 * 2); ctx.quadraticCurveTo(0, 0, r0 * 2, 0); ctx.quadraticCurveTo(0, 0, 0, r0 * 2); ctx.quadraticCurveTo(0, 0, -r0 * 2, 0); ctx.quadraticCurveTo(0, 0, 0, -r0 * 2); ctx.fill(); }
+      else if (k === 'sand') { ctx.globalAlpha = .45 * q.s; ctx.fillStyle = q.c; ctx.fillRect(0, 0, 6 + q.s * 8, 1.4); }
+      else { ctx.rotate(q.rot); ctx.globalAlpha = .9; ctx.fillStyle = q.c; ctx.beginPath(); ctx.ellipse(0, 0, (k === 'petal' ? 3 : 4.2) * (.7 + q.s * .5), (k === 'petal' ? 2 : 2.2) * (.7 + q.s * .5), 0, 0, 7); ctx.fill(); if (k === 'leaf') { ctx.strokeStyle = 'rgba(90,40,0,.35)'; ctx.lineWidth = .7; ctx.beginPath(); ctx.moveTo(-3.5, 0); ctx.lineTo(3.5, 0); ctx.stroke(); } }
+      ctx.restore();
+    }
+    ctx.restore();
   }
 
   function drawToast() {                                  // название города в начале заезда
