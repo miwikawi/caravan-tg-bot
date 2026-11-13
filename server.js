@@ -76,7 +76,7 @@ async function startBot() {
       for (const u of j.result || []) {
         offset = u.update_id + 1; STATE.updates++;
         const m = u.message; if (!m || !m.chat) continue;
-        const r = await api("sendPhoto", { chat_id: m.chat.id, photo: BASE + "/img/truck-hero.jpg", caption: TEXT, reply_markup: KB() });
+        const r = await api("sendPhoto", { chat_id: m.chat.id, photo: BASE + "/img/truck-hero.jpg?v=truck2", caption: TEXT, reply_markup: KB() });
         if (!r.ok) await api("sendMessage", { chat_id: m.chat.id, text: TEXT, reply_markup: KB() });
       }
     } catch (e) { console.log("poll error", e.message); STATE.lastError = "poll: " + e.message; await new Promise(r => setTimeout(r, 3000)); }
@@ -100,6 +100,6 @@ function demosHook(req, res) {
     const m = u.message; STATE.demosUpdates = (STATE.demosUpdates || 0) + 1;
     res.writeHead(200, { "Content-Type": "application/json" });
     if (!m || !m.chat) return res.end("{}");
-    res.end(JSON.stringify({ method: "sendPhoto", chat_id: m.chat.id, photo: BASE + "/img/demos-cover.jpg", caption: DEMOS_TEXT, reply_markup: DEMOS_KB() }));
+    res.end(JSON.stringify({ method: "sendPhoto", chat_id: m.chat.id, photo: BASE + "/img/demos-cover.jpg?v=truck2", caption: DEMOS_TEXT, reply_markup: DEMOS_KB() }));
   });
 }
