@@ -21,7 +21,7 @@
   /* ---------- экраны ---------- */
   .screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;overflow-y:auto;overflow-x:hidden;text-align:center;
     padding:calc(16px + var(--ins-t,0px)) 18px calc(18px + var(--ins-b,0px));
-    background:linear-gradient(180deg,rgba(120,6,16,0) 55%,rgba(110,6,16,.55) 100%),url(assets/ui/bg.jpg?v=1311) center top/cover,#b3101b}
+    background:linear-gradient(180deg,rgba(120,6,16,0) 55%,rgba(110,6,16,.55) 100%),url(assets/ui/bg.jpg?v=1311b) center top/cover,#b3101b}
   .screen{z-index:1}
   .screen.lock{pointer-events:none}
   .col{margin:auto 0;width:100%;display:flex;flex-direction:column;align-items:center;gap:12px}   /* центр по вертикали, но со скроллом, если не влезает */
@@ -67,14 +67,66 @@
   /* ---------- старт ---------- */
   #start{padding:0;justify-content:flex-end;overflow:hidden}
   .hero{position:relative;flex:1 1 auto;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;
-    padding:calc(12px + var(--ins-t,0px)) 0 28px;background:url(assets/ui/bg.jpg?v=1311) center top/cover,#d4131f}
-  .hero:after{content:"";position:absolute;inset:0;pointer-events:none;opacity:.8;
-    background-image:radial-gradient(1.6px 1.6px at 18px 22px,#fff 99%,transparent),radial-gradient(1.2px 1.2px at 74px 61px,#fff 99%,transparent),radial-gradient(2px 2px at 121px 18px,#fff 99%,transparent),radial-gradient(1.3px 1.3px at 160px 95px,#fff 99%,transparent),
-      radial-gradient(2.4px 2.4px at 40px 140px,#ffffffcc 99%,transparent),radial-gradient(1.8px 1.8px at 210px 170px,#ffffffcc 99%,transparent),radial-gradient(2.6px 2.6px at 120px 190px,#ffffffaa 99%,transparent);
-    background-size:180px 120px,180px 120px,180px 120px,180px 120px,240px 220px,240px 220px,240px 220px;animation:snow 14s linear infinite}
-  @keyframes snow{from{background-position:0 0,0 0,0 0,0 0,0 0,0 0,0 0}to{background-position:20px 120px,20px 120px,20px 120px,20px 120px,-30px 220px,-30px 220px,-30px 220px}}
-  .hero .logo{flex:none;width:140px;height:auto;filter:drop-shadow(0 3px 8px rgba(80,0,8,.35))}
-  .hero h1{flex:none;margin-top:4px;font-size:46px;color:#fff;text-shadow:0 3px 0 rgba(120,4,14,.55),0 8px 22px rgba(60,0,8,.4)}
+    padding:calc(12px + var(--ins-t,0px)) 0 28px;background:url(assets/ui/bg.jpg?v=1311b) center top/cover,#d4131f}
+  .snow{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  .snow i{position:absolute;top:-24px;display:block;color:#fff;line-height:1;will-change:transform;animation:fall linear infinite}
+  .snow i svg{display:block;width:100%;height:100%}
+  @keyframes fall{0%{transform:translate3d(0,-30px,0) rotate(0)}100%{transform:translate3d(var(--dx,20px),110vh,0) rotate(var(--rt,180deg))}}
+  @media (prefers-reduced-motion:reduce){.snow i{animation-duration:60s!important}}
+  .hero>*:not(.snow){position:relative;z-index:1}
+  .hero #langSw{position:absolute}
+  /* HUD: танга и топливо на герое */
+  .hud{position:absolute!important;left:10px;top:calc(10px + var(--ins-t,0px));display:flex;gap:6px;z-index:2;cursor:pointer}
+  .hero.hashud{padding-top:calc(54px + var(--ins-t,0px))}
+  .hud.hidden{display:none}
+  .hc{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 10px 0 3px;border-radius:999px;background:rgba(255,255,255,.96);color:var(--ink);font-family:TU,sans-serif;font-weight:500;font-size:15px;box-shadow:0 4px 12px rgba(60,0,8,.28)}
+  .hc img{width:26px;height:26px}
+  .hc .fi{display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--red);color:#fff}
+  .hc .fi .ic{width:16px;height:16px;margin:0}
+  .hc small{font-size:11px;color:var(--mute);margin-left:2px}
+  .hc .plus{display:flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:#ffd27a;color:#6a2f00;font-size:15px;line-height:1;margin-left:2px}
+  /* карточка города */
+  .ccard{width:100%;max-width:320px;padding:9px 12px 10px;border-radius:16px;background:var(--soft);text-align:left}
+  .ccard .ch{display:flex;align-items:center;gap:6px;font-weight:500;font-size:16px;color:var(--ink)}
+  .ccard .ch .ic{color:var(--red);width:18px;height:18px}
+  .ccard .ch small{margin-left:auto;font-size:11.5px;color:var(--mute);font-weight:400}
+  .ccard .gs{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+  .ccard .g{font-size:12px;color:var(--mute)}
+  .ccard .g b{display:flex;align-items:center;gap:4px;font-weight:500;font-size:12.5px;color:var(--ink);margin-bottom:4px;white-space:nowrap}
+  .ccard .g b em{font-style:normal;color:var(--mute);font-weight:400;margin-right:auto}
+  .ccard .g b .ic{width:14px;height:14px;color:var(--red)}
+  .ccard .bar{height:7px;border-radius:4px;background:#fff;overflow:hidden}
+  .ccard .bar i{display:block;height:100%;border-radius:4px;background:linear-gradient(90deg,#f0313d,var(--red2))}
+  .ccard .g.p .bar i{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+  #start .sheet{gap:10px;padding-top:16px}
+  .playrow{width:100%;max-width:320px;display:grid;grid-template-columns:58px 1fr 58px;gap:8px;align-items:stretch}
+  .playrow #playBtn{max-width:none;padding:8px 10px;white-space:nowrap;font-size:clamp(16px,5vw,22px);gap:8px}
+  .playrow .tile.sq{min-height:58px;padding:6px 2px;gap:3px;font-size:10.5px;border-radius:16px}
+  .playrow .tile.sq .ic{width:22px;height:22px}
+  #start .tiles:not(:has(.tile:not(.hidden))){display:none}
+  #start .tiles .tile{flex-direction:row;min-height:44px;padding:6px 8px;gap:8px;font-size:13px}
+  #start .best:empty{display:none}
+  .ccard .done{margin-top:6px;font-size:13px;color:var(--ink)}
+  /* выбор машины на старте */
+  .skins.big{width:100%;max-width:320px;gap:8px;align-items:stretch;margin-top:4px}
+  .skins.big .skin{width:auto;flex:1 1 0;height:auto;min-height:0;flex-direction:column;justify-content:flex-start;padding:6px 4px 6px;gap:3px;background:#fff;box-shadow:inset 0 0 0 1.5px var(--line);font-family:TU,sans-serif}
+  .skins.big .skin.cv{flex:2.2 1 0;background:linear-gradient(160deg,#fff7e6,#ffe6b3);box-shadow:inset 0 0 0 1.5px #f0c766}
+  .skins.big .skin img{height:46px}
+  .skins.big .skin.cv img{height:46px;width:100%;object-fit:contain;object-position:center bottom}
+  .skins.big .skin.lock img{filter:drop-shadow(0 3px 3px rgba(40,0,6,.25));opacity:1}
+  .skins.big .skin.sel{box-shadow:inset 0 0 0 2.5px var(--red),0 4px 12px rgba(228,30,43,.22)}
+  .skins.big .skin .nm{font-weight:500;font-size:12.5px;color:var(--ink);line-height:1.1}
+  .skins.big .skin.cv .nm{font-family:BW,TU,sans-serif;font-size:17px;color:var(--red);text-transform:uppercase;letter-spacing:.02em}
+  .skins.big .skin .req{position:static;display:flex;align-items:center;gap:3px;padding:0 8px 0 3px;height:22px;border-radius:999px;background:var(--ink);color:#fff;font-size:12.5px;line-height:22px;box-shadow:none}
+  .skins.big .skin .row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;margin-top:auto}
+  .skins.big .skin.cv .row{flex-direction:row;gap:8px}
+  .skins.big .skin .req img{width:16px;height:16px}
+  .skins.big .skin .tag{position:absolute;left:50%;top:-9px;transform:translateX(-50%);padding:0 9px;height:18px;border-radius:999px;background:var(--red);color:#fff;font-size:10px;font-weight:500;line-height:18px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 2px 6px rgba(228,30,43,.35)}
+  .skins.big .skin.cv{overflow:visible}
+  .skins.big .skin .ok{position:absolute;right:5px;top:5px;display:flex;width:20px;height:20px;border-radius:50%;background:var(--red);color:#fff;align-items:center;justify-content:center}
+  .skins.big .skin .ok .ic{width:13px;height:13px;margin:0}
+  .hero .logo{flex:none;width:124px;height:auto;filter:drop-shadow(0 3px 8px rgba(80,0,8,.35))}
+  .hero h1{flex:none;margin-top:2px;font-size:42px;color:#fff;text-shadow:0 3px 0 rgba(120,4,14,.55),0 8px 22px rgba(60,0,8,.4)}
   .hero h1 span{color:#ffd27a}
   .hero .car{flex:0 1 auto;min-height:0;width:100%;max-width:400px;height:auto;object-fit:contain;object-position:center bottom;margin-top:auto}
   .stats{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;width:100%}
@@ -277,14 +329,16 @@
   #fuIco:empty{display:none}
   /* бусты на заезд */
   .boosts{width:100%;max-width:320px;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
-  .bst{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 6px;border-radius:13px;background:#fff6e2;box-shadow:inset 0 0 0 1px #f3d79a;cursor:pointer;transition:transform .08s}
+  .bst{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px 6px;border-radius:15px;background:#fff6e2;font-family:TU,sans-serif;box-shadow:inset 0 0 0 1px #f3d79a;cursor:pointer;transition:transform .08s}
   .bst:active{transform:scale(.95)}
-  .bst .bi{display:flex;color:var(--gold2)}.bst .bi .ic{width:19px;height:19px}
-  .bst b{font-weight:500;font-size:11.5px;line-height:1.1;color:var(--ink);white-space:nowrap}
-  .bst small{display:flex;align-items:center;gap:2px;font-weight:500;font-size:11px;color:#8a5a10}
-  .bst small .ic{width:11px;height:11px}
+  .bst .bi{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:linear-gradient(160deg,#ffd469,#f5a623);color:#fff;box-shadow:0 3px 8px rgba(232,146,15,.35)}.bst .bi .ic{width:21px;height:21px;margin:0;filter:drop-shadow(0 1px 1px rgba(120,50,0,.35))}
+  .bst b{font-weight:500;font-size:12px;line-height:1.1;color:var(--ink);white-space:nowrap}
+  .bst small{display:flex;align-items:center;gap:3px;height:22px;padding:0 8px 0 3px;border-radius:999px;background:#fff;font-weight:500;font-size:12.5px;color:var(--ink);box-shadow:0 1px 3px rgba(120,60,0,.18)}
+  .bst small img{width:16px;height:16px}
+  .bst.on .bi{background:#fff;color:var(--red)}
+  .bst.on:after{content:"";position:absolute;right:6px;top:6px;width:16px;height:16px;border-radius:50%;background:var(--red) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23fff' d='M9.2 16.2L5.5 12.5 4 14l5.2 5.2L20 8.4 18.5 7z'/%3E%3C/svg%3E") center/12px no-repeat}
   .bst.on{background:linear-gradient(160deg,#ffd469,#ffa51f);box-shadow:0 0 0 2px var(--red),0 4px 10px rgba(232,146,15,.35)}
-  .bst.on .bi,.bst.on small{color:#6a2f00}
+  .bst.on small{color:#6a2f00}
   .tcoin{width:84px;height:84px;filter:drop-shadow(0 8px 14px rgba(40,0,6,.4));animation:pop .6s cubic-bezier(.2,1.4,.4,1)}
   .xbar{height:8px;border-radius:4px;background:var(--line);overflow:hidden;margin:8px 0 4px}
   .xbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px}
@@ -301,25 +355,28 @@
 
   <div id="start" class="screen">
     <div class="hero">
+      <div class="snow" id="snowFx" aria-hidden="true"></div>
       <div id="langSw"><button type="button" data-l="ru">RU</button><button type="button" data-l="uz">UZ</button></div>
+      <div class="hud hidden" id="ecoPill" role="button"></div>
       <img class="logo" src="assets/ui/logo.png" alt="Coca-Cola">
       <h1 class="tt">Cola <span>Rush</span></h1>
       <img class="car" src="assets/ui/hero.png" alt="">
     </div>
     <div class="sheet">
       <div class="stats">
-        <div class="pill" id="progPill"></div>
-        <div class="pill ecoPill hidden" id="ecoPill"></div>
+        <div class="ccard" id="progPill"></div>
       </div>
       <div class="chbanner hidden" id="chBanner"></div>
-      <div class="skins" id="skinsStart"></div>
+      <div class="skins big" id="skinsStart"></div>
       <div class="boosts hidden" id="boosts"></div>
-      <button id="playBtn" data-i="arrow" data-t="btn.go">Поехали</button>
+      <div class="playrow">
+        <button class="tile sq" id="mapBtn" data-i="map" data-t="btn.map">Карта</button>
+        <button id="playBtn" data-i="arrow" data-t="btn.go">Поехали</button>
+        <button class="tile sq" id="rulesBtn" data-i="info" data-t="btn.rules">Правила</button>
+      </div>
       <div class="tiles">
-        <button class="tile" id="mapBtn" data-i="map" data-t="btn.map">Карта</button>
         <button class="tile hidden" id="duelBtn" data-i="swords" data-t="btn.duel">Дуэль</button>
         <button class="tile hidden" id="lbBtn" data-i="trophy" data-t="btn.top">Рейтинг</button>
-        <button class="tile" id="rulesBtn" data-i="info" data-t="btn.rules">Правила</button>
       </div>
       <div class="best" id="bestStart"></div>
     </div>
@@ -811,8 +868,11 @@
       SKINS.forEach((s, i) => {
         const b = document.createElement('button');
         const locked = !skinOwned(s);
-        b.className = 'skin' + (i === skin ? ' sel' : '') + (locked ? ' lock' : '');
-        b.innerHTML = '<img src="' + skinThumb(s) + '" alt="">' + (locked ? '<span class="req">' + (shopOn() ? ico('coin') + skinPrice(s.id) : s.need) + '</span>' : '');
+        const big = id === 'skinsStart', cv = s.id === 'caravan';
+        b.className = 'skin' + (cv && big ? ' cv' : '') + (i === skin ? ' sel' : '') + (locked ? ' lock' : '');
+        if (big) b.innerHTML = (cv && locked ? '<span class="tag">' + esc(tr('skin.new')) + '</span>' : '') + '<img src="' + (cv ? 'assets/ui/caravan_side.png' : skinThumb(s)) + '" alt="">' + '<span class="row"><span class="nm">' + esc(tr('skin.' + s.id)) + '</span>' +
+          (locked ? '<span class="req">' + (shopOn() ? '<img src="assets/ui/tanga.png" alt="">' + skinPrice(s.id) : ico('lock') + s.need) + '</span>' : '') + '</span>' + (!locked && i === skin ? '<span class="ok">' + ico('check') + '</span>' : '');
+        else b.innerHTML = '<img src="' + skinThumb(s) + '" alt="">' + (locked ? '<span class="req">' + (shopOn() ? ico('coin') + skinPrice(s.id) : s.need) + '</span>' : '');
         b.onclick = () => { if (locked) { if (shopOn()) askSkin(i); else haptic('error'); return; } haptic('select'); skin = i; try { localStorage.setItem('jcr_skin', i); } catch (e) {} renderSkins(); };
         box.appendChild(b);
       });
@@ -1209,7 +1269,7 @@
   };
   function askSkin(i) {
     const s = SKINS[i], n = skinPrice(s.id);
-    ask({ ico: '<img src="' + skinThumb(s) + '" alt="">', title: tr(s.id === 'caravan' ? 'skin.caravanT' : 'skin.buyT'), text: tr('skin.buyS', { n }), btn: tr('skin.buy', { n }), cost: n,
+    ask({ ico: '<img src="' + (s.id === 'caravan' ? 'assets/ui/caravan_side.png' : skinThumb(s)) + '" alt=""' + (s.id === 'caravan' ? ' style="width:230px;height:auto"' : '') + '>', title: tr(s.id === 'caravan' ? 'skin.caravanT' : 'skin.buyT'), text: tr('skin.buyS', { n }), btn: tr('skin.buy', { n }), cost: n,
       go: async () => { const r = await shop('skin/buy', { skin: s.id }); setEco(r.eco); skin = i; try { localStorage.setItem('jcr_skin', i); } catch (e) {} renderSkins(); haptic('success'); toast(tr('skin.done')); } });
   }
   // бусты на заезд: выбираются на старте, оплачиваются при старте заезда
@@ -1218,7 +1278,7 @@
   function renderBoosts() {
     const box = $('boosts'); if (!box) return;
     const on = shopOn() && !!eco && !pendingDuel; show('boosts', on); if (!on) { picked = []; return; }
-    box.innerHTML = BOOSTS.map(b => '<div class="bst' + (picked.includes(b.id) ? ' on' : '') + '" data-b="' + b.id + '" role="button"><span class="bi">' + ico(b.ico) + '</span><b>' + esc(tr('b.' + b.id)) + '</b><small>' + ico('coin') + boostPrice(b.id) + '</small></div>').join('');
+    box.innerHTML = BOOSTS.map(b => '<div class="bst' + (picked.includes(b.id) ? ' on' : '') + '" data-b="' + b.id + '" role="button"><span class="bi">' + ico(b.ico) + '</span><b>' + esc(tr('b.' + b.id)) + '</b><small><img src="assets/ui/tanga.png" alt="">' + boostPrice(b.id) + '</small></div>').join('');
     box.querySelectorAll('.bst').forEach(el => el.onclick = () => {
       const id = el.dataset.b, has = picked.includes(id);
       if (!has && eco.tanga < boostSum() + boostPrice(id)) { haptic('error'); toast(tr('fuel.noTanga')); return; }
@@ -1250,7 +1310,8 @@
   function renderEco() {
     const L = liveFuel(); if (!L) return;
     const h = ico('fuel') + L.fuel + '/' + eco.cap + (L.next > 0 ? ' <small>' + tr('eco.next', { time: mmss(L.next) }) + '</small>' : '') + sep + ico('coin') + eco.tanga;
-    ['ecoPill', 'ecoPill2'].forEach(id => { $(id).innerHTML = h; show(id); });
+    $('ecoPill2').innerHTML = h; show('ecoPill2');
+    $('ecoPill').innerHTML = '<span class="hc"><img src="assets/ui/tanga.png" alt="">' + fmt(eco.tanga) + '<span class="plus">+</span></span><span class="hc"><span class="fi">' + ico('fuel') + '</span>' + L.fuel + '/' + eco.cap + (L.next > 0 ? '<small>' + mmss(L.next) + '</small>' : '') + '</span>'; show('ecoPill'); document.querySelector('#start .hero').classList.add('hashud');
     const empty = L.fuel <= 0;
     let bsum = 0; try { bsum = boostSum(); } catch (e) {}
     setBt($('playBtn'), empty ? tr('btn.refuel') : bsum ? tr('btn.goCost', { n: bsum }) : tr('btn.go'), empty ? 'fuel' : 'arrow');
@@ -1293,13 +1354,24 @@
     const f = prog.city, s = Math.min(selCity, maxCity());
     selCity = s;
     let h;
-    if (prog.done) h = ico('trophy') + tr('prog.done') + sep + esc(CITIES[s].n);
-    else if (s === f) h = ico('pin') + esc(CITIES[f].n) + sep + ico('can') + prog.cans + '/' + GOAL_C[f] + sep + ico('star') + prog.pts + '/' + GOAL_P[f];
-    else h = ico('pin') + esc(CITIES[s].n) + sep + tr('prog.free');
+    const bar = (cls, ic, lbl, v, goal) => '<div class="g ' + cls + '"><b>' + ico(ic) + '<em>' + esc(lbl) + '</em>' + fmt(Math.min(v, goal)) + '/' + fmt(goal) + '</b><div class="bar"><i style="width:' + Math.min(100, v / goal * 100) + '%"></i></div></div>';
+    if (prog.done) h = '<div class="ch">' + ico('trophy') + esc(CITIES[s].n) + '</div><div class="done">' + tr('prog.done') + '</div>';
+    else if (s === f) h = '<div class="ch">' + ico('pin') + esc(CITIES[f].n) + (CITIES[f + 1] ? '<small>' + esc(tr('prog.next', { city: CITIES[f + 1].n })) + '</small>' : '') + '</div><div class="gs">' + bar('c', 'can', tr('prog.caps'), prog.cans, GOAL_C[f]) + bar('p', 'star', tr('prog.pts'), prog.pts, GOAL_P[f]) + '</div>';
+    else h = '<div class="ch">' + ico('pin') + esc(CITIES[s].n) + '<small>' + tr('prog.free') + '</small></div>';
     $('progPill').innerHTML = h;
     if (typeof renderEco === 'function' && eco) renderEco(); else setBt($('againBtn'), tr('btn.againCity', { city: CITIES[s].n }), 'refresh');
     if (state !== 'play') { themeCity = s; ensureImg(s, 'ground'); }
   }
+  (function snow() {                                                                         // падающие снежинки на стартовом экране
+    const box = $('snowFx'); if (!box) return;
+    const SF = '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M11 1h2v4.2l2.3-1.9 1.3 1.5L13 7.8v2.5l2.2-1.3 1.1-4.2 1.9.5-.7 2.7 3.6-2.1 1 1.7-3.6 2.1 2.7.7-.5 1.9-4.2-1.1L14.2 12l2.2 1.3 4.2-1.1.5 1.9-2.7.7 3.6 2.1-1 1.7-3.6-2.1.7 2.7-1.9.5-1.1-4.2L13 13.7v2.5l3.6 3-1.3 1.5-2.3-1.9V23h-2v-4.2l-2.3 1.9-1.3-1.5 3.6-3v-2.5l-2.2 1.3-1.1 4.2-1.9-.5.7-2.7-3.6 2.1-1-1.7 3.6-2.1-2.7-.7.5-1.9 4.2 1.1L9.8 12 7.6 10.7l-4.2 1.1-.5-1.9 2.7-.7-3.6-2.1 1-1.7 3.6 2.1-.7-2.7 1.9-.5 1.1 4.2L11 10.3V7.8L7.4 4.8l1.3-1.5L11 5.2z"/></svg>';
+    let h = '';
+    for (let k = 0; k < 26; k++) {
+      const sz = 8 + Math.random() * 16, dur = 9 + Math.random() * 10, op = .45 + Math.random() * .5;
+      h += '<i style="left:' + (Math.random() * 100).toFixed(1) + '%;width:' + sz.toFixed(0) + 'px;height:' + sz.toFixed(0) + 'px;opacity:' + op.toFixed(2) + ';animation-duration:' + dur.toFixed(1) + 's;animation-delay:-' + (Math.random() * dur).toFixed(1) + 's;--dx:' + (Math.random() * 60 - 30).toFixed(0) + 'px;--rt:' + (Math.random() * 360 - 180).toFixed(0) + 'deg">' + SF + '</i>';
+    }
+    box.innerHTML = h;
+  })();
   if (DEMO) setEco(demoLoad());
   if (online) api('progress').then(p => { if (p && typeof p.city === 'number') { setEco(p.eco); prog = p; delete prog.eco; saveProg(); refreshProgUI(); } }).catch(() => {});
 
