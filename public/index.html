@@ -748,7 +748,7 @@ const SELF=i=>GALLERY.findIndex(g=>g.f==="selfie"+i);
 const NOWS=[
   {k:"pre",l:"7 ноября · анонс",t:new Date(2026,10,7,12,0).getTime()},
   {k:"nam",l:"18 дек · Наманган",t:T(18,17,30)},
-  {k:"tash",l:"28 дек · Ташкент, трак в пути",t:T(28,18,52)},
+  {k:"tash",l:"28 дек · Ташкент, караван в пути",t:T(28,18,52)},
   {k:"fin",l:"30 дек · финальный день",t:T(30,17,20)},
 ];
 const st={concept:"tiles",open:"tashkent",screen:"bot",consent:[false,false],accepted:false,welcomed:false,nowK:"tash",city:"tashkent",tday:null,bal:0,
@@ -820,7 +820,7 @@ function consent(){
 const bow=(c="#fff",o="")=>{const st=o?` stroke="${o}" stroke-width="3" paint-order="stroke" stroke-linejoin="round"`:"";return `<svg class="bow${o?" bow-o":""}" viewBox="-3 -3 66 36" aria-hidden="true">${o?`<path d="M28 16l-10 14M32 16l10 14" stroke="${o}" stroke-width="8" stroke-linecap="round"/>`:""}<path d="M30 16C22 2 6 0 6 10s16 8 24 6z" fill="${c}"${st}/><path d="M30 16C38 2 54 0 54 10s-16 8-24 6z" fill="${c}"${st}/><path d="M28 16l-10 14M32 16l10 14" stroke="${c}" stroke-width="4"${o?' stroke-linecap="round"':""}/><circle cx="30" cy="15" r="5" fill="${c}"${st}/></svg>`;};
 function nextInfo(){
   const nx=ORDER.map(c=>({c,s:cityState(c)}));
-  const live=nx.find(o=>o.s.k==="live"); if(live) return `${live.c.ru}: трак в пути`;
+  const live=nx.find(o=>o.s.k==="live"); if(live) return `${live.c.ru}: караван в пути`;
   const td=nx.filter(o=>o.s.k==="today"); if(td.length) return `Сегодня: ${td.map(o=>o.c.ru).join(", ")}`;
   const n=nx.filter(o=>o.s.k==="soon").sort((a,b)=>a.s.slot[0]-b.s.slot[0])[0];
   return n?`Дальше: ${n.c.ru}, ${fmtD(n.s.slot[0])}`:"Маршрут завершён";
@@ -865,12 +865,12 @@ function landing(){
 
 /* live GPS block: every truck has a GPS tracker, every city shows its own truck */
 function liveBlock(c,sl){ const m=streetMap(c,sl); st._map={slot:sl,...m};
-  return `<div class="livemap">${m.svg}<span class="chip live">трак в пути · GPS</span></div><div class="nownext"><div class="r"><span class="dot" style="background:var(--red);box-shadow:0 0 0 4px #fde8e9"></span><span id="nowTxt">…</span><span></span></div><div class="r"><span class="dot" style="background:var(--g2)"></span><span>Дальше: <b id="nextTxt">…</b></span><small id="etaTxt"></small></div></div>`; }
+  return `<div class="livemap">${m.svg}<span class="chip live">3 трака в пути · GPS</span></div><div class="nownext"><div class="r"><span class="dot" style="background:var(--red);box-shadow:0 0 0 4px #fde8e9"></span><span id="nowTxt">…</span><span></span></div><div class="r"><span class="dot" style="background:var(--g2)"></span><span>Дальше: <b id="nextTxt">…</b></span><small id="etaTxt"></small></div></div>`; }
 function regionPanel(c,full){
   const s=cityState(c), sl=s.slot;
   let trk="";
-  if(s.k==="today"||s.k==="live") trk=full?liveBlock(c,sl):`<span class="chip today" style="justify-self:start">трак сегодня здесь · GPS</span>`;
-  else if(s.k==="soon") trk=`<span class="cap">Трак будет виден на карте ${c.d} декабря, как только въедет в город</span>`;
+  if(s.k==="today"||s.k==="live") trk=full?liveBlock(c,sl):`<span class="chip today" style="justify-self:start">караван сегодня здесь · GPS</span>`;
+  else if(s.k==="soon") trk=`<span class="cap">Три трака появятся на карте ${c.d} декабря, как только въедут в город</span>`;
   else trk=`<span class="cap">Караван уже побывал здесь</span>`;
   return `<div class="pl">${pinIc}<span>${c.p}</span></div><span class="cap">${c.d} декабря. Время остановки сообщим в боте.</span>${trk}`;
 }
@@ -912,10 +912,10 @@ function trackScreen(){
   const a=activeCities();
   const nx=ORDER.map(c=>({c,s:cityState(c)})).filter(o=>o.s.k==="soon").sort((x,y)=>x.s.slot[0]-y.s.slot[0]).slice(0,3);
   const card=o=>{ const live=o.s.k==="live"||(!o.c.days&&o.s.k==="today");
-    const when=o.c.days?(live?`${o.s.slot[2].p} · трак в пути`:`${o.s.slot[2].p} · выезд в 18:00`):`${o.c.p}`;
+    const when=o.c.days?(live?`${o.s.slot[2].p} · 3 трака в пути`:`${o.s.slot[2].p} · выезд в 18:00`):`${o.c.p} · 3 трака`;
     return `<button class="trk-c" data-city="${o.c.id}"><span class="nm"><b>${o.c.ru}</b><small>${when}</small></span><span class="chip ${live?"live":"today"}">${live?"на карте":"сегодня"}</span>${cvIc}</button>`; };
-  return `<div class="scr"><button class="back" data-go="home">‹ Назад</button><h2 class="h1">Где трак сейчас</h2>
-    <p class="sub">На каждом траке стоит GPS-трекер: следите за караваном в своём городе.</p>
+  return `<div class="scr"><button class="back" data-go="home">‹ Назад</button><h2 class="h1">Где караван сейчас</h2>
+    <p class="sub">Два каравана по 3 трака: один по Ташкенту, второй по регионам. На каждом траке GPS — следите за ним в своём городе.</p>
     ${a.length?`<div class="trk-l">${a.map(card).join("")}</div>`:`<div class="card"><span class="cap">Сейчас караван не в пути.</span></div>`}
     ${nx.length?`<div class="secth"><h3>Дальше</h3></div><div class="trk-l">${nx.map(o=>`<button class="trk-c" data-city="${o.c.id}"><span class="nm"><b>${o.c.ru}</b><small>${fmtD(o.s.slot[0])} · ${o.c.days?o.s.slot[2].p:o.c.p}</small></span>${cvIc}</button>`).join("")}</div>`:""}
     <button class="btn w" data-go="route" style="border:1px solid var(--g2)">Весь маршрут</button></div>`;
@@ -938,7 +938,7 @@ function streetMap(c,slot){
   const d="M"+pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L");
   const stops=c.days?["Выезд колонны",slot[2].p,"Парк"]:["Въезд в город",slot[2].p,"Отъезд"]; const idx=[0,Math.round((pts.length-1)*.55),pts.length-1];
   const pins=idx.map((pi,i)=>`<g transform="translate(${pts[pi][0]},${pts[pi][1]})"><circle r="${i===1?12:9}" fill="${i===1?"#e41e2b":"#fff"}" stroke="#e41e2b" stroke-width="3"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="${i===1?"#fff":"#e41e2b"}" font-family="TCCC Unity,system-ui">${i+1}</text></g>`).join("");
-  const truck=`<g id="truckMk"><circle r="17" fill="#e41e2b" opacity=".25"><animate attributeName="r" values="12;20;12" dur="1.4s" repeatCount="indefinite"/></circle><circle r="12" fill="#e41e2b" stroke="#fff" stroke-width="3"/><path d="M-7 -3h8v7h-8zM1 -1h3l3 3v2H1z" fill="#fff"/></g>`;
+  const truck=[2,1,0].map(k=>`<g class="truckMk" data-k="${k}"><circle r="15" fill="#e41e2b" opacity=".22"><animate attributeName="r" values="10;17;10" dur="1.4s" begin="${k*.3}s" repeatCount="indefinite"/></circle><circle r="10.5" fill="#e41e2b" stroke="#fff" stroke-width="2.5"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="TCCC Unity,system-ui">${k+1}</text></g>`).join("");
   return {svg:`<svg viewBox="0 0 ${W} ${H}" aria-label="Карта: маршрут каравана"><rect width="${W}" height="${H}" fill="#f4f1ee"/>${parks}${river}${g}
     <path id="rBase" d="${d}" fill="none" stroke="#e41e2b" stroke-width="4" stroke-dasharray="1 8" stroke-linecap="round" opacity=".6"/>
     <path id="rDone" d="${d}" fill="none" stroke="#e41e2b" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>${pins}${truck}</svg>`,pts,idx,stops};
@@ -946,15 +946,15 @@ function streetMap(c,slot){
 let raf=null;
 function animateTruck(m){
   cancelAnimationFrame(raf);
-  const base=$("#rDone"), mk=$("#truckMk"); if(!base) return;
+  const base=$("#rDone"), mks=[...document.querySelectorAll(".truckMk")]; if(!base) return;
   const L=base.getTotalLength(); const pts=m.pts; let acc=[0]; for(let i=1;i<pts.length;i++) acc.push(acc[i-1]+Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]));
   const fr=acc.map(a=>a/acc[acc.length-1]); const stopFr=m.idx.map(i=>fr[i]);
   const p0=Math.min(.9,Math.max(.04,(now()-m.slot[0])/(m.slot[1]-m.slot[0]))); const s0=performance.now();
   const step=()=>{ if(!document.body.contains(base)) return;
     let p=Math.min(.98,p0+((performance.now()-s0)/1000)*.01);
-    base.style.strokeDasharray=`${L*p} ${L}`; const q=base.getPointAtLength(L*p); mk&&mk.setAttribute("transform",`translate(${q.x},${q.y})`);
+    base.style.strokeDasharray=`${L*p} ${L}`; mks.forEach(mk=>{ const k=+mk.dataset.k; const q=base.getPointAtLength(L*Math.max(0,p-k*.045)); mk.setAttribute("transform",`translate(${q.x},${q.y})`); });
     const nx=stopFr.findIndex(f=>f>p); const prev=nx===-1?2:nx-1; const el=$("#nowTxt");
-    if(el){ el.innerHTML=nx===-1?`Колонна в парке`:`Едет от «${m.stops[prev]}» к «${m.stops[nx]}»`;
+    if(el){ el.innerHTML=nx===-1?`Колонна в парке`:`Колонна едет от «${m.stops[prev]}» к «${m.stops[nx]}»`;
       $("#nextTxt").textContent=nx===-1?"финиш":m.stops[nx];
       const mins=nx===-1?0:Math.max(1,Math.round((stopFr[nx]-p)*(m.slot[1]-m.slot[0])/6e4)); $("#etaTxt").textContent=nx===-1?"":`через ${mins} мин`; }
     raf=requestAnimationFrame(step); };
@@ -1080,7 +1080,7 @@ const VIEWS={consent,home:()=>st.concept==="tiles"?tiles():landing(),route:route
 function render(top=true){
   if(st.screen==="bot"||st.screen==="intro"){ syncFlow(); return; }
   view.innerHTML=VIEWS[st.screen](); scrollEl.classList.toggle("redbg",st.screen==="consent"||(st.screen==="home"&&st.concept==="tiles")); if(top){ scrollEl.scrollTop=0; if(document.documentElement.classList.contains("tgdoc")) window.scrollTo(0,0); } tickCD();
-  if($("#truckMk")&&st._map) animateTruck(st._map); else cancelAnimationFrame(raf);
+  if($(".truckMk")&&st._map) animateTruck(st._map); else cancelAnimationFrame(raf);
   syncFlow();
 }
 function openSheet(html){ $("#sheetIn").innerHTML='<span class="grab"></span>'+html; $("#sheet").classList.add("on"); }
@@ -1300,7 +1300,7 @@ function choose(){
     <button class="ccard" data-pick="tiles"><span class="pv"><img src="img/ai-disco.webp" alt=""></span><span class="tx"><small>Концепт 1</small><b>Плитки-коробки</b><span>Разделы как подарочные коробки с трака. Главная — Волшебная открытка.</span></span></button>
     <button class="ccard" data-pick="land"><span class="pv"><img src="img/truck-hero.webp" alt="" style="object-position:62% 50%"></span><span class="tx"><small>Концепт 2</small><b>Чистый лендинг</b><span>Светлый экран: Волшебная открытка, маршрут, Party Bus, голосование.</span></span></button>
     <div class="demo"><span class="lbl">Показать мини-апп</span><div class="dseg" role="group">
-      <button data-demo="pre" aria-pressed="${st.nowK==="pre"}">до старта</button><button data-demo="tash" aria-pressed="${st.nowK==="tash"}">28 дек, трак в пути</button></div></div>
+      <button data-demo="pre" aria-pressed="${st.nowK==="pre"}">до старта</button><button data-demo="tash" aria-pressed="${st.nowK==="tash"}">28 дек, караван в пути</button></div></div>
   </div>`;
 }
 VIEWS.choose=choose;
