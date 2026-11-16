@@ -202,6 +202,10 @@ img{display:block;max-width:100%}
 /* concept 1: tiles */
 .tilescr{background:var(--red);color:#fff;min-height:100%}
 .tilescr .toprow h2{margin:0;font-family:var(--display);font-weight:400;font-size:29px;line-height:1;white-space:nowrap}
+.trk-l{display:grid;gap:8px}
+.trk-c .cv{transform:rotate(-90deg);width:18px;height:18px;color:var(--red)}
+.trk-c{display:grid;grid-template-columns:1fr auto 18px;gap:10px;align-items:center;background:#fff;border:0;border-radius:16px;padding:14px 14px 14px 16px;text-align:left;color:var(--ink);box-shadow:var(--sh1,0 2px 6px rgba(26,26,26,.06))}
+.trk-c .nm{display:grid;gap:2px}.trk-c .nm b{font-family:var(--display);font-weight:400;font-size:21px;line-height:1.1}.trk-c .nm small{font-size:13px;color:var(--muted)}
 .tilescr .steps3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:-2px 0 2px}
 .tilescr .steps3 span{display:grid;gap:3px;align-content:start;background:rgba(255,255,255,.14);border-radius:12px;padding:9px 9px 10px;font-size:12.5px;line-height:1.25;color:#fff}
 .tilescr .steps3 b{font-family:var(--display);font-weight:400;font-size:20px;line-height:1}
@@ -829,7 +833,7 @@ function tiles(){
       <button class="tile t-ai" data-tile="ai"><span class="fan"><img src="img/pc-dast_magic-${st.lang}.webp" alt=""><img src="img/pc-bath_fly-${st.lang}.webp" alt=""><img src="img/pc-disco_ny-${st.lang}.webp" alt=""></span>
         <span class="tl"><span style="display:grid;gap:6px"><b>Волшебная<br>открытка</b><small>Ваше фото в новогодней сцене и Coca-Cola в подарок</small></span><span class="go">Создать · 20 ${coin}</span></span></button>
       <button class="tile t-route bx-stripe" data-tile="route">${bow("#e41e2b","#fff")}<span class="lab"><b>Маршрут</b><small>${nextInfo()}</small></span></button>
-      <button class="tile t-trk bx-red" data-tile="tashkent" style="--rx:78%;--ry:22%"><span class="rib"></span>${bow("#e41e2b","#fff")}<img class="tcut" src="img/truck-bayram-side.webp" alt=""><span class="tl"><b>Ташкент</b><small>где трак сейчас</small></span></button>
+      <button class="tile t-trk bx-red" data-tile="track" style="--rx:78%;--ry:22%"><span class="rib"></span>${bow("#e41e2b","#fff")}<img class="tcut" src="img/truck-bayram-side.webp" alt=""><span class="tl"><b>Где трак</b><small>${trackInfo()}</small></span></button>
       <button class="tile t-bay" data-tile="bayram"><img class="kvb" src="img/kv-scene.webp" alt=""><span class="bts"><img src="img/bt-fanta.webp" alt=""><img src="img/bt-coke.webp" alt=""><img src="img/bt-sprite.webp" alt=""></span><span class="tl"><span style="display:grid;gap:8px"><span class="tag">Промо</span><img src="img/lockup-ru.webp" alt="Сезон праздников с Coca-Cola"></span><span class="cta">Bayram Promo ›</span></span></button>
     </div>
     <p class="more"><b>И ещё много интересного</b>скоро в караване</p>
@@ -859,12 +863,23 @@ function landing(){
   </div>`;
 }
 
+/* live GPS block: every truck has a GPS tracker, every city shows its own truck */
+function liveBlock(c,sl){ const m=streetMap(c,sl); st._map={slot:sl,...m};
+  return `<div class="livemap">${m.svg}<span class="chip live">трак в пути · GPS</span></div><div class="nownext"><div class="r"><span class="dot" style="background:var(--red);box-shadow:0 0 0 4px #fde8e9"></span><span id="nowTxt">…</span><span></span></div><div class="r"><span class="dot" style="background:var(--g2)"></span><span>Дальше: <b id="nextTxt">…</b></span><small id="etaTxt"></small></div></div>`; }
+function regionPanel(c,full){
+  const s=cityState(c), sl=s.slot;
+  let trk="";
+  if(s.k==="today"||s.k==="live") trk=full?liveBlock(c,sl):`<span class="chip today" style="justify-self:start">трак сегодня здесь · GPS</span>`;
+  else if(s.k==="soon") trk=`<span class="cap">Трак будет виден на карте ${c.d} декабря, как только въедет в город</span>`;
+  else trk=`<span class="cap">Караван уже побывал здесь</span>`;
+  return `<div class="pl">${pinIc}<span>${c.p}</span></div><span class="cap">${c.d} декабря. Время остановки сообщим в боте.</span>${trk}`;
+}
 /* route accordion (landing + route screen) */
 function tashPanel(c){
   const n=now(); if(st.tday==null){ const s=cityState(c); st.tday=c.days.indexOf(s.slot[2]); }
   const sl=slots(c)[st.tday]; const day=sl[2]; const k=n>=sl[0]&&n<sl[1]?"live":n<sl[0]?"soon":"done";
   let trk="";
-  if(k==="live"){ const m=streetMap(c,sl); st._map={slot:sl,...m}; trk=`<div class="livemap">${m.svg}<span class="chip live">трак в пути</span></div><div class="nownext"><div class="r"><span class="dot" style="background:var(--red);box-shadow:0 0 0 4px #fde8e9"></span><span id="nowTxt">…</span><span></span></div><div class="r"><span class="dot" style="background:var(--g2)"></span><span>Дальше: <b id="nextTxt">…</b></span><small id="etaTxt"></small></div></div>`; }
+  if(k==="live"){ trk=liveBlock(c,sl); }
   else if(k==="soon"){ trk=`<span class="cap">Трекинг включится ${day.d} декабря в 18:00</span>${cdHTML(sl[0])}`; }
   else trk=`<span class="cap">Этот день прошёл. Выберите другой.</span>`;
   return `<div class="days" role="group" aria-label="День">${c.days.map((x,i)=>{const q=slots(c)[i]; const lv=n>=q[0]&&n<q[1]; return `<button data-tday="${i}" aria-pressed="${i===st.tday}">${x.d}<small>дек</small>${lv?'<span class="ld"></span>':""}</button>`}).join("")}</div>
@@ -878,10 +893,9 @@ function accItem(c){
   let panel="";
   if(open){
     if(c.days) panel=tashPanel(c)+(cityState(c).k==="live"?`<button class="btn r sm" data-city="tashkent" style="width:100%">Трекинг на весь экран</button>`:"");
-    else panel=`<div class="pl">${pinIc}<span>${c.p}</span></div><span class="cap">${c.d} декабря. Время остановки сообщим в боте.</span>
-      ${s.k==="soon"?`<button class="sw" role="switch" aria-checked="${!!st.remind[c.id]}" data-remind="${c.id}">Напомнить за день<span class="t"></span></button>`:s.k==="today"?`<span class="chip today" style="justify-self:start">караван сегодня здесь</span>`:`<span class="cap">Караван уже побывал здесь</span>`}`;
+    else panel=regionPanel(c,false)+(s.k==="soon"?`<button class="sw" role="switch" aria-checked="${!!st.remind[c.id]}" data-remind="${c.id}">Напомнить за день<span class="t"></span></button>`:"")+(s.k==="today"||s.k==="live"?`<button class="btn r sm" data-city="${c.id}" style="width:100%">Трекинг на весь экран</button>`:"");
   }
-  return `<div class="acc${open?" open":""}${c.days?" tash":""}"><button class="acch" data-acc="${c.id}" aria-expanded="${open}"><span class="dt">${date}</span><span class="nm"><b>${c.ru}</b><small>${c.days?"6 дней · трекинг трака":c.p}</small></span>${chip(s.k)}${cvIc}</button>${open?`<div class="accp">${panel}</div>`:""}</div>`;
+  return `<div class="acc${open?" open":""}${c.days?" tash":""}"><button class="acch" data-acc="${c.id}" aria-expanded="${open}"><span class="dt">${date}</span><span class="nm"><b>${c.ru}</b><small>${c.days?"6 дней · GPS-трекинг":c.p+" · GPS"}</small></span>${chip(s.k)}${cvIc}</button>${open?`<div class="accp">${panel}</div>`:""}</div>`;
 }
 function uzMap(){
   const pts=REGS.map(c=>`${c.x*9},${c.y*6.08}`).join(" ");
@@ -889,6 +903,22 @@ function uzMap(){
     return `<g data-acc="${c.id}" style="cursor:pointer">${k==="live"||k==="today"?`<circle cx="${x}" cy="${y}" r="16" fill="#fff" opacity=".35"><animate attributeName="r" values="8;20;8" dur="1.6s" repeatCount="indefinite"/></circle>`:""}<circle cx="${x}" cy="${y}" r="${big}" fill="${fill}" stroke="#fff" stroke-width="3"/>
     <text x="${x+LB[c.id][0]}" y="${y+LB[c.id][1]}" text-anchor="${LB[c.id][2]}" fill="#fff" font-size="27" font-weight="500" font-family="TCCC Unity,system-ui">${c.ru}</text></g>`;};
   return `<div class="uzmap"><img src="img/uz-map.webp" alt=""><svg viewBox="0 0 900 608" aria-label="Карта маршрута"><polyline points="${pts}" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" opacity=".85"/>${CITIES.map(dot).join("")}</svg><span class="tag">Регионы 18–29 дек · Ташкент 25–30 дек</span></div>`;
+}
+function activeCities(){ return ORDER.map(c=>({c,s:cityState(c)})).filter(o=>o.s.k==="live"||o.s.k==="today"); }
+function trackInfo(){ const a=activeCities(); if(a.length) return a.length===1?`сейчас: ${a[0].c.ru}`:`сегодня: ${a.map(o=>o.c.ru).join(", ")}`;
+  const n=ORDER.map(c=>({c,s:cityState(c)})).filter(o=>o.s.k==="soon").sort((x,y)=>x.s.slot[0]-y.s.slot[0])[0];
+  return n?`GPS в каждом городе`:"маршрут завершён"; }
+function trackScreen(){
+  const a=activeCities();
+  const nx=ORDER.map(c=>({c,s:cityState(c)})).filter(o=>o.s.k==="soon").sort((x,y)=>x.s.slot[0]-y.s.slot[0]).slice(0,3);
+  const card=o=>{ const live=o.s.k==="live"||(!o.c.days&&o.s.k==="today");
+    const when=o.c.days?(live?`${o.s.slot[2].p} · трак в пути`:`${o.s.slot[2].p} · выезд в 18:00`):`${o.c.p}`;
+    return `<button class="trk-c" data-city="${o.c.id}"><span class="nm"><b>${o.c.ru}</b><small>${when}</small></span><span class="chip ${live?"live":"today"}">${live?"на карте":"сегодня"}</span>${cvIc}</button>`; };
+  return `<div class="scr"><button class="back" data-go="home">‹ Назад</button><h2 class="h1">Где трак сейчас</h2>
+    <p class="sub">На каждом траке стоит GPS-трекер: следите за караваном в своём городе.</p>
+    ${a.length?`<div class="trk-l">${a.map(card).join("")}</div>`:`<div class="card"><span class="cap">Сейчас караван не в пути.</span></div>`}
+    ${nx.length?`<div class="secth"><h3>Дальше</h3></div><div class="trk-l">${nx.map(o=>`<button class="trk-c" data-city="${o.c.id}"><span class="nm"><b>${o.c.ru}</b><small>${fmtD(o.s.slot[0])} · ${o.c.days?o.s.slot[2].p:o.c.p}</small></span>${cvIc}</button>`).join("")}</div>`:""}
+    <button class="btn w" data-go="route" style="border:1px solid var(--g2)">Весь маршрут</button></div>`;
 }
 function routeScreen(){
   return `<div class="scr"><button class="back" data-go="home">‹ Назад</button><h2 class="h1">Маршрут</h2><p class="sub">Нажмите на город, чтобы увидеть дату и место.</p>${uzMap()}<div class="list">${ORDER.map(accItem).join("")}</div></div>`;
@@ -906,7 +936,7 @@ function streetMap(c,slot){
   const pts=[]; let ci=1,rj=2+Math.floor(r()*3); const P=(i,j)=>[cols[i],rows[j]]; pts.push(P(ci,rj));
   while(ci<8){ ci++; pts.push(P(ci,rj)); if(r()<.55){ rj=Math.max(1,Math.min(6,rj+(r()<.5?-1:1))); pts.push(P(ci,rj)); } }
   const d="M"+pts.map(p=>p[0].toFixed(1)+" "+p[1].toFixed(1)).join(" L");
-  const stops=["Выезд колонны",slot[2].p,"Парк"]; const idx=[0,Math.round((pts.length-1)*.55),pts.length-1];
+  const stops=c.days?["Выезд колонны",slot[2].p,"Парк"]:["Въезд в город",slot[2].p,"Отъезд"]; const idx=[0,Math.round((pts.length-1)*.55),pts.length-1];
   const pins=idx.map((pi,i)=>`<g transform="translate(${pts[pi][0]},${pts[pi][1]})"><circle r="${i===1?12:9}" fill="${i===1?"#e41e2b":"#fff"}" stroke="#e41e2b" stroke-width="3"/><text y="4" text-anchor="middle" font-size="11" font-weight="700" fill="${i===1?"#fff":"#e41e2b"}" font-family="TCCC Unity,system-ui">${i+1}</text></g>`).join("");
   const truck=`<g id="truckMk"><circle r="17" fill="#e41e2b" opacity=".25"><animate attributeName="r" values="12;20;12" dur="1.4s" repeatCount="indefinite"/></circle><circle r="12" fill="#e41e2b" stroke="#fff" stroke-width="3"/><path d="M-7 -3h8v7h-8zM1 -1h3l3 3v2H1z" fill="#fff"/></g>`;
   return {svg:`<svg viewBox="0 0 ${W} ${H}" aria-label="Карта: маршрут каравана"><rect width="${W}" height="${H}" fill="#f4f1ee"/>${parks}${river}${g}
@@ -934,11 +964,11 @@ function animateTruck(m){
 function city(){
   const c=byId(st.city); if(st.tday==null){ const s=cityState(c); st.tday=c.days?c.days.indexOf(s.slot[2]):0; }
   return `<div class="scr">
-    <button class="back" data-go="home">‹ Назад</button>
+    <button class="back" data-go="${st._cityFrom==="track"||st._cityFrom==="route"?st._cityFrom:"home"}">‹ Назад</button>
     <div class="cityban"><img src="img/truck-hero.webp" alt=""><div class="ov"><b>${c.ru}</b><small>${c.days?"25–30 декабря · каждый день с 18:00":`${c.d} декабря · ${c.p}`}</small></div></div>
     <button class="aimini" data-go="ai"><img src="img/pc-disco_ny-${st.lang}.webp" alt="" style="object-position:50% 0"><span><b>Создать волшебную открытку</b><small>Выберите свой Новый год. Открытка может появиться на экранах трака</small></span>${chev}</button>
-    <div class="card">${c.days?tashPanel(c):`<div class="pl">${pinIc}<span>${c.p}</span></div>`}</div>
-    ${c.days?`<button class="sw" role="switch" aria-checked="${!!st.remind["t"+st.tday]}" data-remind="t${st.tday}">Напомнить за час до выезда<span class="t"></span></button>`:""}
+    <div class="card">${c.days?tashPanel(c):regionPanel(c,true)}</div>
+    ${c.days?`<button class="sw" role="switch" aria-checked="${!!st.remind["t"+st.tday]}" data-remind="t${st.tday}">Напомнить за час до выезда<span class="t"></span></button>`:cityState(c).k==="soon"?`<button class="sw" role="switch" aria-checked="${!!st.remind[c.id]}" data-remind="${c.id}">Напомнить за день<span class="t"></span></button>`:""}
   </div>`;
 }
 
@@ -1046,7 +1076,7 @@ function finishGen(){
 const stLabel=m=>!m?"на модерации":m.status==="q"?"на модерации":m.status==="y"?"одобрена, ждёт эфира":m.status==="air"?"сейчас на экране трака":m.status==="shown"?"уже была на экране трака":"не прошла модерацию";
 
 /* ---------- render ---------- */
-const VIEWS={consent,home:()=>st.concept==="tiles"?tiles():landing(),route:routeScreen,city,partybus,vote,ai};
+const VIEWS={consent,home:()=>st.concept==="tiles"?tiles():landing(),route:routeScreen,track:trackScreen,city,partybus,vote,ai};
 function render(top=true){
   if(st.screen==="bot"||st.screen==="intro"){ syncFlow(); return; }
   view.innerHTML=VIEWS[st.screen](); scrollEl.classList.toggle("redbg",st.screen==="consent"||(st.screen==="home"&&st.concept==="tiles")); if(top){ scrollEl.scrollTop=0; if(document.documentElement.classList.contains("tgdoc")) window.scrollTo(0,0); } tickCD();
@@ -1075,6 +1105,7 @@ function openTile(b){
     if(t==="ai"){ st.ai="scene"; go("ai"); }
     else if(t==="route"){ st.open=null; go("route"); }
     else if(t==="tashkent"){ st.city="tashkent"; st.tday=null; go("city"); }
+    else if(t==="track"){ go("track"); }
     else if(t==="bayram") toast("Откроется Bayram Promo: сезон праздников");
     else go(t);
   },430);
@@ -1084,7 +1115,7 @@ mini.addEventListener("click",e=>{
   const b=e.target.closest("button,[data-acc]"); if(!b||!view.contains(b)&&!b.closest("#view")) return;
   if(b.dataset.chk!=null){ st.consent[+b.dataset.chk]=!st.consent[+b.dataset.chk]; render(false); return; }
   if(b.id==="accept"){ st.accepted=true; st.screen="home"; render(); if(!st.welcomed) setTimeout(showWelcome,250); return; }
-  if(b.dataset.city){ st.city=b.dataset.city; st.tday=null; go("city"); return; }
+  if(b.dataset.city){ st._cityFrom=st.screen; st.city=b.dataset.city; st.tday=null; go("city"); return; }
   if(b.dataset.acc){ const id=b.dataset.acc; if(!$(".list .acc")){ st.open=id; st.tday=null; go("route"); return; } st.open=st.open===id?null:id; st.tday=null; render(false); return; }
   if(b.dataset.tile){ openTile(b); return; }
   if(b.dataset.aiscene!=null){ st.scene=+b.dataset.aiscene; st.ai="scene"; go("ai"); return; }
@@ -1290,7 +1321,8 @@ function goBack(){
   if(st.screen==="ai"&&st.ai==="pick"){ st.ai="scene"; return render(); }
   if(st.screen==="ai"&&st.ai==="done"){ st.ai="scene"; return render(); }
   if(st.screen==="home"||st.screen==="consent"){ if(tg&&tg.close) tg.close(); return; }
-  if(st.screen==="city"&&st.concept==="tiles"&&st._fromRoute){ return go("route"); }
+  if(st.screen==="city"&&(st._cityFrom==="route"||st._cityFrom==="track")){ const f=st._cityFrom; st._cityFrom=null; return go(f); }
+  if(st.screen==="track"||st.screen==="route"){ return go("home"); }
   go("home");
 }
 mini.addEventListener("click",e=>{
