@@ -200,9 +200,35 @@ img{display:block;max-width:100%}
 .t-trk2 .pp i{position:absolute;left:50%;bottom:-6px;width:26px;height:8px;margin-left:-13px;border-radius:50%;background:rgba(255,255,255,.35);animation:ppr 1.6s ease-in-out infinite}
 @keyframes ppb{50%{transform:translateY(-5px)}}
 @keyframes ppr{50%{transform:scale(.7);opacity:.5}}
+.now-l{display:grid;gap:10px}
+.now-c{position:relative;display:grid;gap:4px;justify-items:start;text-align:left;border:0;border-radius:18px;padding:16px 18px;background:radial-gradient(120% 140% at 100% 0%,#f0333f,var(--red) 55%,var(--red8));color:#fff;box-shadow:0 6px 0 #a61019,0 12px 22px rgba(166,16,25,.25)}
+.now-c .st{display:inline-flex;align-items:center;gap:6px;background:#fff;color:var(--red);border-radius:999px;padding:4px 10px;font-size:12px;font-weight:500}
+.now-c .st i{width:7px;height:7px;border-radius:50%;background:var(--red)}
+.now-c .st.lv i{animation:pulse 1.2s infinite}
+.now-c b{font-family:var(--display);font-weight:400;font-size:34px;line-height:1;margin-top:6px}
+.now-c small{font-size:13.5px;opacity:.92}
+.now-c .go{margin-top:8px;font-size:13.5px;font-weight:500;border-bottom:1px solid rgba(255,255,255,.6);padding-bottom:1px}
+.rstops{background:#fff;border-radius:18px;box-shadow:var(--sh-card);padding:6px 0;display:grid}
+.rstop{position:relative;display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;width:100%;border:0;background:none;padding:9px 16px 9px 12px;text-align:left;color:var(--ink)}
+.rstop:not(:last-child)::after{content:"";position:absolute;left:38px;top:52px;height:22px;border-left:2px dotted #e8b9bd}
+.rstop .rd{width:52px;height:44px;border-radius:12px;background:var(--g1);display:grid;place-content:center;text-align:center;line-height:1}
+.rstop .rd b{font-size:19px;font-weight:500;font-variant-numeric:tabular-nums}.rstop .rd b.rng{font-size:14px;letter-spacing:-.02em}
+.rstop .rd small{font-size:9.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
+.rstop .rnm b{display:block;font-size:16px;font-weight:500;line-height:1.2}
+.rstop .rnm small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.3}
+.rstop .rtg{font-size:11.5px;color:var(--muted);background:var(--g1);border-radius:999px;padding:3px 8px}
+.rstop .rtg.on{background:var(--red);color:#fff}
+.rstop.cur .rd{background:var(--red);color:#fff}.rstop.cur .rd small{color:#fff}
+.rstop.past .rd,.rstop.past .rnm{opacity:.45}
+.when1{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:14px}
+.when1 .pl2{display:inline-flex;align-items:center;gap:6px}.when1 .pl2 svg{width:16px;height:16px;color:var(--red);flex:none}
+.when1 b{font-weight:500;font-variant-numeric:tabular-nums}
+.drawpill{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;background:#fde8e9;color:var(--red8);border-radius:999px;padding:4px 10px 4px 8px;font-size:12.5px;font-weight:500}
+.drawpill svg{width:16px;height:16px;flex:none}
 /* welcome gift v2: lid with bow floats above the box, the tanga coin hovers in the gap and spins now and then */
 .g2{position:absolute;left:50%;top:-14px;width:340px;height:340px;margin-left:-170px}
-.g2>img{position:absolute;inset:0;width:100%;height:100%}
+.g2>img,.g2s,.g2s>img{position:absolute;inset:0;width:100%;height:100%}
+.g2s{transform-origin:50% 82%}
 .g2 .lc{transform-origin:50% 58%}
 .g2 .bx{transform-origin:50% 85%}
 .g2 .shine{position:absolute;left:50%;top:150px;width:300px;height:240px;margin:-120px 0 0 -150px;border-radius:50%;background:radial-gradient(closest-side,rgba(255,246,214,.95),rgba(255,226,160,.55) 45%,rgba(255,210,140,0) 100%);filter:blur(4px);opacity:0;transform:scale(.4)}
@@ -213,17 +239,18 @@ img{display:block;max-width:100%}
 .g2 .cf{position:absolute;inset:0}
 .g2 .cf i{position:absolute;left:50%;top:150px;width:8px;height:13px;border-radius:2px;opacity:0}
 .wel.on .g2{animation:g2in .55s cubic-bezier(.3,1.5,.5,1) both}
-.wel.on .g2 .bx{animation:g2wig .7s ease-in-out .55s 1}
-.wel.on .g2 .lc{animation:g2wig .7s ease-in-out .55s 1,g2lid .65s cubic-bezier(.25,1.5,.45,1) 1.25s forwards,g2float 3s ease-in-out 1.9s infinite}
-.wel.on .g2 .shine{animation:g2shine .6s ease-out 1.3s forwards,g2pulse 2.4s ease-in-out 1.9s infinite}
-.wel.on .g2 .rays2{animation:g2rays .6s ease 1.4s forwards,spin 16s linear 1.4s infinite}
-.wel.on .g2 .c{animation:g2coin 1.1s cubic-bezier(.2,.8,.4,1) calc(1.4s + var(--d)) forwards}
-.wel.on .g2 .bigw{animation:g2big .7s cubic-bezier(.25,1.4,.45,1) 1.5s forwards,g2bob 3s ease-in-out 2.2s infinite}
-.wel.on .g2 .bigw img{animation:g2spin 3.6s cubic-bezier(.45,0,.25,1) 1.5s infinite}
-.wel.on .g2 .cf i{animation:g2cf 1.3s cubic-bezier(.2,.7,.4,1) calc(1.35s + var(--d)) forwards}
+.wel.on .g2 .g2s{animation:g2shake .9s ease-in-out .55s 1}
+.wel.on .g2 .lc{animation:g2lid 1.5s cubic-bezier(.3,.05,.2,1) 1.45s forwards,g2float 3.2s ease-in-out 2.95s infinite}
+.wel.on .g2 .shine{animation:g2shine .9s ease-out 1.7s forwards,g2pulse 2.4s ease-in-out 2.6s infinite}
+.wel.on .g2 .rays2{animation:g2rays .9s ease 1.8s forwards,spin 16s linear 1.8s infinite}
+.wel.on .g2 .c{animation:g2coin 1.2s cubic-bezier(.2,.8,.4,1) calc(2.1s + var(--d)) forwards}
+.wel.on .g2 .bigw{animation:g2big .9s cubic-bezier(.25,1.3,.45,1) 2.15s forwards,g2bob 3s ease-in-out 3.05s infinite}
+.wel.on .g2 .bigw img{animation:g2spin 3.6s cubic-bezier(.45,0,.25,1) 2.6s infinite}
+.wel.on .g2 .cf i{animation:g2cf 1.3s cubic-bezier(.2,.7,.4,1) calc(2.1s + var(--d)) forwards}
 @keyframes g2in{0%{opacity:0;transform:translateY(-60px) scale(.7)}100%{opacity:1;transform:none}}
 @keyframes g2wig{0%,100%{transform:none}15%{transform:rotate(-5deg) scale(1.03,.97)}35%{transform:rotate(5deg)}55%{transform:rotate(-4deg) scale(1.03,.97)}75%{transform:rotate(3deg)}}
-@keyframes g2lid{0%{transform:none}100%{transform:translate(-2%,-42%) rotate(-8deg)}}
+@keyframes g2shake{0%,100%{transform:none}12%{transform:rotate(-5deg)}28%{transform:rotate(5deg)}44%{transform:rotate(-4deg)}60%{transform:rotate(3deg)}76%{transform:rotate(-1.5deg)}}
+@keyframes g2lid{0%{transform:none}12%{transform:translate(0,-5%) rotate(-2deg)}22%{transform:translate(0,-3%) rotate(-1deg)}100%{transform:translate(-2%,-42%) rotate(-8deg)}}
 @keyframes g2float{0%,100%{transform:translate(-2%,-42%) rotate(-8deg)}50%{transform:translate(-2%,-45%) rotate(-5deg)}}
 @keyframes g2shine{to{opacity:1;transform:none}}
 @keyframes g2pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
@@ -248,7 +275,7 @@ img{display:block;max-width:100%}
 @keyframes coin{0%{opacity:0;transform:translateY(5%) scale(.5)}20%{opacity:1}100%{opacity:1;transform:translateY(-118%) scale(1.15)}}
 @keyframes bob{0%,100%{transform:translateY(-118%) scale(1.15)}50%{transform:translateY(-128%) scale(1.15)}}
 .wel .tx{opacity:0;transform:translateY(12px);display:grid;gap:6px;justify-items:center}
-.wel.on .tx{animation:tin .6s var(--ease) 1.7s forwards}
+.wel.on .tx{animation:tin .6s var(--ease) 2.5s forwards}
 .wel .big{font-family:var(--display);font-size:64px;line-height:.9}
 .wel .tx p{margin:0;font-size:15px;max-width:30ch}
 .wel .wlater{margin-top:2px;border:0;background:none;color:#fff;font:inherit;font-size:14px;opacity:.85;text-decoration:underline;text-underline-offset:3px;padding:8px}
@@ -857,7 +884,7 @@ function showWelcome(){
   const w=$("#wel");
   const coins=[[-120,-150,-40],[-70,-205,25],[0,-230,-15],[75,-200,35],[125,-140,-30],[-150,-60,20],[150,-70,-25]].map(([x,y,r],i)=>`<img class="c" src="img/p-tanga.webp" alt="" style="--x:${x}px;--y:${y}px;--r:${r*6}deg;--d:${(i%4)*.06}s">`).join("");
   const cf=[...Array(18)].map((_,i)=>{const a=(-170+i*9.5)*Math.PI/180,r=110+(i%4)*38;return `<i style="background:${i%3?"#fff":"#ffd84a"};--x:${(Math.cos(a)*r).toFixed(0)}px;--y:${(Math.sin(a)*r-20).toFixed(0)}px;--r:${(i%2?1:-1)*(200+i*25)}deg;--d:${(i%5)*.04}s"></i>`}).join("");
-  w.innerHTML=`<div class="stage"><div class="g2"><span class="rays2"></span><span class="shine"></span><img class="bx" src="img/box-body.webp" alt="">${coins}<img class="lc" src="img/box-lid.webp" alt=""><span class="bigw"><img src="img/p-tanga.webp" alt=""></span><span class="cf">${cf}</span></div></div>
+  w.innerHTML=`<div class="stage"><div class="g2"><span class="rays2"></span><span class="shine"></span><span class="g2s"><img class="bx" src="img/box-body.webp" alt="">${coins}<img class="lc" src="img/box-lid.webp" alt=""></span><span class="bigw"><img src="img/p-tanga.webp" alt=""></span><span class="cf">${cf}</span></div></div>
     <div class="tx"><span class="big">+40 танга</span><p>Подарок от каравана: хватит на две открытки, где главный герой — вы</p><button class="btn w" id="welOk">Создать открытку</button><button class="wlater" id="welLater">Сначала осмотреться</button></div>`;
   w.classList.remove("on"); void w.offsetWidth; w.classList.add("on");
   $("#welOk").onclick=()=>{ w.classList.remove("on"); st.welcomed=true; countUp(40); setTimeout(()=>{ st.ai="scene"; go("ai"); },700); };
@@ -950,8 +977,7 @@ function tashPanel(c){
   else if(k==="here") trk=`<span class="cap">Караван уже на площадке. Ждём вас!</span>`;
   else trk=`<span class="cap">Этот день прошёл. Выберите другой.</span>`;
   return `<div class="days" role="group" aria-label="День">${c.days.map((x,i)=>{const q=slots(c)[i]; const lv=n>=q[0]&&n<q[1]; return `<button data-tday="${i}" aria-pressed="${i===st.tday}">${x.d}<small>дек</small>${lv?'<span class="ld"></span>':""}</button>`}).join("")}</div>
-    <ul class="tline"><li class="main"><b>${TIME.tash}</b><span>${day.p}</span></li></ul>
-    ${day.draw?`<div class="note2">${carIc}<span>На площадке розыгрыш ${day.draw} ${day.draw===1?"автомобиля":"автомобилей"}</span></div>`:""}
+    <div class="when1"><span class="pl2">${pinIc}<span><b>${TIME.tash}</b> · ${day.p}</span></span>${day.draw?`<span class="drawpill">${carIc}${day.draw===1?"Розыгрыш авто":`Розыгрыш ${day.draw} авто`}</span>`:""}</div>
     ${trk}`;
 }
 function accItem(c){
@@ -978,20 +1004,27 @@ function trackInfo(){ const a=activeCities(); if(a.length) return `Сейчас:
   return n?`Сейчас: в пути между городами`:"Маршрут завершён"; }
 const TIME={reg:"17:00",tash:"18:00"}; // placeholders until the final schedule
 function trackScreen(){
+  const all=ORDER.map(c=>({c,s:cityState(c)}));
   const a=activeCities();
-  const nx=ORDER.map(c=>({c,s:cityState(c)})).filter(o=>o.s.k==="soon").sort((x,y)=>x.s.slot[0]-y.s.slot[0]).slice(0,3);
+  const up=all.filter(o=>o.s.k==="soon").sort((x,y)=>x.s.slot[0]-y.s.slot[0]);
   const tm=c=>c.days?TIME.tash:TIME.reg;
-  const card=o=>{ const k=o.s.k, p=o.s.slot[2].p;
-    const when=k==="live"?`едет к «${p}»`:k==="here"?`на площадке «${p}»`:`${p} · ${tm(o.c)}`;
-    return `<button class="trk-c" data-city="${o.c.id}"><span class="nm"><b>${o.c.ru}</b><small>${when}</small></span><span class="chip ${k==="live"?"live":"today"}">${k==="live"?"в пути":k==="here"?"на месте":"сегодня"}</span>${cvIc}</button>`; };
-  const nxt=o=>`<button class="trk-c" data-city="${o.c.id}"><span class="nm"><b>${o.c.ru}</b><small>${fmtD(o.s.slot[0])} · ${o.c.days?o.s.slot[2].p:o.c.p} · ${tm(o.c)}</small></span>${cvIc}</button>`;
+  const now=o=>{ const k=o.s.k, p=o.s.slot[2].p;
+    const st=k==="live"?"в пути":k==="here"?"на площадке":`сегодня в ${tm(o.c)}`;
+    const sub=k==="live"?`Едет к «${p}»`:p;
+    return `<button class="now-c" data-city="${o.c.id}"><span class="st${k==="live"?" lv":""}"><i></i>${st}</span><b>${o.c.ru}</b><small>${sub}</small><span class="go">${k==="live"?"Смотреть на карте":"Подробнее"} ›</span></button>`; };
+  const stop=o=>{ const k=o.s.k, t=o.c.days;
+    const d=t?`<b class="rng">25–30</b>`:`<b>${o.c.d}</b>`;
+    const sub=t?`6 площадок · ${TIME.tash}`:`${o.c.p} · ${TIME.reg}`;
+    const tag=k==="done"?'<span class="rtg">был</span>':k==="soon"?"":'<span class="rtg on">сегодня</span>';
+    return `<button class="rstop${k==="done"?" past":""}${k!=="soon"&&k!=="done"?" cur":""}" data-city="${o.c.id}"><span class="rd">${d}<small>дек</small></span><span class="rnm"><b>${o.c.ru}</b><small>${sub}</small></span>${tag}</button>`; };
+  const list=st.routeAll?all.slice().sort((x,y)=>slots(x.c)[0][0]-slots(y.c)[0][0]):up.slice(0,3);
   return `<div class="scr"><button class="back" data-go="home">‹ Назад</button><h2 class="h1">Где караван сейчас</h2>
     ${uzMap()}
     <div class="secth"><h3>Сейчас</h3></div>
-    ${a.length?`<div class="trk-l">${a.map(card).join("")}</div>`:`<div class="card"><span class="cap">Караван в пути к следующему городу</span></div>`}
-    ${nx.length?`<div class="secth"><h3>Дальше</h3></div><div class="trk-l">${nx.map(nxt).join("")}</div>`:""}
-    <button class="btn w" data-allroute style="border:1px solid var(--g2)">${st.routeAll?"Свернуть маршрут":"Весь маршрут"}</button>
-    ${st.routeAll?`<div class="list" id="allroute">${ORDER.map(accItem).join("")}</div>`:""}
+    ${a.length?`<div class="now-l">${a.map(now).join("")}</div>`:`<div class="card"><span class="cap">Караван в пути к следующему городу</span></div>`}
+    <div class="secth"><h3>${st.routeAll?"Весь маршрут":"Дальше"}</h3><span>${st.routeAll?"12 городов":""}</span></div>
+    <div class="rstops" id="allroute">${list.map(stop).join("")}</div>
+    <button class="btn w" data-allroute style="border:1px solid var(--g2)">${st.routeAll?"Свернуть":"Весь маршрут"}</button>
   </div>`;
 }
 function routeScreen(){ return trackScreen(); }
