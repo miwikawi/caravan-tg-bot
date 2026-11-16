@@ -1020,7 +1020,7 @@ function animateTruck(m){
 }
 
 function city(){
-  const c=byId(st.city); if(st.tday==null){ const s=cityState(c); st.tday=c.days?c.days.indexOf(s.slot[2]):0; }
+  const c=byId(st.city); if(st.tday==null&&c.days){ const s=cityState(c); st.tday=c.days.indexOf(s.slot[2]); }
   return `<div class="scr">
     <button class="back" data-go="${st._cityFrom==="track"||st._cityFrom==="route"?st._cityFrom:"home"}">‹ Назад</button>
     <div class="cityban"><img src="img/truck-hero.webp" alt=""><div class="ov"><b>${c.ru}</b><small>${c.days?"25–30 декабря · каждый день с 18:00":`${c.d} декабря · ${c.p}`}</small></div></div>
